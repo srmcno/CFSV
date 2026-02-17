@@ -17,8 +17,8 @@ Screens:
           Control: CanvasComponent
           ComponentName: cmpHeader
           Properties:
-            Height: =64
-            ShowBackBtn: =true
+            Height: =84
+            ShowBackBtn: =false
             SubTitle: =varUserDisplayName
             Title: ="More"
             Width: =App.Width
@@ -27,7 +27,7 @@ Screens:
           ComponentName: cmpBottomNav
           Properties:
             ActiveKey: ="More"
-            Height: =56
+            Height: =72
             Width: =App.Width
             Y: =Parent.Height - Self.Height
       - cnrSettingsContent:
@@ -46,13 +46,13 @@ Screens:
                 Variant: ManualLayout
                 Properties:
                   Fill: =varTheme.Surface
-                  Height: =90
+                  Height: =100
                   PaddingBottom: =0.00
                   PaddingLeft: =0.00
-                  RadiusBottomLeft: =12
-                  RadiusBottomRight: =12
-                  RadiusTopLeft: =12
-                  RadiusTopRight: =12
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
                   Width: =Parent.Width - 32
                   X: =16
                   Y: =16
@@ -60,25 +60,25 @@ Screens:
                   - icoUser:
                       Control: Icon@0.0.7
                       Properties:
-                        Height: =40
+                        Height: =44
                         Icon: ="Person"
                         IconColor: =varTheme.Primary
-                        Width: =40
+                        Width: =44
                         X: =16
-                        Y: =24
+                        Y: =28
                   - lblUserName:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextPrimary
-                        FontWeight: =FontWeight.Semibold
-                        Height: =24
+                        FontWeight: =FontWeight.Bold
+                        Height: =26
                         PaddingBottom: =2
                         PaddingLeft: =2
-                        Size: =14
+                        Size: =16
                         Text: =varUserDisplayName
-                        Width: =Parent.Width - 80
-                        X: =64
-                        Y: =20
+                        Width: =Parent.Width - 88
+                        X: =72
+                        Y: =14
                   - lblUserEmail:
                       Control: Label@2.5.1
                       Properties:
@@ -86,61 +86,73 @@ Screens:
                         Height: =20
                         PaddingBottom: =2
                         PaddingLeft: =2
-                        Size: =11
+                        Size: =12
                         Text: =varUserEmail
-                        Width: =Parent.Width - 80
-                        X: =64
-                        Y: =46
+                        Width: =Parent.Width - 88
+                        X: =72
+                        Y: =42
+                  - lblUserLocation:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextTertiary
+                        Height: =18
+                        PaddingBottom: =2
+                        PaddingLeft: =2
+                        Size: =11
+                        Text: =varUserAssociate.Location
+                        Width: =Parent.Width - 88
+                        X: =72
+                        Y: =64
             - lblQuickLinksTitle:
                 Control: Label@2.5.1
                 Properties:
                   Color: =varTheme.TextPrimary
                   FontWeight: =FontWeight.Semibold
-                  Height: =24
+                  Height: =28
                   PaddingBottom: =2
                   PaddingLeft: =2
                   Size: =14
                   Text: ="Quick Links"
                   Width: =Parent.Width - 32
                   X: =16
-                  Y: =122
+                  Y: =132
             - btnGoMyReservations:
                 Control: Button@0.0.45
                 Properties:
                   Appearance: ="Secondary"
-                  Height: =44
+                  Height: =52
                   OnSelect: =Navigate(scrMyReservations, ScreenTransition.Fade)
                   Text: |-
                     ="My Reservations"
                   Width: =Parent.Width - 32
                   X: =16
-                  Y: =152
+                  Y: =168
             - btnGoGasPurchases:
                 Control: Button@0.0.45
                 Properties:
                   Appearance: ="Secondary"
-                  Height: =44
+                  Height: =52
                   OnSelect: =Navigate(scrGasPurchase, ScreenTransition.Fade)
-                  Text: ="Log Gas Purchase"
+                  Text: ="Log Fuel Purchase"
                   Width: =Parent.Width - 32
                   X: =16
-                  Y: =204
+                  Y: =228
             - btnGoFuelHistory:
                 Control: Button@0.0.45
                 Properties:
                   Appearance: ="Secondary"
-                  Height: =44
+                  Height: =52
                   OnSelect: =Navigate(scrFuelHistory, ScreenTransition.Fade)
                   Text: |-
                     ="Fuel History"
                   Width: =Parent.Width - 32
                   X: =16
-                  Y: =256
+                  Y: =288
             - btnGoVehicles:
                 Control: Button@0.0.45
                 Properties:
                   Appearance: ="Secondary"
-                  Height: =44
+                  Height: =52
                   OnSelect: |-
                     =Set(varFilterStatus, "All");
                     Navigate(scrVehicleList, ScreenTransition.Fade)
@@ -148,22 +160,35 @@ Screens:
                     ="All Vehicles"
                   Width: =Parent.Width - 32
                   X: =16
-                  Y: =308
+                  Y: =348
+            - btnGoMaintenanceRequest:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ="Secondary"
+                  Height: =52
+                  OnSelect: |-
+                    =Set(varMaintVehicle, Blank());
+                    Navigate(scrMaintenanceRequest, ScreenTransition.Fade)
+                  Text: |-
+                    ="Report an Issue"
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =408
             - cnrAbout:
                 Control: GroupContainer@1.4.0
                 Variant: ManualLayout
                 Properties:
                   Fill: =varTheme.Surface
-                  Height: =80
+                  Height: =90
                   PaddingBottom: =0.00
                   PaddingLeft: =0.00
-                  RadiusBottomLeft: =12
-                  RadiusBottomRight: =12
-                  RadiusTopLeft: =12
-                  RadiusTopRight: =12
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
                   Width: =Parent.Width - 32
                   X: =16
-                  Y: =370
+                  Y: =476
                 Children:
                   - lblAboutTitle:
                       Control: Label@2.5.1
@@ -177,7 +202,7 @@ Screens:
                         Text: ="CFS Tribal Vehicle Usage"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =16
+                        Y: =12
                   - lblAboutVersion:
                       Control: Label@2.5.1
                       Properties:
@@ -186,7 +211,19 @@ Screens:
                         PaddingBottom: =2
                         PaddingLeft: =2
                         Size: =11
-                        Text: ="Choctaw Nation EPS  •  v1.1"
+                        Text: ="Choctaw Nation EPS  \U+2022  v2.0"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =42
+                        Y: =38
+                  - lblAboutRedesign:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextTertiary
+                        Height: =18
+                        PaddingBottom: =2
+                        PaddingLeft: =2
+                        Size: =11
+                        Text: ="Mobile-First Redesign"
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =60

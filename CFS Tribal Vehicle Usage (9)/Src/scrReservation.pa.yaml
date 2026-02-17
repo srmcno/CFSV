@@ -21,7 +21,7 @@ Screens:
           Control: CanvasComponent
           ComponentName: cmpHeader
           Properties:
-            Height: =64
+            Height: =84
             ShowBackBtn: =true
             SubTitle: =If(IsBlank(varResVehicleSelected), "Select a vehicle", varResVehicleSelected.'Vehicle Name')
             Title: ="New Reservation"
@@ -31,7 +31,7 @@ Screens:
           ComponentName: cmpBottomNav
           Properties:
             ActiveKey: ="Reserve"
-            Height: =56
+            Height: =72
             Width: =App.Width
             Y: =Parent.Height - Self.Height
       - cnrResForm:
@@ -41,73 +41,83 @@ Screens:
             Fill: =Color.Transparent
             Height: =Parent.Height - cmpHeader_Res.Height - cmpBottomNav_Res.Height
             LayoutDirection: =LayoutDirection.Vertical
-            LayoutGap: =12
+            LayoutGap: =14
             LayoutOverflowY: =LayoutOverflow.Scroll
-            PaddingBottom: =16
-            PaddingLeft: =16
-            PaddingRight: =16
-            PaddingTop: =12
+            PaddingBottom: =20
+            PaddingLeft: =20
+            PaddingRight: =20
+            PaddingTop: =20
             Width: =Parent.Width
             Y: =cmpHeader_Res.Height
           Children:
+            # ── Form Card ───────────────────────────────────────────────────
             - cnrFormCard:
                 Control: GroupContainer@1.4.0
                 Variant: ManualLayout
                 Properties:
                   Fill: =varTheme.Surface
-                  Height: =340
-                  RadiusBottomLeft: =12
-                  RadiusBottomRight: =12
-                  RadiusTopLeft: =12
-                  RadiusTopRight: =12
-                  Width: =Parent.Width - 32
+                  FillPortions: =0
+                  Height: =420
+                  PaddingBottom: =0.00
+                  PaddingLeft: =0.00
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                  Width: =Parent.Width - 40
                 Children:
+                  # ── Select Vehicle ────────────────────────────────────────
                   - lblSelectVehicle:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
                         Height: =22
+                        PaddingBottom: =2
+                        PaddingLeft: =2
                         Size: =12
                         Text: ="Select Vehicle *"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =12
+                        Y: =16
                   - ddVehicle:
                       Control: DropDown@0.0.45
                       Properties:
                         DefaultSelectedItems: =If(!IsBlank(varResVehicleSelected), [varResVehicleSelected], [])
-                        Height: =40
+                        Height: =48
                         Items: =Filter(CFSVehicles, 'CFSVehicles (Views)'.'Active CFSVehicles')
                         OnChange: =Set(varResVehicleSelected, Self.Selected)
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =36
+                        Y: =40
                       Children:
                         - VehicleName1:
                             Control: DropDownDataField@1.5.0
                             Variant: textualColumn
                             IsLocked: true
                             Properties:
-                              FieldDisplayName: ="Location"
+                              FieldDisplayName: ="Vehicle"
                               FieldName: ="cr63e_vehiclename"
                               FieldType: ="s"
                               Order: =1
+                  # ── Start Date ────────────────────────────────────────────
                   - lblStartDate:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
                         Height: =22
+                        PaddingBottom: =2
+                        PaddingLeft: =2
                         Size: =12
                         Text: ="Start Date *"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =84
+                        Y: =100
                   - dpStartDate:
                       Control: DatePicker@0.0.46
                       Properties:
-                        Height: =40
+                        Height: =48
                         OnChange: |-
                           =Set(varResStartDate, Self.SelectedDate);
                           If(varResEndDate < Self.SelectedDate, Set(varResEndDate, Self.SelectedDate))
@@ -115,54 +125,62 @@ Screens:
                         StartDate: =varResStartDate
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =108
+                        Y: =124
+                  # ── End Date ──────────────────────────────────────────────
                   - lblEndDate:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
                         Height: =22
+                        PaddingBottom: =2
+                        PaddingLeft: =2
                         Size: =12
                         Text: ="End Date *"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =156
+                        Y: =184
                   - dpEndDate:
                       Control: DatePicker@0.0.46
                       Properties:
                         EndDate: =varResEndDate
-                        Height: =40
+                        Height: =48
                         OnChange: =Set(varResEndDate, Self.SelectedDate)
                         SelectedDate: =varResEndDate
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =180
+                        Y: =208
+                  # ── Purpose / Notes ───────────────────────────────────────
                   - lblPurpose:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
                         Height: =22
+                        PaddingBottom: =2
+                        PaddingLeft: =2
                         Size: =12
                         Text: ="Purpose / Notes"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =228
+                        Y: =268
                   - txtPurpose:
                       Control: TextInput@0.0.54
                       Properties:
-                        Height: =60
+                        Height: =80
                         Mode: =TextMode.MultiLine
                         OnChange: =Set(varResPurpose, Self.Value)
                         Placeholder: ="Enter purpose of trip..."
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =252
+                        Y: =292
+                  # ── Conflict Warning ──────────────────────────────────────
                   - lblConflictWarning:
                       Control: Label@2.5.1
                       Properties:
-                        Color: =varStatusColors.Warning
+                        Color: =varTheme.Warning
                         Height: =24
+                        PaddingLeft: =2
                         Size: =11
                         Text: ="This vehicle has reservations during selected dates"
                         Visible: |-
@@ -176,13 +194,15 @@ Screens:
                           ) > 0
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =316
+                        Y: =380
+            # ── Submit Button ───────────────────────────────────────────────
             - btnSubmitRes:
                 Control: Button@0.0.45
                 Properties:
                   BasePaletteColor: =varTheme.Primary
                   DisplayMode: =If(IsBlank(varResVehicleSelected) || varResEndDate < varResStartDate, DisplayMode.Disabled, DisplayMode.Edit)
-                  Height: =44
+                  FillPortions: =0
+                  Height: =52
                   OnSelect: |-
                     =Set(varIsSubmitting, true);
 
@@ -219,12 +239,14 @@ Screens:
 
                     Set(varIsSubmitting, false);
                   Text: ="Submit Reservation"
-                  Width: =Parent.Width - 32
+                  Width: =Parent.Width - 40
+            # ── Cancel Button ───────────────────────────────────────────────
             - btnCancelRes:
                 Control: Button@0.0.45
                 Properties:
                   Appearance: ="Secondary"
-                  Height: =44
+                  FillPortions: =0
+                  Height: =52
                   OnSelect: =Back()
                   Text: ="Cancel"
-                  Width: =Parent.Width - 32
+                  Width: =Parent.Width - 40
