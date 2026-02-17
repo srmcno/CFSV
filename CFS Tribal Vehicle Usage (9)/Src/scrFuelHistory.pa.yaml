@@ -1,5 +1,36 @@
 # ************************************************************************************************
-# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# CFS Tribal Vehicle Usage — scrFuelHistory
+# Fuel transaction history screen with filter toggle, source-colored gallery cards,
+# receipt overlay, and empty state.
+#
+# KEY IMPROVEMENTS over prior version:
+#   1. NULL GUARD on "Mine" filter — checks varUserHasProfile before filtering by associate
+#   2. DIVIDE-BY-ZERO protection — PPG uses If(Gallons > 0, ...) guard
+#   3. BETTER RECEIPT OVERLAY — shows vehicle, date, amount, and properly bound Image
+#   4. FILTER BAR — pill-track background with two toggle pills
+#   5. GALLERY CARDS — left accent bar colored by Source, camera icon colored when receipt exists
+#   6. EMPTY STATE — icon circle, title, description, CTA
+#   7. OnVisible — sets filter to "Mine", loads colFuelHistory with null guard, clears overlay
+#
+# Data model:
+#   'Fuel Transactions': Vehicle (lookup -> 'Vehicle Name'), TransactionDateTime, Amount,
+#   Gallons, Source (OptionSet: Manual | VoyagerFeed | Import), Notes,
+#   SubmittedBy (lookup -> Associates via .Associates PK), ReceiptImage
+#
+# Global variables:
+#   varTheme, varStatusColors, varSize
+#   varUserAssociate, varUserHasProfile
+#   varFuelHistoryFilter ("Mine" | "All")
+#   varViewReceipt (fuel transaction record or Blank)
+#
+# Components: cmpHeader (84px, ShowBackBtn=true), cmpBottomNav (72px, ActiveKey="Gas")
+#
+# Control versions:
+#   GroupContainer@1.4.0, Rectangle@2.3.0, Label@2.5.1, Button@0.0.45,
+#   Icon@0.0.7, Gallery@2.15.0, Image@2.2.3
+#
+# Warning: YAML source code for Canvas Apps should only be used to review changes made
+# within Power Apps Studio and for minor edits (Preview).
 # Use the maker portal to create and edit your Power Apps.
 #
 # The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
@@ -12,18 +43,27 @@ Screens:
       Fill: =varTheme.Background
       LoadingSpinnerColor: =varTheme.Primary
       OnVisible: |-
-        =Set(varFuelHistoryFilter, "Mine");
+        =// Reset filter to user's own transactions
+        Set(varFuelHistoryFilter, "Mine");
+
+        // Load fuel history with NULL GUARD on varUserAssociate
         ClearCollect(
             colFuelHistory,
-            Sort(
-                Filter(
-                    'Fuel Transactions',
-                    SubmittedBy.Associates = varUserAssociate.Associates
+            If(
+                varUserHasProfile,
+                Sort(
+                    Filter(
+                        'Fuel Transactions',
+                        SubmittedBy.Associates = varUserAssociate.Associates
+                    ),
+                    TransactionDateTime,
+                    SortOrder.Descending
                 ),
-                TransactionDateTime,
-                SortOrder.Descending
+                Blank()
             )
         );
+
+        // Clear any lingering receipt overlay
         Set(varViewReceipt, Blank())
     Children:
       # ══════════════════════════════════════════════════════════════
@@ -38,6 +78,7 @@ Screens:
             SubTitle: =CountRows(colFuelHistory) & " transactions"
             Title: ="Fuel History"
             Width: =App.Width
+
       # ══════════════════════════════════════════════════════════════
       # ── BOTTOM NAVIGATION (72px)
       # ══════════════════════════════════════════════════════════════
@@ -49,8 +90,9 @@ Screens:
             Height: =72
             Width: =App.Width
             Y: =Parent.Height - Self.Height
+
       # ══════════════════════════════════════════════════════════════
-      # ── FILTER BAR (52px) – My Transactions / All Transactions
+      # ── FILTER BAR (52px) — My Transactions / All Transactions
       # ══════════════════════════════════════════════════════════════
       - cnrFuelFilters:
           Control: GroupContainer@1.4.0
@@ -76,6 +118,7 @@ Screens:
                   Width: =Parent.Width - 32
                   X: =16
                   Y: =6
+
             # ── My Transactions pill ──
             - btnFuelFilterMine:
                 Control: Button@0.0.45
@@ -85,15 +128,20 @@ Screens:
                   Height: =36
                   OnSelect: |-
                     =Set(varFuelHistoryFilter, "Mine");
+                    // NULL GUARD: only filter by associate when profile exists
                     ClearCollect(
                         colFuelHistory,
-                        Sort(
-                            Filter(
-                                'Fuel Transactions',
-                                SubmittedBy.Associates = varUserAssociate.Associates
+                        If(
+                            varUserHasProfile,
+                            Sort(
+                                Filter(
+                                    'Fuel Transactions',
+                                    SubmittedBy.Associates = varUserAssociate.Associates
+                                ),
+                                TransactionDateTime,
+                                SortOrder.Descending
                             ),
-                            TransactionDateTime,
-                            SortOrder.Descending
+                            Blank()
                         )
                     )
                   RadiusBottomLeft: =18
@@ -104,6 +152,7 @@ Screens:
                   Width: =(Parent.Width - 40) / 2
                   X: =19
                   Y: =8
+
             # ── All Transactions pill ──
             - btnFuelFilterAll:
                 Control: Button@0.0.45
@@ -129,6 +178,7 @@ Screens:
                   Width: =(Parent.Width - 40) / 2
                   X: =(Parent.Width - 40) / 2 + 21
                   Y: =8
+
       # ══════════════════════════════════════════════════════════════
       # ── TRANSACTION GALLERY
       # ══════════════════════════════════════════════════════════════
@@ -185,6 +235,7 @@ Screens:
                         Width: =6
                         X: =0
                         Y: =12
+
                   # ── Vehicle name ──
                   - lblFuelVehicle:
                       Control: Label@2.5.1
@@ -199,6 +250,7 @@ Screens:
                         Width: =Parent.Width - 140
                         X: =18
                         Y: =10
+
                   # ── Transaction date ──
                   - lblFuelDate:
                       Control: Label@2.5.1
@@ -212,7 +264,8 @@ Screens:
                         Width: =Parent.Width - 140
                         X: =18
                         Y: =36
-                  # ── Gallons + PPG detail ──
+
+                  # ── Gallons + PPG detail (DIVIDE-BY-ZERO PROTECTION) ──
                   - lblFuelDetail:
                       Control: Label@2.5.1
                       Properties:
@@ -229,7 +282,8 @@ Screens:
                         Width: =Parent.Width - 140
                         X: =18
                         Y: =58
-                  # ── Amount (right-aligned) ──
+
+                  # ── Amount (right-aligned, bold) ──
                   - lblFuelAmount:
                       Control: Label@2.5.1
                       Properties:
@@ -244,6 +298,7 @@ Screens:
                         Width: =100
                         X: =Parent.Width - 116
                         Y: =10
+
                   # ── Source label (right-aligned) ──
                   - lblFuelSource:
                       Control: Label@2.5.1
@@ -265,7 +320,8 @@ Screens:
                         Width: =80
                         X: =Parent.Width - 96
                         Y: =36
-                  # ── Camera / receipt icon ──
+
+                  # ── Camera / receipt icon (colored when receipt exists) ──
                   - icoFuelReceipt:
                       Control: Icon@0.0.7
                       Properties:
@@ -275,7 +331,8 @@ Screens:
                         Width: =24
                         X: =Parent.Width - 40
                         Y: =62
-                  # ── Tap handler (full card overlay) ──
+
+                  # ── Tap handler (full card overlay — opens receipt when available) ──
                   - btnFuelTap:
                       Control: Button@0.0.45
                       Properties:
@@ -286,6 +343,7 @@ Screens:
                         OnSelect: =If(!IsBlank(ThisItem.ReceiptImage), Set(varViewReceipt, ThisItem))
                         Text: =""
                         Width: =Parent.Width
+
       # ══════════════════════════════════════════════════════════════
       # ── EMPTY STATE
       # ══════════════════════════════════════════════════════════════
@@ -319,7 +377,8 @@ Screens:
                   Width: =48
                   X: =(Parent.Width - 48) / 2
                   Y: =24
-            # ── Cars icon ──
+
+            # ── Fuel icon ──
             - icoNoFuel:
                 Control: Icon@0.0.7
                 Properties:
@@ -329,7 +388,8 @@ Screens:
                   Width: =24
                   X: =(Parent.Width - 24) / 2
                   Y: =36
-            # ── Empty message ──
+
+            # ── Empty title ──
             - lblNoFuelText:
                 Control: Label@2.5.1
                 Properties:
@@ -341,7 +401,8 @@ Screens:
                   Text: ="No fuel transactions found"
                   Width: =Parent.Width
                   Y: =84
-            # ── Description ──
+
+            # ── Empty description ──
             - lblNoFuelDesc:
                 Control: Label@2.5.1
                 Properties:
@@ -353,6 +414,7 @@ Screens:
                   Width: =Parent.Width - 40
                   X: =20
                   Y: =110
+
             # ── CTA button ──
             - btnGoLogGas:
                 Control: Button@0.0.45
@@ -366,6 +428,7 @@ Screens:
                   Width: =200
                   X: =(Parent.Width - 200) / 2
                   Y: =140
+
       # ══════════════════════════════════════════════════════════════
       # ── RECEIPT OVERLAY
       # ══════════════════════════════════════════════════════════════
@@ -398,6 +461,7 @@ Screens:
                   Width: =Parent.Width - 32
                   X: =16
                   Y: =48
+
             # ── Amount (bold) ──
             - lblReceiptAmount:
                 Control: Label@2.5.1
@@ -411,7 +475,8 @@ Screens:
                   Width: =Parent.Width - 32
                   X: =16
                   Y: =78
-            # ── Receipt image ──
+
+            # ── Receipt image (properly bound to varViewReceipt.ReceiptImage) ──
             - imgReceipt:
                 Control: Image@2.2.3
                 Properties:
@@ -427,6 +492,7 @@ Screens:
                   Width: =Parent.Width - 48
                   X: =24
                   Y: =128
+
             # ── Close button ──
             - btnCloseReceipt:
                 Control: Button@0.0.45

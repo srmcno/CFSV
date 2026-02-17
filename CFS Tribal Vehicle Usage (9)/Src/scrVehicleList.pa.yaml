@@ -10,14 +10,21 @@ Screens:
   scrVehicleList:
     Properties:
       Fill: =varTheme.Background
-      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+      LoadingSpinnerColor: =varTheme.Primary
       OnVisible: |-
         =// Default to "All" only if no filter was passed from Home
         If(IsBlank(varFilterStatus), Set(varFilterStatus, "All"));
-        Set(varShowAllLocations, false);
+
+        // Default location mode: show user's location if profile exists,
+        // otherwise show all locations (null-safe)
+        Set(varShowAllLocations, !varUserHasProfile);
+
+        // Reset search on entry
         Reset(txtSearch)
     Children:
-      # ── Header ──
+      # ══════════════════════════════════════════════════════════════
+      # HEADER
+      # ══════════════════════════════════════════════════════════════
       - cmpHeader_List:
           Control: CanvasComponent
           ComponentName: cmpHeader
@@ -25,14 +32,26 @@ Screens:
             Height: =varSize.HeaderH
             ShowBackBtn: =true
             SubTitle: |-
-              =If(
-                  varFilterStatus = "All",
-                  If(varShowAllLocations, "All Locations", "My Location"),
-                  "Showing: " & varFilterStatus & If(varShowAllLocations, " (All Locations)", "")
+              =// Dynamic subtitle reflecting filter state and location mode
+              With(
+                  {
+                      _locLabel: If(
+                          !varUserHasProfile, "All Locations",
+                          varShowAllLocations, "All Locations",
+                          "My Location"
+                      )
+                  },
+                  If(
+                      varFilterStatus = "All",
+                      _locLabel,
+                      "Showing: " & varFilterStatus & " · " & _locLabel
+                  )
               )
             Title: ="Vehicle Fleet"
             Width: =App.Width
-      # ── Bottom Navigation ──
+      # ══════════════════════════════════════════════════════════════
+      # BOTTOM NAVIGATION
+      # ══════════════════════════════════════════════════════════════
       - cmpBottomNav_List:
           Control: CanvasComponent
           ComponentName: cmpBottomNav
@@ -41,7 +60,9 @@ Screens:
             Height: =varSize.NavH
             Width: =App.Width
             Y: =Parent.Height - Self.Height
-      # ── Search & Filter Bar ──
+      # ══════════════════════════════════════════════════════════════
+      # SEARCH & FILTER BAR
+      # ══════════════════════════════════════════════════════════════
       - cnrSearchBar:
           Control: GroupContainer@1.4.0
           Variant: ManualLayout
@@ -70,15 +91,16 @@ Screens:
                   Width: =If(varFilterStatus = "All", Parent.Width - 32, Parent.Width - 84)
                   X: =16
                   Y: =12
+            # ── Search Text Input ──
             - txtSearch:
                 Control: TextInput@0.0.54
                 Properties:
                   Height: =varSize.InputH
-                  Placeholder: ="Search vehicles..."
+                  Placeholder: ="Search by name, make, model, tag..."
                   Width: =If(varFilterStatus = "All", Parent.Width - 32, Parent.Width - 84)
                   X: =16
                   Y: =14
-            # ── Clear Filter Icon ──
+            # ── Clear Filter Icon (visible only when a status filter is active) ──
             - icoClearFilter:
                 Control: Classic/Icon@2.5.0
                 Properties:
@@ -92,7 +114,9 @@ Screens:
                   HoverColor: =ColorFade(varTheme.Danger, -20%)
                   HoverFill: =varTheme.DangerLight
                   Icon: =Icon.Cancel
-                  OnSelect: =Set(varFilterStatus, "All")
+                  OnSelect: |-
+                    =Set(varFilterStatus, "All");
+                    Reset(txtSearch)
                   PaddingBottom: =10
                   PaddingLeft: =10
                   PaddingRight: =10
@@ -104,7 +128,7 @@ Screens:
                   Width: =varSize.TouchMin
                   X: =Parent.Width - 16 - varSize.TouchMin
                   Y: =14
-            # ── Location Toggle Container ──
+            # ── Location Toggle Background (pill track) ──
             - recToggleBg:
                 Control: Rectangle@2.3.0
                 Properties:
@@ -117,19 +141,25 @@ Screens:
                   Width: =Parent.Width - 32
                   X: =16
                   Y: =70
-            # ── My Location Toggle Pill ──
+            # ── My Location Pill Button ──
             - btnLocMine:
                 Control: Button@0.0.45
                 Properties:
                   BasePaletteColor: =If(!varShowAllLocations, varTheme.Primary, Color.Transparent)
-                  FontColor: =If(!varShowAllLocations, varTheme.TextOnPrimary, varTheme.TextSecondary)
+                  Disabled: =!varUserHasProfile
+                  FontColor: |-
+                    =If(
+                        !varUserHasProfile, varTheme.TextTertiary,
+                        !varShowAllLocations, varTheme.TextOnPrimary,
+                        varTheme.TextSecondary
+                    )
                   Height: =38
                   OnSelect: =Set(varShowAllLocations, false)
                   Text: ="My Location"
                   Width: =(Parent.Width - 40) / 2
                   X: =19
                   Y: =73
-            # ── All Locations Toggle Pill ──
+            # ── All Locations Pill Button ──
             - btnLocAll:
                 Control: Button@0.0.45
                 Properties:
@@ -141,22 +171,43 @@ Screens:
                   Width: =(Parent.Width - 40) / 2
                   X: =(Parent.Width - 40) / 2 + 21
                   Y: =73
-      # ── Vehicle Gallery ──
+      # ══════════════════════════════════════════════════════════════
+      # VEHICLE GALLERY
+      # ══════════════════════════════════════════════════════════════
       - galVehicles:
           Control: Gallery@2.15.0
           Variant: BrowseLayout_Vertical_OneTextVariant_pcfCore
           Properties:
             BorderColor: =RGBA(243, 242, 241, 1)
-            FocusedBorderColor: =RGBA(98, 100, 167, 1)
+            FocusedBorderColor: =varTheme.Primary
             FocusedBorderThickness: =2
             Height: =Parent.Height - cmpHeader_List.Height - cnrSearchBar.Height - cmpBottomNav_List.Height
             Items: |-
               =SortByColumns(
                   Filter(
                       CFSVehicles,
-                      (varFilterStatus = "All" || Text('Status (cr63e_status)') = varFilterStatus) &&
-                      (IsBlank(txtSearch.Value) || txtSearch.Value in 'Vehicle Name') &&
-                      (varShowAllLocations || Location = varUserAssociate.Location)
+                      // ── Status filter ──
+                      (varFilterStatus = "All" ||
+                          Switch(
+                              varFilterStatus,
+                              "Available",    'Status (cr63e_status)' = 'Status (CFSVehicles)'.Available,
+                              "Checked Out",  'Status (cr63e_status)' = 'Status (CFSVehicles)'.'Checked Out',
+                              "Reserved",     'Status (cr63e_status)' = 'Status (CFSVehicles)'.Reserved,
+                              "Maintenance",  'Status (cr63e_status)' = 'Status (CFSVehicles)'.Maintenance,
+                              true
+                          )
+                      ) &&
+                      // ── Search filter (name, make, model, tag, VIN) ──
+                      (IsBlank(txtSearch.Value) ||
+                          txtSearch.Value in 'Vehicle Name' ||
+                          txtSearch.Value in Make ||
+                          txtSearch.Value in Model ||
+                          txtSearch.Value in Tag ||
+                          txtSearch.Value in VIN
+                      ) &&
+                      // ── Location filter with null guard ──
+                      // If user has no profile OR showing all, skip location filter
+                      (varShowAllLocations || !varUserHasProfile || Location = varUserAssociate.Location)
                   ),
                   "cr63e_vehiclename",
                   SortOrder.Ascending
@@ -164,6 +215,7 @@ Screens:
             LoadingSpinner: =LoadingSpinner.Controls
             TemplatePadding: =6
             TemplateSize: =96
+            Visible: =!IsEmpty(galVehicles.AllItems)
             Width: =Parent.Width
             Y: =cmpHeader_List.Height + cnrSearchBar.Height
           Children:
@@ -205,7 +257,7 @@ Screens:
                         Width: =6
                         X: =8
                         Y: =12
-                  # ── Vehicle Name ──
+                  # ── Vehicle Name (bold) ──
                   - lblVehicleName:
                       Control: Label@2.5.1
                       Properties:
@@ -219,7 +271,7 @@ Screens:
                         Width: =Parent.Width - 140
                         X: =24
                         Y: =14
-                  # ── Year / Make / Model / Tag ──
+                  # ── Year / Make / Model · Tag meta line ──
                   - lblVehicleMeta:
                       Control: Label@2.5.1
                       Properties:
@@ -228,11 +280,32 @@ Screens:
                         PaddingBottom: =0
                         PaddingLeft: =0
                         Size: =12
-                        Text: =ThisItem.Year & " " & ThisItem.Make & " " & ThisItem.Model & " · " & ThisItem.Tag
+                        Text: |-
+                          =ThisItem.Year & " " & ThisItem.Make & " " & ThisItem.Model &
+                          If(!IsBlank(ThisItem.Tag), " · " & ThisItem.Tag)
                         Width: =Parent.Width - 140
                         X: =24
                         Y: =42
-                  # ── Status Pill Badge ──
+                  # ── Mileage sub-line ──
+                  - lblVehicleMileage:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextTertiary
+                        Height: =18
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        Size: =11
+                        Text: |-
+                          =If(
+                              !IsBlank(ThisItem.'Current Mileage'),
+                              Text(ThisItem.'Current Mileage', "#,##0") & " mi",
+                              ""
+                          )
+                        Visible: =!IsBlank(ThisItem.'Current Mileage')
+                        Width: =Parent.Width - 140
+                        X: =24
+                        Y: =62
+                  # ── Status Pill Badge Background ──
                   - recStatusPill:
                       Control: Rectangle@2.3.0
                       Properties:
@@ -252,7 +325,8 @@ Screens:
                         RadiusTopRight: =12
                         Width: =90
                         X: =Parent.Width - 118
-                        Y: =(Parent.Height - 24) / 2
+                        Y: =(Parent.Height - 24) / 2 - 10
+                  # ── Status Pill Badge Label (Switch on option set, NOT Text()) ──
                   - lblVehicleStatus:
                       Control: Label@2.5.1
                       Properties:
@@ -271,10 +345,20 @@ Screens:
                         PaddingBottom: =0
                         PaddingLeft: =0
                         Size: =10
-                        Text: =Upper(Text(ThisItem.'Status (cr63e_status)'))
+                        Text: |-
+                          =Upper(
+                              Switch(
+                                  ThisItem.'Status (cr63e_status)',
+                                  'Status (CFSVehicles)'.Available, "AVAILABLE",
+                                  'Status (CFSVehicles)'.'Checked Out', "CHECKED OUT",
+                                  'Status (CFSVehicles)'.Reserved, "RESERVED",
+                                  'Status (CFSVehicles)'.Maintenance, "MAINTENANCE",
+                                  "UNKNOWN"
+                              )
+                          )
                         Width: =90
                         X: =Parent.Width - 118
-                        Y: =(Parent.Height - 24) / 2
+                        Y: =(Parent.Height - 24) / 2 - 10
                   # ── Chevron Right Indicator ──
                   - icoChevron:
                       Control: Icon@0.0.7
@@ -285,7 +369,7 @@ Screens:
                         Width: =16
                         X: =Parent.Width - 24
                         Y: =(Parent.Height - 16) / 2
-                  # ── Tap Handler (full card overlay) ──
+                  # ── Tap Handler (full card transparent overlay) ──
                   - btnVehicleCardTap:
                       Control: Button@0.0.45
                       Properties:
@@ -298,3 +382,113 @@ Screens:
                           Navigate(scrVehicleDetail, ScreenTransition.Fade)
                         Text: =""
                         Width: =Parent.Width
+      # ══════════════════════════════════════════════════════════════
+      # EMPTY STATE — shown when gallery has zero matching vehicles
+      # ══════════════════════════════════════════════════════════════
+      - cnrEmptyState:
+          Control: GroupContainer@1.4.0
+          Variant: ManualLayout
+          Properties:
+            Fill: =Color.Transparent
+            Height: =Parent.Height - cmpHeader_List.Height - cnrSearchBar.Height - cmpBottomNav_List.Height
+            PaddingBottom: =0.00
+            PaddingLeft: =0.00
+            Visible: =IsEmpty(galVehicles.AllItems)
+            Width: =Parent.Width
+            Y: =cmpHeader_List.Height + cnrSearchBar.Height
+          Children:
+            # ── Empty State Card ──
+            - cnrEmptyCard:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  Height: =240
+                  PaddingBottom: =0.00
+                  PaddingLeft: =0.00
+                  RadiusBottomLeft: =varSize.CardRadius
+                  RadiusBottomRight: =varSize.CardRadius
+                  RadiusTopLeft: =varSize.CardRadius
+                  RadiusTopRight: =varSize.CardRadius
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =24
+                Children:
+                  # ── Icon circle background ──
+                  - recEmptyIconBg:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Fill: =varTheme.PrimaryBg
+                        Height: =56
+                        RadiusBottomLeft: =28
+                        RadiusBottomRight: =28
+                        RadiusTopLeft: =28
+                        RadiusTopRight: =28
+                        Width: =56
+                        X: =(Parent.Width - 56) / 2
+                        Y: =24
+                  # ── Search/car icon ──
+                  - icoEmptyState:
+                      Control: Icon@0.0.7
+                      Properties:
+                        Height: =28
+                        Icon: ="Car"
+                        IconColor: =varTheme.Primary
+                        Width: =28
+                        X: =(Parent.Width - 28) / 2
+                        Y: =38
+                  # ── Title message ──
+                  - lblEmptyTitle:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =24
+                        Size: =15
+                        Text: ="No Vehicles Found"
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =92
+                  # ── Description message ──
+                  - lblEmptyDesc:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        Color: =varTheme.TextTertiary
+                        Height: =40
+                        Size: =12
+                        Text: |-
+                          =If(
+                              varFilterStatus <> "All" && !IsBlank(txtSearch.Value),
+                              "No vehicles match """ & txtSearch.Value & """ with status " & varFilterStatus & ".",
+                              varFilterStatus <> "All",
+                              "No " & Lower(varFilterStatus) & " vehicles" & If(!varShowAllLocations && varUserHasProfile, " at your location.", "."),
+                              !IsBlank(txtSearch.Value),
+                              "No vehicles match """ & txtSearch.Value & """.",
+                              "No vehicles available in the fleet."
+                          )
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =120
+                  # ── Clear Filters Button ──
+                  - btnClearFilters:
+                      Control: Button@0.0.45
+                      Properties:
+                        Appearance: ="Secondary"
+                        BasePaletteColor: =varTheme.Primary
+                        FontColor: =varTheme.Primary
+                        Height: =40
+                        OnSelect: |-
+                          =Set(varFilterStatus, "All");
+                          Set(varShowAllLocations, true);
+                          Reset(txtSearch)
+                        RadiusBottomLeft: =20
+                        RadiusBottomRight: =20
+                        RadiusTopLeft: =20
+                        RadiusTopRight: =20
+                        Text: ="Clear Filters"
+                        Visible: =varFilterStatus <> "All" || !IsBlank(txtSearch.Value) || (!varShowAllLocations && varUserHasProfile)
+                        Width: =160
+                        X: =(Parent.Width - 160) / 2
+                        Y: =176

@@ -11,8 +11,46 @@ Screens:
     Properties:
       Fill: =varTheme.Background
       LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
-      OnVisible: "=// Load reservations for this vehicle\r\n        ClearCollect(\r\n            colVehicleReservations,\r\n            Filter(\r\n                'Vehicle Reservations',\r\n                Vehicle.CFSVehicles = varSelectedVehicle.CFSVehicles &&\r\n                EndDateTime >= Today()\r\n            )\r\n        );\r\n        \r\n        // Get fuel card info\r\n        Set(\r\n            varVehicleFuelCard,\r\n            LookUp(\r\n                'Fuel Card Assignments',\r\n                Vehicle.CFSVehicles = varSelectedVehicle.CFSVehicles\r\n            )\r\n        );"
+      OnVisible: |-
+        =// Reset submission and confirmation state
+        Set(varIsSubmitting, false);
+        Set(varConfirmAction, Blank());
+
+        // Load upcoming reservations for this vehicle
+        ClearCollect(
+            colVehicleReservations,
+            Sort(
+                Filter(
+                    'Vehicle Reservations',
+                    Vehicle.CFSVehicles = varSelectedVehicle.CFSVehicles &&
+                    EndDateTime >= Today()
+                ),
+                StartDateTime,
+                SortOrder.Ascending
+            )
+        );
+
+        // Get fuel card info
+        Set(
+            varVehicleFuelCard,
+            LookUp(
+                'Fuel Card Assignments',
+                Vehicle.CFSVehicles = varSelectedVehicle.CFSVehicles
+            )
+        );
+
+        // Get active checkout record (if checked out)
+        Set(
+            varActiveCheckout,
+            LookUp(
+                'Vehicle Checkouts',
+                Vehicle.CFSVehicles = varSelectedVehicle.CFSVehicles && IsBlank(ReturnedAt)
+            )
+        )
     Children:
+      # ══════════════════════════════════════════════════════════════
+      # HEADER (84px)
+      # ══════════════════════════════════════════════════════════════
       - cmpHeader_Detail:
           Control: CanvasComponent
           ComponentName: cmpHeader
@@ -22,6 +60,10 @@ Screens:
             SubTitle: =varSelectedVehicle.Year & " " & varSelectedVehicle.Make & " " & varSelectedVehicle.Model
             Title: =varSelectedVehicle.'Vehicle Name'
             Width: =App.Width
+
+      # ══════════════════════════════════════════════════════════════
+      # BOTTOM NAV (72px)
+      # ══════════════════════════════════════════════════════════════
       - cmpBottomNav_Detail:
           Control: CanvasComponent
           ComponentName: cmpBottomNav
@@ -30,6 +72,10 @@ Screens:
             Height: =72
             Width: =App.Width
             Y: =Parent.Height - Self.Height
+
+      # ══════════════════════════════════════════════════════════════
+      # SCROLLABLE CONTENT AREA
+      # ══════════════════════════════════════════════════════════════
       - cnrDetailScroll:
           Control: GroupContainer@1.4.0
           Variant: AutoLayout
@@ -41,10 +87,11 @@ Screens:
             LayoutGap: =16
             LayoutOverflowY: =LayoutOverflow.Scroll
             PaddingBottom: =24
+            PaddingTop: =0
             Width: =Parent.Width
             Y: =cmpHeader_Detail.Height
           Children:
-            # ── Status Banner ────────────────────────────────────────────────
+            # ── STATUS BANNER ──────────────────────────────────────
             - cnrStatusBanner:
                 Control: GroupContainer@1.4.0
                 Variant: ManualLayout
@@ -52,11 +99,11 @@ Screens:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   Fill: |-
                     =Switch(
-                        Text(varSelectedVehicle.'Status (cr63e_status)'),
-                        "Available", varStatusColors.Available,
-                        "Checked Out", varStatusColors.CheckedOut,
-                        "Reserved", varStatusColors.Reserved,
-                        "Maintenance", varStatusColors.Maintenance,
+                        varSelectedVehicle.'Status (cr63e_status)',
+                        'Status (CFSVehicles)'.Available, varStatusColors.Available,
+                        'Status (CFSVehicles)'.'Checked Out', varStatusColors.CheckedOut,
+                        'Status (CFSVehicles)'.Reserved, varStatusColors.Reserved,
+                        'Status (CFSVehicles)'.Maintenance, varStatusColors.Maintenance,
                         RGBA(96, 94, 92, 1)
                     )
                   FillPortions: =0
@@ -74,168 +121,242 @@ Screens:
                         Text: =Upper(Text(varSelectedVehicle.'Status (cr63e_status)'))
                         Width: =Parent.Width
 
-            # ── Vehicle Info Card ────────────────────────────────────────────
+            # ── VEHICLE INFO CARD ──────────────────────────────────
             - cnrInfoCard:
                 Control: GroupContainer@1.4.0
-                Variant: ManualLayout
+                Variant: AutoLayout
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   Fill: =varTheme.Surface
                   FillPortions: =0
-                  Height: =If(Text(varSelectedVehicle.'Status (cr63e_status)') = "Checked Out", 196, 170)
+                  Height: |-
+                    =// Base rows: Tag, VIN, Office, Fuel Card, Mileage = 5 rows * 26px + padding
+                    // + Notes row if present + Checked out row if applicable
+                    142 +
+                    If(!IsBlank(varSelectedVehicle.Notes), 52, 0) +
+                    If(varSelectedVehicle.'Status (cr63e_status)' = 'Status (CFSVehicles)'.'Checked Out', 34, 0)
+                  LayoutDirection: =LayoutDirection.Vertical
+                  PaddingBottom: =12
+                  PaddingLeft: =16
+                  PaddingRight: =16
+                  PaddingTop: =12
                   RadiusBottomLeft: =16
                   RadiusBottomRight: =16
                   RadiusTopLeft: =16
                   RadiusTopRight: =16
                   Width: =Parent.Width - 32
                 Children:
-                  # ── Row 1: Tag ──
-                  - lblTagLabel:
-                      Control: Label@2.5.1
+                  # ── Row: Tag ──
+                  - cnrRowTag:
+                      Control: GroupContainer@1.4.0
+                      Variant: ManualLayout
                       Properties:
-                        Color: =varTheme.TextSecondary
+                        FillPortions: =0
                         Height: =26
-                        Size: =12
-                        Text: ="Tag"
-                        Width: =140
-                        X: =16
-                        Y: =12
-                  - lblTagValue:
-                      Control: Label@2.5.1
-                      Properties:
-                        Align: =Align.Right
-                        Color: =varTheme.TextPrimary
-                        FontWeight: =FontWeight.Semibold
-                        Height: =26
-                        Size: =12
-                        Text: =If(!IsBlank(varSelectedVehicle.Tag), varSelectedVehicle.Tag, "—")
-                        Width: =Parent.Width - 172
-                        X: =156
-                        Y: =12
-
-                  # ── Row 2: VIN ──
-                  - lblVINLabel:
-                      Control: Label@2.5.1
-                      Properties:
-                        Color: =varTheme.TextSecondary
-                        Height: =26
-                        Size: =12
-                        Text: ="VIN"
-                        Width: =140
-                        X: =16
-                        Y: =38
-                  - lblVINValue:
-                      Control: Label@2.5.1
-                      Properties:
-                        Align: =Align.Right
-                        Color: =varTheme.TextPrimary
-                        FontWeight: =FontWeight.Semibold
-                        Height: =26
-                        Size: =12
-                        Text: =If(!IsBlank(varSelectedVehicle.VIN), varSelectedVehicle.VIN, "—")
-                        Width: =Parent.Width - 172
-                        X: =156
-                        Y: =38
-
-                  # ── Row 3: Assigned Office ──
-                  - lblOfficeLabel:
-                      Control: Label@2.5.1
-                      Properties:
-                        Color: =varTheme.TextSecondary
-                        Height: =26
-                        Size: =12
-                        Text: ="Assigned Office"
-                        Width: =140
-                        X: =16
-                        Y: =64
-                  - lblOfficeValue:
-                      Control: Label@2.5.1
-                      Properties:
-                        Align: =Align.Right
-                        Color: =varTheme.TextPrimary
-                        FontWeight: =FontWeight.Semibold
-                        Height: =26
-                        Size: =12
-                        Text: =If(!IsBlank(varSelectedVehicle.Location), varSelectedVehicle.Location, "—")
-                        Width: =Parent.Width - 172
-                        X: =156
-                        Y: =64
-
-                  # ── Row 4: Fuel Card (Last 4) ──
-                  - lblFuelCardLabel:
-                      Control: Label@2.5.1
-                      Properties:
-                        Color: =varTheme.TextSecondary
-                        Height: =26
-                        Size: =12
-                        Text: ="Fuel Card (Last 4)"
-                        Width: =140
-                        X: =16
-                        Y: =90
-                  - lblFuelCardValue:
-                      Control: Label@2.5.1
-                      Properties:
-                        Align: =Align.Right
-                        Color: =varTheme.TextPrimary
-                        FontWeight: =FontWeight.Semibold
-                        Height: =26
-                        Size: =12
-                        Text: =If(IsBlank(varVehicleFuelCard), "Not Assigned", "****" & varVehicleFuelCard.CardLast4)
-                        Width: =Parent.Width - 172
-                        X: =156
-                        Y: =90
-
-                  # ── Row 5: Current Mileage ──
-                  - lblMileageLabel:
-                      Control: Label@2.5.1
-                      Properties:
-                        Color: =varTheme.TextSecondary
-                        Height: =26
-                        Size: =12
-                        Text: ="Current Mileage"
-                        Width: =140
-                        X: =16
-                        Y: =116
-                  - lblMileageValue:
-                      Control: Label@2.5.1
-                      Properties:
-                        Align: =Align.Right
-                        Color: =varTheme.TextPrimary
-                        FontWeight: =FontWeight.Semibold
-                        Height: =26
-                        Size: =12
-                        Text: =Text(varSelectedVehicle.'Current Mileage', "#,##0") & " mi"
-                        Width: =Parent.Width - 172
-                        X: =156
-                        Y: =116
-
-                  # ── Divider above checked-out-by ──
-                  - recInfoDivider:
-                      Control: Rectangle@2.3.0
-                      Properties:
-                        Fill: =varTheme.Divider
-                        Height: =1
-                        Visible: =Text(varSelectedVehicle.'Status (cr63e_status)') = "Checked Out"
                         Width: =Parent.Width - 32
-                        X: =16
-                        Y: =148
+                      Children:
+                        - lblTagLabel:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              Height: =26
+                              Size: =12
+                              Text: ="Tag"
+                              Width: =140
+                        - lblTagValue:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Right
+                              Color: =varTheme.TextPrimary
+                              FontWeight: =FontWeight.Semibold
+                              Height: =26
+                              Size: =12
+                              Text: =If(!IsBlank(varSelectedVehicle.Tag), varSelectedVehicle.Tag, "—")
+                              Width: =Parent.Width - 140
+                              X: =140
 
-                  # ── Row 6: Checked out by (conditional) ──
-                  - lblCheckedOutBy:
-                      Control: Label@2.5.1
+                  # ── Row: VIN ──
+                  - cnrRowVIN:
+                      Control: GroupContainer@1.4.0
+                      Variant: ManualLayout
                       Properties:
-                        Color: =varTheme.Danger
-                        FontWeight: =FontWeight.Semibold
+                        FillPortions: =0
                         Height: =26
-                        Size: =12
-                        Text: |-
-                          ="Checked out by: " & LookUp('Vehicle Checkouts', Vehicle.CFSVehicles = varSelectedVehicle.CFSVehicles && IsBlank(ReturnedAt)).Associate.Associate
-                        Visible: =Text(varSelectedVehicle.'Status (cr63e_status)') = "Checked Out"
                         Width: =Parent.Width - 32
-                        X: =16
-                        Y: =156
+                      Children:
+                        - lblVINLabel:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              Height: =26
+                              Size: =12
+                              Text: ="VIN"
+                              Width: =140
+                        - lblVINValue:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Right
+                              Color: =varTheme.TextPrimary
+                              FontWeight: =FontWeight.Semibold
+                              Height: =26
+                              Size: =12
+                              Text: =If(!IsBlank(varSelectedVehicle.VIN), varSelectedVehicle.VIN, "—")
+                              Width: =Parent.Width - 140
+                              X: =140
 
-            # ── Action Buttons ───────────────────────────────────────────────
+                  # ── Row: Assigned Office ──
+                  - cnrRowOffice:
+                      Control: GroupContainer@1.4.0
+                      Variant: ManualLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =26
+                        Width: =Parent.Width - 32
+                      Children:
+                        - lblOfficeLabel:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              Height: =26
+                              Size: =12
+                              Text: ="Assigned Office"
+                              Width: =140
+                        - lblOfficeValue:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Right
+                              Color: =varTheme.TextPrimary
+                              FontWeight: =FontWeight.Semibold
+                              Height: =26
+                              Size: =12
+                              Text: =If(!IsBlank(varSelectedVehicle.Location), varSelectedVehicle.Location, "—")
+                              Width: =Parent.Width - 140
+                              X: =140
+
+                  # ── Row: Fuel Card ──
+                  - cnrRowFuelCard:
+                      Control: GroupContainer@1.4.0
+                      Variant: ManualLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =26
+                        Width: =Parent.Width - 32
+                      Children:
+                        - lblFuelCardLabel:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              Height: =26
+                              Size: =12
+                              Text: ="Fuel Card"
+                              Width: =140
+                        - lblFuelCardValue:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Right
+                              Color: =varTheme.TextPrimary
+                              FontWeight: =FontWeight.Semibold
+                              Height: =26
+                              Size: =12
+                              Text: =If(IsBlank(varVehicleFuelCard), "Not Assigned", "****" & varVehicleFuelCard.CardLast4)
+                              Width: =Parent.Width - 140
+                              X: =140
+
+                  # ── Row: Current Mileage ──
+                  - cnrRowMileage:
+                      Control: GroupContainer@1.4.0
+                      Variant: ManualLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =26
+                        Width: =Parent.Width - 32
+                      Children:
+                        - lblMileageLabel:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              Height: =26
+                              Size: =12
+                              Text: ="Current Mileage"
+                              Width: =140
+                        - lblMileageValue:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Right
+                              Color: =varTheme.TextPrimary
+                              FontWeight: =FontWeight.Semibold
+                              Height: =26
+                              Size: =12
+                              Text: =If(!IsBlank(varSelectedVehicle.'Current Mileage'), Text(varSelectedVehicle.'Current Mileage', "#,##0") & " mi", "—")
+                              Width: =Parent.Width - 140
+                              X: =140
+
+                  # ── Notes Section (conditional) ──
+                  - cnrRowNotes:
+                      Control: GroupContainer@1.4.0
+                      Variant: ManualLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =52
+                        Visible: =!IsBlank(varSelectedVehicle.Notes)
+                        Width: =Parent.Width - 32
+                      Children:
+                        - recNotesDivider:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              Fill: =varTheme.Divider
+                              Height: =1
+                              Width: =Parent.Width
+                              Y: =4
+                        - lblNotesLabel:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              Height: =20
+                              Size: =11
+                              Text: ="Notes"
+                              Width: =Parent.Width
+                              Y: =10
+                        - lblNotesValue:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextPrimary
+                              Height: =22
+                              Size: =12
+                              Text: =varSelectedVehicle.Notes
+                              Width: =Parent.Width
+                              Y: =28
+
+                  # ── Checked Out By (conditional) ──
+                  - cnrRowCheckedOutBy:
+                      Control: GroupContainer@1.4.0
+                      Variant: ManualLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =34
+                        Visible: =varSelectedVehicle.'Status (cr63e_status)' = 'Status (CFSVehicles)'.'Checked Out'
+                        Width: =Parent.Width - 32
+                      Children:
+                        - recCheckedOutDivider:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              Fill: =varTheme.Divider
+                              Height: =1
+                              Width: =Parent.Width
+                              Y: =2
+                        - lblCheckedOutBy:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.Danger
+                              FontWeight: =FontWeight.Semibold
+                              Height: =26
+                              Size: =12
+                              Text: |-
+                                ="Checked out by: " & If(!IsBlank(varActiveCheckout), varActiveCheckout.Associate.Associate, "Unknown")
+                              Width: =Parent.Width
+                              Y: =8
+
+            # ── ACTION BUTTONS ─────────────────────────────────────
             - cnrActions:
                 Control: GroupContainer@1.4.0
                 Variant: AutoLayout
@@ -248,74 +369,79 @@ Screens:
                   LayoutGap: =12
                   PaddingLeft: =16
                   PaddingRight: =16
-                  Visible: =Text(varSelectedVehicle.'Status (cr63e_status)') = "Available" || Text(varSelectedVehicle.'Status (cr63e_status)') = "Checked Out"
+                  Visible: |-
+                    =varSelectedVehicle.'Status (cr63e_status)' = 'Status (CFSVehicles)'.Available ||
+                    varSelectedVehicle.'Status (cr63e_status)' = 'Status (CFSVehicles)'.'Checked Out'
                   Width: =Parent.Width
                 Children:
+                  # ── Reserve Button (Available only) ──
                   - btnReserve:
                       Control: Button@0.0.45
                       Properties:
                         BasePaletteColor: =varTheme.Primary
+                        DisplayMode: =If(varIsSubmitting, DisplayMode.Disabled, DisplayMode.Edit)
                         FillPortions: =1
                         Height: =52
                         OnSelect: |-
                           =Set(varIsNewReservation, true);
                           Navigate(scrReservation, ScreenTransition.Fade)
                         Text: ="Reserve"
-                        Visible: =Text(varSelectedVehicle.'Status (cr63e_status)') = "Available"
+                        Visible: =varSelectedVehicle.'Status (cr63e_status)' = 'Status (CFSVehicles)'.Available
+
+                  # ── Check Out Button (Available only, triggers confirmation) ──
                   - btnCheckOut:
                       Control: Button@0.0.45
                       Properties:
                         BasePaletteColor: =varStatusColors.CheckedOut
+                        DisplayMode: =If(varIsSubmitting, DisplayMode.Disabled, DisplayMode.Edit)
                         FillPortions: =1
                         Height: =52
-                        OnSelect: |-
-                          =Patch(
-                              'Vehicle Checkouts',
-                              Defaults('Vehicle Checkouts'),
-                              {
-                                  Vehicle: varSelectedVehicle,
-                                  Associate: varUserAssociate,
-                                  CheckedOutAt: Now()
-                              }
-                          );
-
-                          Patch(
-                              CFSVehicles,
-                              varSelectedVehicle,
-                              {'Status (cr63e_status)': 'Status (CFSVehicles)'.'Checked Out'}
-                          );
-
-                          Notify("Vehicle checked out!", NotificationType.Success);
-                          Navigate(scrVehicleList, ScreenTransition.Fade)
+                        OnSelect: =Set(varConfirmAction, "CheckOut")
                         Text: ="Check Out"
-                        Visible: =Text(varSelectedVehicle.'Status (cr63e_status)') = "Available"
+                        Visible: =varSelectedVehicle.'Status (cr63e_status)' = 'Status (CFSVehicles)'.Available
+
+                  # ── Check In Button (Checked Out only, triggers confirmation) ──
                   - btnCheckIn:
                       Control: Button@0.0.45
                       Properties:
                         BasePaletteColor: =varStatusColors.Available
+                        DisplayMode: =If(varIsSubmitting, DisplayMode.Disabled, DisplayMode.Edit)
                         FillPortions: =1
                         Height: =52
-                        OnSelect: |-
-                          =With(
-                              {openCheckout: LookUp('Vehicle Checkouts', Vehicle.CFSVehicles = varSelectedVehicle.CFSVehicles && IsBlank(ReturnedAt))},
-                              If(
-                                  !IsBlank(openCheckout),
-                                  Patch('Vehicle Checkouts', openCheckout, {ReturnedAt: Now()})
-                              )
-                          );
-
-                          Patch(
-                              CFSVehicles,
-                              varSelectedVehicle,
-                              {'Status (cr63e_status)': 'Status (CFSVehicles)'.Available}
-                          );
-
-                          Notify("Vehicle checked in!", NotificationType.Success);
-                          Navigate(scrVehicleList, ScreenTransition.Fade)
+                        OnSelect: =Set(varConfirmAction, "CheckIn")
                         Text: ="Check In Vehicle"
-                        Visible: =Text(varSelectedVehicle.'Status (cr63e_status)') = "Checked Out"
+                        Visible: =varSelectedVehicle.'Status (cr63e_status)' = 'Status (CFSVehicles)'.'Checked Out'
 
-            # ── Upcoming Reservations Header ─────────────────────────────────
+            # ── MAINTENANCE BUTTONS ────────────────────────────────
+            - btnSetMaintenance:
+                Control: Button@0.0.45
+                Properties:
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  Appearance: ="Secondary"
+                  BasePaletteColor: =varStatusColors.Maintenance
+                  DisplayMode: =If(varIsSubmitting, DisplayMode.Disabled, DisplayMode.Edit)
+                  FillPortions: =0
+                  Height: =52
+                  OnSelect: =Set(varConfirmAction, "SetMaintenance")
+                  Text: ="Set Maintenance"
+                  VerticalAlign: =VerticalAlign.Middle
+                  Visible: =varSelectedVehicle.'Status (cr63e_status)' <> 'Status (CFSVehicles)'.Maintenance
+                  Width: =Parent.Width - 32
+
+            - btnClearMaintenance:
+                Control: Button@0.0.45
+                Properties:
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  BasePaletteColor: =varStatusColors.Available
+                  DisplayMode: =If(varIsSubmitting, DisplayMode.Disabled, DisplayMode.Edit)
+                  FillPortions: =0
+                  Height: =52
+                  OnSelect: =Set(varConfirmAction, "ClearMaintenance")
+                  Text: ="Clear Maintenance"
+                  Visible: =varSelectedVehicle.'Status (cr63e_status)' = 'Status (CFSVehicles)'.Maintenance
+                  Width: =Parent.Width - 32
+
+            # ── UPCOMING RESERVATIONS HEADER ───────────────────────
             - cnrUpcomingHeader:
                 Control: GroupContainer@1.4.0
                 Variant: ManualLayout
@@ -336,7 +462,7 @@ Screens:
                         Text: ="Upcoming Reservations"
                         Width: =Parent.Width
 
-            # ── Upcoming Reservations Gallery ────────────────────────────────
+            # ── UPCOMING RESERVATIONS GALLERY ──────────────────────
             - galUpcoming:
                 Control: Gallery@2.15.0
                 Variant: BrowseLayout_Vertical_OneTextVariant_pcfCore
@@ -346,10 +472,10 @@ Screens:
                   FillPortions: =0
                   FocusedBorderColor: =RGBA(98, 100, 167, 1)
                   FocusedBorderThickness: =2
-                  Height: =Min(CountRows(colVehicleReservations) * 64, 256)
+                  Height: =Min(CountRows(colVehicleReservations) * 80, 320)
                   Items: =colVehicleReservations
                   TemplatePadding: =4
-                  TemplateSize: =60
+                  TemplateSize: =72
                   Visible: =CountRows(colVehicleReservations) > 0
                   Width: =Parent.Width - 32
                 Children:
@@ -358,7 +484,7 @@ Screens:
                       Variant: ManualLayout
                       Properties:
                         Fill: =varTheme.PrimaryBg
-                        Height: =56
+                        Height: =68
                         RadiusBottomLeft: =10
                         RadiusBottomRight: =10
                         RadiusTopLeft: =10
@@ -375,7 +501,7 @@ Screens:
                               Text: =Text(ThisItem.StartDateTime, "mmm d") & " - " & Text(ThisItem.EndDateTime, "mmm d, yyyy")
                               Width: =Parent.Width - 24
                               X: =12
-                              Y: =6
+                              Y: =8
                         - lblResBy:
                             Control: Label@2.5.1
                             Properties:
@@ -387,8 +513,19 @@ Screens:
                               Width: =Parent.Width - 24
                               X: =12
                               Y: =28
+                        - lblResPurpose:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextTertiary
+                              Height: =18
+                              Size: =10
+                              Text: =ThisItem.Purpose
+                              Visible: =!IsBlank(ThisItem.Purpose)
+                              Width: =Parent.Width - 24
+                              X: =12
+                              Y: =46
 
-            # ── No Upcoming Reservations ─────────────────────────────────────
+            # ── NO UPCOMING RESERVATIONS ───────────────────────────
             - lblNoReservations:
                 Control: Label@2.5.1
                 Properties:
@@ -402,41 +539,248 @@ Screens:
                   Visible: =CountRows(colVehicleReservations) = 0
                   Width: =Parent.Width - 32
 
-            # ── Maintenance Buttons ──────────────────────────────────────────
-            - btnSetMaintenance:
-                Control: Button@0.0.45
+      # ══════════════════════════════════════════════════════════════
+      # CONFIRMATION DIALOG OVERLAY
+      # ══════════════════════════════════════════════════════════════
+      - cnrConfirmOverlay:
+          Control: GroupContainer@1.4.0
+          Variant: ManualLayout
+          Properties:
+            Fill: =RGBA(0, 0, 0, 0.5)
+            Height: =Parent.Height
+            PaddingBottom: =0.00
+            PaddingLeft: =0.00
+            Visible: =!IsBlank(varConfirmAction) && !varIsSubmitting
+            Width: =Parent.Width
+          Children:
+            - cnrConfirmDialog:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
                 Properties:
-                  AlignInContainer: =AlignInContainer.SetByContainer
-                  Appearance: ="Secondary"
-                  BasePaletteColor: =varStatusColors.Maintenance
-                  Height: =52
-                  OnSelect: |-
-                    =Patch(
-                        CFSVehicles,
-                        varSelectedVehicle,
-                        {'Status (cr63e_status)': 'Status (CFSVehicles)'.Maintenance}
-                    );
-                    Notify("Vehicle set to maintenance", NotificationType.Success);
-                    Navigate(scrVehicleList, ScreenTransition.Fade)
-                  Text: ="Set Maintenance"
-                  VerticalAlign: =VerticalAlign.Middle
-                  Visible: =varSelectedVehicle.'Status (cr63e_status)' <> 'Status (CFSVehicles)'.Maintenance
-                  Width: =Parent.Width - 32
+                  Fill: =varTheme.Surface
+                  Height: =220
+                  PaddingBottom: =0.00
+                  PaddingLeft: =0.00
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                  Width: =Parent.Width - 64
+                  X: =32
+                  Y: =(Parent.Height - 220) / 2
+                Children:
+                  - lblConfirmTitle:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Bold
+                        Height: =32
+                        Size: =16
+                        Text: |-
+                          =Switch(
+                              varConfirmAction,
+                              "CheckOut", "Check Out Vehicle?",
+                              "CheckIn", "Check In Vehicle?",
+                              "SetMaintenance", "Set Maintenance?",
+                              "ClearMaintenance", "Clear Maintenance?",
+                              ""
+                          )
+                        Width: =Parent.Width
+                        Y: =20
+                  - lblConfirmMessage:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        Color: =varTheme.TextSecondary
+                        Height: =50
+                        Size: =12
+                        Text: |-
+                          =Switch(
+                              varConfirmAction,
+                              "CheckOut", "Check out " & varSelectedVehicle.'Vehicle Name' & " to yourself?",
+                              "CheckIn", "Check in " & varSelectedVehicle.'Vehicle Name' & " and mark as available?",
+                              "SetMaintenance", "Set " & varSelectedVehicle.'Vehicle Name' & " to maintenance mode? It will be unavailable for reservations.",
+                              "ClearMaintenance", "Clear maintenance for " & varSelectedVehicle.'Vehicle Name' & " and mark as available?",
+                              ""
+                          )
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =56
+                  - btnConfirmYes:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: |-
+                          =Switch(
+                              varConfirmAction,
+                              "CheckOut", varStatusColors.CheckedOut,
+                              "CheckIn", varStatusColors.Available,
+                              "SetMaintenance", varStatusColors.Maintenance,
+                              "ClearMaintenance", varStatusColors.Available,
+                              varTheme.Primary
+                          )
+                        FontColor: =varTheme.TextOnPrimary
+                        Height: =44
+                        OnSelect: |-
+                          =// Capture the pending action before clearing the dialog
+                          Set(varPendingAction, varConfirmAction);
+                          Set(varConfirmAction, Blank());
+                          Set(varIsSubmitting, true);
 
-            - btnClearMaintenance:
-                Control: Button@0.0.45
+                          // Branch by action type
+                          If(
+                              varPendingAction = "CheckOut",
+                              // ── CHECK OUT: create checkout record, then update vehicle status ──
+                              Set(
+                                  varPatchResult,
+                                  Patch(
+                                      'Vehicle Checkouts',
+                                      Defaults('Vehicle Checkouts'),
+                                      {
+                                          Vehicle: varSelectedVehicle,
+                                          Associate: varUserAssociate,
+                                          CheckedOutAt: Now()
+                                      }
+                                  )
+                              );
+                              If(
+                                  !IsError(varPatchResult),
+                                  Set(
+                                      varPatchResult,
+                                      Patch(
+                                          CFSVehicles,
+                                          varSelectedVehicle,
+                                          {'Status (cr63e_status)': 'Status (CFSVehicles)'.'Checked Out'}
+                                      )
+                                  )
+                              )
+                          );
+
+                          If(
+                              varPendingAction = "CheckIn",
+                              // ── CHECK IN: close checkout record, then update vehicle status ──
+                              If(
+                                  !IsBlank(varActiveCheckout),
+                                  Set(
+                                      varPatchResult,
+                                      Patch('Vehicle Checkouts', varActiveCheckout, {ReturnedAt: Now()})
+                                  )
+                              );
+                              If(
+                                  IsBlank(varActiveCheckout) || !IsError(varPatchResult),
+                                  Set(
+                                      varPatchResult,
+                                      Patch(
+                                          CFSVehicles,
+                                          varSelectedVehicle,
+                                          {'Status (cr63e_status)': 'Status (CFSVehicles)'.Available}
+                                      )
+                                  )
+                              )
+                          );
+
+                          If(
+                              varPendingAction = "SetMaintenance",
+                              // ── SET MAINTENANCE ──
+                              Set(
+                                  varPatchResult,
+                                  Patch(
+                                      CFSVehicles,
+                                      varSelectedVehicle,
+                                      {'Status (cr63e_status)': 'Status (CFSVehicles)'.Maintenance}
+                                  )
+                              )
+                          );
+
+                          If(
+                              varPendingAction = "ClearMaintenance",
+                              // ── CLEAR MAINTENANCE ──
+                              Set(
+                                  varPatchResult,
+                                  Patch(
+                                      CFSVehicles,
+                                      varSelectedVehicle,
+                                      {'Status (cr63e_status)': 'Status (CFSVehicles)'.Available}
+                                  )
+                              )
+                          );
+
+                          // Handle result
+                          Set(varIsSubmitting, false);
+                          If(
+                              IsError(varPatchResult),
+                              Notify("Something went wrong. Please try again.", NotificationType.Error),
+                              Notify(
+                                  Switch(
+                                      varPendingAction,
+                                      "CheckOut", "Vehicle checked out!",
+                                      "CheckIn", "Vehicle checked in!",
+                                      "SetMaintenance", "Vehicle set to maintenance",
+                                      "ClearMaintenance", "Vehicle back to available",
+                                      "Action completed"
+                                  ),
+                                  NotificationType.Success
+                              );
+                              Navigate(scrVehicleList, ScreenTransition.Fade)
+                          )
+                        Text: |-
+                          =Switch(
+                              varConfirmAction,
+                              "CheckOut", "Yes, Check Out",
+                              "CheckIn", "Yes, Check In",
+                              "SetMaintenance", "Yes, Set Maintenance",
+                              "ClearMaintenance", "Yes, Clear It",
+                              "Confirm"
+                          )
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =114
+                  - btnConfirmNo:
+                      Control: Button@0.0.45
+                      Properties:
+                        Appearance: ="Secondary"
+                        Height: =44
+                        OnSelect: =Set(varConfirmAction, Blank())
+                        Text: ="Go Back"
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =164
+
+      # ══════════════════════════════════════════════════════════════
+      # LOADING / SUBMITTING OVERLAY
+      # ══════════════════════════════════════════════════════════════
+      - cnrLoadingOverlay:
+          Control: GroupContainer@1.4.0
+          Variant: ManualLayout
+          Properties:
+            Fill: =RGBA(0, 0, 0, 0.4)
+            Height: =Parent.Height
+            PaddingBottom: =0.00
+            PaddingLeft: =0.00
+            Visible: =varIsSubmitting
+            Width: =Parent.Width
+          Children:
+            - recLoadingBox:
+                Control: Rectangle@2.3.0
                 Properties:
-                  AlignInContainer: =AlignInContainer.SetByContainer
-                  BasePaletteColor: =varStatusColors.Available
-                  Height: =52
-                  OnSelect: |-
-                    =Patch(
-                        CFSVehicles,
-                        varSelectedVehicle,
-                        {'Status (cr63e_status)': 'Status (CFSVehicles)'.Available}
-                    );
-                    Notify("Vehicle back to available", NotificationType.Success);
-                    Navigate(scrVehicleList, ScreenTransition.Fade)
-                  Text: ="Clear Maintenance"
-                  Visible: =varSelectedVehicle.'Status (cr63e_status)' = 'Status (CFSVehicles)'.Maintenance
-                  Width: =Parent.Width - 32
+                  Fill: =varTheme.Surface
+                  Height: =80
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                  Width: =200
+                  X: =(Parent.Width - 200) / 2
+                  Y: =(Parent.Height - 80) / 2
+            - lblLoadingText:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Semibold
+                  Height: =80
+                  Size: =16
+                  Text: ="Processing..."
+                  Width: =200
+                  X: =(Parent.Width - 200) / 2
+                  Y: =(Parent.Height - 80) / 2

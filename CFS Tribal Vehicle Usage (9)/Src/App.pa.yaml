@@ -10,25 +10,34 @@ App:
   Properties:
     OnStart: |-
       =// ═══════════════════════════════════════════════
-      // CFS Tribal Vehicle Usage v2.0 — Mobile-First
-      // Choctaw Nation EPS
+      // CFS Tribal Vehicle Usage v3.0 — Ground-Up Rebuild
+      // Choctaw Nation EPS · Mobile-First
       // ═══════════════════════════════════════════════
 
-      // ── User Context ──
+      // ── Loading flag — screens wait for this ──
+      Set(varAppReady, false);
+
+      // ── User Context (with null safety) ──
       Set(varCurrentUser, User());
       Set(varUserEmail, User().Email);
       Set(varUserDisplayName, User().FullName);
-      Set(varUserAssociate, LookUp(Associates, Associate = varUserDisplayName));
-      Set(varToday, Today());
-      Set(varNow, Now());
+      Set(
+          varUserAssociate,
+          LookUp(Associates, Associate = varUserDisplayName)
+      );
+      Set(
+          varUserHasProfile,
+          !IsBlank(varUserAssociate)
+      );
 
-      // ── Time-based greeting ──
+      // ── Time-based greeting (Choctaw morning greeting) ──
       Set(
           varGreeting,
-          If(
-              Hour(Now()) < 12,
-              "Halito",
-              If(Hour(Now()) < 17, "Good afternoon", "Good evening")
+          Switch(
+              true,
+              Hour(Now()) < 12, "Halito",
+              Hour(Now()) < 17, "Good afternoon",
+              "Good evening"
           )
       );
 
@@ -103,12 +112,12 @@ App:
           }
       );
 
-      // ── Navigation & Selection State ──
+      // ── Navigation & Global UI State ──
       Set(varSelectedVehicle, Blank());
       Set(varFilterStatus, "All");
-      Set(varIsNewReservation, false);
       Set(varIsSubmitting, false);
       Set(varShowSuccess, false);
+      Set(varShowAllLocations, false);
 
       // ── Reservation Form State ──
       Set(varResStartDate, Today());
@@ -126,8 +135,10 @@ App:
       Set(varGasVehicle, Blank());
       Set(varGasNotes, "");
 
+      // ── Shared action state ──
       Set(varPatchResult, Blank());
       Set(varConfirmCancelRes, Blank());
+      Set(varConfirmAction, Blank());
 
       // ── Maintenance Form State ──
       Set(varMaintVehicle, Blank());
@@ -137,13 +148,19 @@ App:
 
       // ── Fuel History State ──
       Set(varFuelHistoryFilter, "Mine");
+      Set(varViewReceipt, Blank());
 
-      // ── Vehicle List Location Filter ──
-      Set(varShowAllLocations, false);
-
-      // ── Dashboard KPIs ──
+      // ── Dashboard KPIs (initialized, loaded via Concurrent on Home) ──
       Set(varFuelSpendMonth, 0);
       Set(varActiveCheckouts, 0);
       Set(varOverdueReturns, 0);
       Set(varOpenMaintenance, 0);
+      Set(varAvailableCount, 0);
+      Set(varCheckedOutCount, 0);
+      Set(varReservedCount, 0);
+      Set(varMaintenanceCount, 0);
+      Set(varTotalVehicles, 0);
+
+      // ── App ready ──
+      Set(varAppReady, true);
     Theme: =PowerAppsTheme

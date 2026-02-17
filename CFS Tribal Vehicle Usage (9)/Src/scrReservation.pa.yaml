@@ -12,20 +12,52 @@ Screens:
       Fill: =varTheme.Background
       LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
       OnVisible: |-
-        =Set(varResStartDate, Today());
-          Set(varResEndDate, Today());
-          Set(varResPurpose, "");
-          Set(varResVehicleSelected, If(IsBlank(varSelectedVehicle), Blank(), varSelectedVehicle))
+        =// ── Reset all form fields on arrival ──────────────────────────
+        Set(varResStartDate, Today());
+        Set(varResEndDate, Today());
+        Set(varResPurpose, "");
+        Set(varIsSubmitting, false);
+        Set(varHasConflict, false);
+        Set(varResVehicleSelected,
+            If(IsBlank(varSelectedVehicle), Blank(), varSelectedVehicle)
+        );
+
+        // ── Evaluate conflict for pre-selected vehicle ─────────────
+        If(
+            !IsBlank(varSelectedVehicle),
+            Set(
+                varHasConflict,
+                CountRows(
+                    Filter(
+                        'Vehicle Reservations',
+                        Vehicle.CFSVehicles = varSelectedVehicle.CFSVehicles &&
+                        !(EndDateTime < Today() || StartDateTime > Today())
+                    )
+                ) > 0
+            )
+        )
     Children:
+      # ════════════════════════════════════════════════════════════════
+      #  HEADER
+      # ════════════════════════════════════════════════════════════════
       - cmpHeader_Res:
           Control: CanvasComponent
           ComponentName: cmpHeader
           Properties:
             Height: =84
             ShowBackBtn: =true
-            SubTitle: =If(IsBlank(varResVehicleSelected), "Select a vehicle", varResVehicleSelected.'Vehicle Name')
+            SubTitle: |-
+              =If(
+                  IsBlank(varResVehicleSelected),
+                  "Select a vehicle",
+                  varResVehicleSelected.'Vehicle Name'
+              )
             Title: ="New Reservation"
             Width: =App.Width
+
+      # ════════════════════════════════════════════════════════════════
+      #  BOTTOM NAV
+      # ════════════════════════════════════════════════════════════════
       - cmpBottomNav_Res:
           Control: CanvasComponent
           ComponentName: cmpBottomNav
@@ -34,6 +66,10 @@ Screens:
             Height: =72
             Width: =App.Width
             Y: =Parent.Height - Self.Height
+
+      # ════════════════════════════════════════════════════════════════
+      #  SCROLLABLE FORM BODY
+      # ════════════════════════════════════════════════════════════════
       - cnrResForm:
           Control: GroupContainer@1.4.0
           Variant: AutoLayout
@@ -50,14 +86,14 @@ Screens:
             Width: =Parent.Width
             Y: =cmpHeader_Res.Height
           Children:
-            # ── Form Card ───────────────────────────────────────────────────
+            # ── FORM CARD ──────────────────────────────────────────────
             - cnrFormCard:
                 Control: GroupContainer@1.4.0
                 Variant: ManualLayout
                 Properties:
                   Fill: =varTheme.Surface
                   FillPortions: =0
-                  Height: =420
+                  Height: =480
                   PaddingBottom: =0.00
                   PaddingLeft: =0.00
                   RadiusBottomLeft: =16
@@ -66,7 +102,7 @@ Screens:
                   RadiusTopRight: =16
                   Width: =Parent.Width - 40
                 Children:
-                  # ── Select Vehicle ────────────────────────────────────────
+                  # ── Select Vehicle Label ─────────────────────────────
                   - lblSelectVehicle:
                       Control: Label@2.5.1
                       Properties:
@@ -80,13 +116,33 @@ Screens:
                         Width: =Parent.Width - 32
                         X: =16
                         Y: =16
+
+                  # ── Vehicle Dropdown ─────────────────────────────────
                   - ddVehicle:
                       Control: DropDown@0.0.45
                       Properties:
-                        DefaultSelectedItems: =If(!IsBlank(varResVehicleSelected), [varResVehicleSelected], [])
+                        DefaultSelectedItems: |-
+                          =If(!IsBlank(varResVehicleSelected), [varResVehicleSelected], [])
                         Height: =48
                         Items: =Filter(CFSVehicles, 'CFSVehicles (Views)'.'Active CFSVehicles')
-                        OnChange: =Set(varResVehicleSelected, Self.Selected)
+                        OnChange: |-
+                          =Set(varResVehicleSelected, Self.Selected);
+
+                          // ── Re-evaluate conflict when vehicle changes ──
+                          Set(
+                              varHasConflict,
+                              If(
+                                  IsBlank(Self.Selected),
+                                  false,
+                                  CountRows(
+                                      Filter(
+                                          'Vehicle Reservations',
+                                          Vehicle.CFSVehicles = Self.Selected.CFSVehicles &&
+                                          !(EndDateTime < varResStartDate || StartDateTime > varResEndDate)
+                                      )
+                                  ) > 0
+                              )
+                          )
                         Width: =Parent.Width - 32
                         X: =16
                         Y: =40
@@ -100,7 +156,8 @@ Screens:
                               FieldName: ="cr63e_vehiclename"
                               FieldType: ="s"
                               Order: =1
-                  # ── Start Date ────────────────────────────────────────────
+
+                  # ── Start Date Label ─────────────────────────────────
                   - lblStartDate:
                       Control: Label@2.5.1
                       Properties:
@@ -114,19 +171,43 @@ Screens:
                         Width: =Parent.Width - 32
                         X: =16
                         Y: =100
+
+                  # ── Start Date Picker ────────────────────────────────
                   - dpStartDate:
                       Control: DatePicker@0.0.46
                       Properties:
                         Height: =48
                         OnChange: |-
                           =Set(varResStartDate, Self.SelectedDate);
-                          If(varResEndDate < Self.SelectedDate, Set(varResEndDate, Self.SelectedDate))
+
+                          // ── Auto-adjust end date if it falls before new start ──
+                          If(
+                              varResEndDate < Self.SelectedDate,
+                              Set(varResEndDate, Self.SelectedDate)
+                          );
+
+                          // ── Re-evaluate conflict after date change ──
+                          Set(
+                              varHasConflict,
+                              If(
+                                  IsBlank(varResVehicleSelected),
+                                  false,
+                                  CountRows(
+                                      Filter(
+                                          'Vehicle Reservations',
+                                          Vehicle.CFSVehicles = varResVehicleSelected.CFSVehicles &&
+                                          !(EndDateTime < Self.SelectedDate || StartDateTime > varResEndDate)
+                                      )
+                                  ) > 0
+                              )
+                          )
                         SelectedDate: =varResStartDate
-                        StartDate: =varResStartDate
+                        StartDate: =Today()
                         Width: =Parent.Width - 32
                         X: =16
                         Y: =124
-                  # ── End Date ──────────────────────────────────────────────
+
+                  # ── End Date Label ───────────────────────────────────
                   - lblEndDate:
                       Control: Label@2.5.1
                       Properties:
@@ -140,17 +221,51 @@ Screens:
                         Width: =Parent.Width - 32
                         X: =16
                         Y: =184
+
+                  # ── End Date Picker ──────────────────────────────────
                   - dpEndDate:
                       Control: DatePicker@0.0.46
                       Properties:
-                        EndDate: =varResEndDate
                         Height: =48
-                        OnChange: =Set(varResEndDate, Self.SelectedDate)
+                        OnChange: |-
+                          =Set(varResEndDate, Self.SelectedDate);
+
+                          // ── Re-evaluate conflict after date change ──
+                          Set(
+                              varHasConflict,
+                              If(
+                                  IsBlank(varResVehicleSelected),
+                                  false,
+                                  CountRows(
+                                      Filter(
+                                          'Vehicle Reservations',
+                                          Vehicle.CFSVehicles = varResVehicleSelected.CFSVehicles &&
+                                          !(EndDateTime < varResStartDate || StartDateTime > Self.SelectedDate)
+                                      )
+                                  ) > 0
+                              )
+                          )
                         SelectedDate: =varResEndDate
+                        StartDate: =Today()
                         Width: =Parent.Width - 32
                         X: =16
                         Y: =208
-                  # ── Purpose / Notes ───────────────────────────────────────
+
+                  # ── Date Validation Warning ─────────────────────────
+                  - lblDateWarning:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.Danger
+                        Height: =20
+                        PaddingLeft: =2
+                        Size: =11
+                        Text: ="End date must be on or after start date"
+                        Visible: =varResEndDate < varResStartDate
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =260
+
+                  # ── Purpose / Notes Label ────────────────────────────
                   - lblPurpose:
                       Control: Label@2.5.1
                       Properties:
@@ -163,49 +278,56 @@ Screens:
                         Text: ="Purpose / Notes"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =268
+                        Y: =282
+
+                  # ── Purpose Multiline Input ──────────────────────────
                   - txtPurpose:
                       Control: TextInput@0.0.54
                       Properties:
-                        Height: =80
+                        Height: =100
                         Mode: =TextMode.MultiLine
                         OnChange: =Set(varResPurpose, Self.Value)
                         Placeholder: ="Enter purpose of trip..."
+                        Value: =varResPurpose
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =292
-                  # ── Conflict Warning ──────────────────────────────────────
+                        Y: =306
+
+                  # ── Conflict Warning ─────────────────────────────────
                   - lblConflictWarning:
                       Control: Label@2.5.1
                       Properties:
-                        Color: =varTheme.Warning
-                        Height: =24
+                        Color: =varTheme.Danger
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
                         PaddingLeft: =2
                         Size: =11
-                        Text: ="This vehicle has reservations during selected dates"
-                        Visible: |-
-                          =!IsBlank(varResVehicleSelected) &&
-                          CountRows(
-                              Filter(
-                                  'Vehicle Reservations',
-                                  Vehicle.CFSVehicles = varResVehicleSelected.CFSVehicles &&
-                                  !(EndDateTime < varResStartDate || StartDateTime > varResEndDate)
-                              )
-                          ) > 0
+                        Text: ="Cannot submit \u2014 this vehicle has reservations during selected dates"
+                        Visible: =varHasConflict
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =380
-            # ── Submit Button ───────────────────────────────────────────────
+                        Y: =416
+
+            # ── SUBMIT BUTTON ──────────────────────────────────────────
             - btnSubmitRes:
                 Control: Button@0.0.45
                 Properties:
                   BasePaletteColor: =varTheme.Primary
-                  DisplayMode: =If(IsBlank(varResVehicleSelected) || varResEndDate < varResStartDate, DisplayMode.Disabled, DisplayMode.Edit)
+                  DisplayMode: |-
+                    =If(
+                        IsBlank(varResVehicleSelected) ||
+                        varResEndDate < varResStartDate ||
+                        varHasConflict ||
+                        varIsSubmitting,
+                        DisplayMode.Disabled,
+                        DisplayMode.Edit
+                    )
                   FillPortions: =0
                   Height: =52
                   OnSelect: |-
                     =Set(varIsSubmitting, true);
 
+                    // ── Create reservation record ──────────────────────
                     Set(
                         varPatchResult,
                         Patch(
@@ -222,9 +344,16 @@ Screens:
                         )
                     );
 
+                    // ── Handle result ──────────────────────────────────
                     If(
                         IsError(varPatchResult),
-                        Notify("Failed to save - check your connection and try again", NotificationType.Error),
+                        Notify(
+                            "Failed to save \u2014 check your connection and try again",
+                            NotificationType.Error
+                        );
+                        Set(varIsSubmitting, false),
+
+                        // ── On success: mark vehicle Reserved if starts today ──
                         If(
                             varResStartDate = Today(),
                             Patch(
@@ -233,14 +362,14 @@ Screens:
                                 {'Status (cr63e_status)': 'Status (CFSVehicles)'.Reserved}
                             )
                         );
+                        Set(varIsSubmitting, false);
                         Notify("Reservation created!", NotificationType.Success);
                         Navigate(scrMyReservations, ScreenTransition.Fade)
-                    );
-
-                    Set(varIsSubmitting, false);
+                    )
                   Text: ="Submit Reservation"
                   Width: =Parent.Width - 40
-            # ── Cancel Button ───────────────────────────────────────────────
+
+            # ── CANCEL BUTTON ──────────────────────────────────────────
             - btnCancelRes:
                 Control: Button@0.0.45
                 Properties:
@@ -250,3 +379,30 @@ Screens:
                   OnSelect: =Back()
                   Text: ="Cancel"
                   Width: =Parent.Width - 40
+
+            # ── SUBMITTING OVERLAY ─────────────────────────────────────
+            #    Positioned last so it renders on top of all form content.
+            #    Covers the entire form area to block interaction.
+            - cnrSubmittingOverlay:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =RGBA(0, 0, 0, 0.4)
+                  FillPortions: =0
+                  Height: =Parent.Height
+                  PaddingBottom: =0.00
+                  PaddingLeft: =0.00
+                  Visible: =varIsSubmitting
+                  Width: =Parent.Width
+                Children:
+                  - lblSubmittingText:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        Color: =RGBA(255, 255, 255, 1)
+                        FontWeight: =FontWeight.Bold
+                        Height: =40
+                        Size: =16
+                        Text: ="Submitting..."
+                        Width: =Parent.Width
+                        Y: =(Parent.Height - 40) / 2

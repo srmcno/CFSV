@@ -12,17 +12,25 @@ Screens:
       Fill: =varTheme.Background
       LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
       OnVisible: |-
-        =Set(varGasAmount, 0);
+        =// Reset all form fields on screen entry
+        Set(varGasAmount, 0);
         Set(varGasGallons, 0);
         Set(varGasDate, Today());
         Set(varGasCardLast4, "");
         Set(varGasVehicle, Blank());
         Set(varGasNotes, "");
+        Set(varGasOdometer, 0);
+        Set(varIsSubmitting, false);
+        Set(varPatchResult, Blank());
 
+        // Load fuel card assignments for auto-matching
         ClearCollect(colFuelCards, 'Fuel Card Assignments');
 
         Reset(addReceiptPhoto)
     Children:
+      # ══════════════════════════════════════════════════════════════
+      # ── HEADER (84px)
+      # ══════════════════════════════════════════════════════════════
       - cmpHeader_Gas:
           Control: CanvasComponent
           ComponentName: cmpHeader
@@ -37,6 +45,9 @@ Screens:
               )
             Title: ="Log Fuel Purchase"
             Width: =App.Width
+      # ══════════════════════════════════════════════════════════════
+      # ── BOTTOM NAVIGATION (72px)
+      # ══════════════════════════════════════════════════════════════
       - cmpBottomNav_Gas:
           Control: CanvasComponent
           ComponentName: cmpBottomNav
@@ -45,6 +56,9 @@ Screens:
             Height: =72
             Width: =App.Width
             Y: =Parent.Height - Self.Height
+      # ══════════════════════════════════════════════════════════════
+      # ── SCROLLABLE FORM AREA
+      # ══════════════════════════════════════════════════════════════
       - cnrGasForm:
           Control: GroupContainer@1.4.0
           Variant: AutoLayout
@@ -61,13 +75,16 @@ Screens:
             Width: =Parent.Width
             Y: =cmpHeader_Gas.Height
           Children:
+            # ──────────────────────────────────────────────────────
+            # ── FORM CARD
+            # ──────────────────────────────────────────────────────
             - cnrGasCard:
                 Control: GroupContainer@1.4.0
                 Variant: ManualLayout
                 Properties:
                   Fill: =varTheme.Surface
                   FillPortions: =0
-                  Height: =If(!IsBlank(addReceiptPhoto.Media), 640, 480)
+                  Height: =If(!IsBlank(addReceiptPhoto.Media), 700, 540)
                   PaddingBottom: =0.00
                   PaddingLeft: =0.00
                   RadiusBottomLeft: =16
@@ -76,6 +93,7 @@ Screens:
                   RadiusTopRight: =16
                   Width: =Parent.Width - 40
                 Children:
+                  # ── Fuel Card Last 4 Label ──
                   - lblCardLast4:
                       Control: Label@2.5.1
                       Properties:
@@ -89,6 +107,7 @@ Screens:
                         Width: =Parent.Width - 32
                         X: =16
                         Y: =16
+                  # ── Fuel Card Last 4 Input ──
                   - txtCardLast4:
                       Control: TextInput@0.0.54
                       Properties:
@@ -114,6 +133,7 @@ Screens:
                         Width: =Parent.Width - 32
                         X: =16
                         Y: =40
+                  # ── Card Match Feedback ──
                   - lblMatchedVehicle:
                       Control: Label@2.5.1
                       Properties:
@@ -121,7 +141,13 @@ Screens:
                           =If(
                               !IsBlank(varGasVehicle),
                               varTheme.Success,
-                              varStatusColors.Warning
+                              varTheme.Danger
+                          )
+                        FontWeight: |-
+                          =If(
+                              !IsBlank(varGasVehicle),
+                              FontWeight.Semibold,
+                              FontWeight.Normal
                           )
                         Height: =24
                         PaddingBottom: =2
@@ -130,13 +156,14 @@ Screens:
                         Text: |-
                           =If(
                               !IsBlank(varGasVehicle),
-                              "Matched: " & varGasVehicle.'Vehicle Name',
-                              If(Len(varGasCardLast4) >= 4, "No vehicle found", "")
+                              Concatenate(Char(9989), " Matched: ", varGasVehicle.'Vehicle Name'),
+                              "No vehicle found for this card"
                           )
                         Visible: =Len(varGasCardLast4) >= 4
                         Width: =Parent.Width - 32
                         X: =16
                         Y: =92
+                  # ── Transaction Date Label ──
                   - lblGasDate:
                       Control: Label@2.5.1
                       Properties:
@@ -150,6 +177,7 @@ Screens:
                         Width: =Parent.Width - 32
                         X: =16
                         Y: =122
+                  # ── Transaction Date Picker ──
                   - dpGasDate:
                       Control: DatePicker@0.0.46
                       Properties:
@@ -159,6 +187,7 @@ Screens:
                         Width: =Parent.Width - 32
                         X: =16
                         Y: =146
+                  # ── Amount Label (left half) ──
                   - lblAmount:
                       Control: Label@2.5.1
                       Properties:
@@ -172,6 +201,7 @@ Screens:
                         Width: =(Parent.Width - 48) / 2
                         X: =16
                         Y: =202
+                  # ── Gallons Label (right half) ──
                   - lblGallons:
                       Control: Label@2.5.1
                       Properties:
@@ -185,6 +215,7 @@ Screens:
                         Width: =(Parent.Width - 48) / 2
                         X: =(Parent.Width - 48) / 2 + 32
                         Y: =202
+                  # ── Amount Input (left half) ──
                   - txtAmount:
                       Control: TextInput@0.0.54
                       Properties:
@@ -195,6 +226,7 @@ Screens:
                         Width: =(Parent.Width - 48) / 2
                         X: =16
                         Y: =226
+                  # ── Gallons Input (right half) ──
                   - txtGallons:
                       Control: TextInput@0.0.54
                       Properties:
@@ -205,6 +237,7 @@ Screens:
                         Width: =(Parent.Width - 48) / 2
                         X: =(Parent.Width - 48) / 2 + 32
                         Y: =226
+                  # ── Price Per Gallon (calculated, divide-by-zero safe) ──
                   - lblPPG:
                       Control: Label@2.5.1
                       Properties:
@@ -214,11 +247,15 @@ Screens:
                         PaddingLeft: =2
                         Size: =12
                         Text: |-
-                          ="Price/gal: $" & Text(varGasAmount / varGasGallons, "#.000")
+                          ="Price/gal: $" & Text(
+                              If(varGasGallons > 0, varGasAmount / varGasGallons, 0),
+                              "#.000"
+                          )
                         Visible: =varGasAmount > 0 && varGasGallons > 0
                         Width: =Parent.Width - 32
                         X: =16
                         Y: =278
+                  # ── Notes Label ──
                   - lblNotes:
                       Control: Label@2.5.1
                       Properties:
@@ -232,6 +269,7 @@ Screens:
                         Width: =Parent.Width - 32
                         X: =16
                         Y: =306
+                  # ── Notes Input ──
                   - txtGasNotes:
                       Control: TextInput@0.0.54
                       Properties:
@@ -242,6 +280,21 @@ Screens:
                         Width: =Parent.Width - 32
                         X: =16
                         Y: =330
+                  # ── Receipt Photo Label ──
+                  - lblReceiptLabel:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =22
+                        PaddingBottom: =2
+                        PaddingLeft: =2
+                        Size: =12
+                        Text: ="Receipt Photo (optional)"
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =408
+                  # ── Receipt Photo Capture Button ──
                   - addReceiptPhoto:
                       Control: AddMedia@2.2.1
                       Properties:
@@ -264,7 +317,8 @@ Screens:
                         Text: ="Capture Receipt"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =410
+                        Y: =432
+                  # ── Receipt Image Preview ──
                   - imgReceiptPreview:
                       Control: Image@2.2.3
                       Properties:
@@ -276,6 +330,7 @@ Screens:
                         HoverBorderColor: =RGBA(0, 0, 0, 0)
                         HoverFill: =RGBA(0, 0, 0, 0)
                         Image: =addReceiptPhoto.Media
+                        ImagePosition: =ImagePosition.Fit
                         PressedBorderColor: =RGBA(0, 0, 0, 0)
                         PressedFill: =RGBA(0, 0, 0, 0)
                         RadiusBottomLeft: =8
@@ -286,6 +341,34 @@ Screens:
                         Width: =Parent.Width - 32
                         X: =16
                         Y: =addReceiptPhoto.Y + addReceiptPhoto.Height + 8
+            # ──────────────────────────────────────────────────────
+            # ── LOADING OVERLAY (covers form while submitting)
+            # ──────────────────────────────────────────────────────
+            - cnrGasSubmitting:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =RGBA(0, 0, 0, 0.4)
+                  FillPortions: =0
+                  Height: =Parent.Height
+                  PaddingBottom: =0.00
+                  PaddingLeft: =0.00
+                  Visible: =varIsSubmitting
+                  Width: =Parent.Width
+                Children:
+                  - lblGasSaving:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        Color: =RGBA(255, 255, 255, 1)
+                        FontWeight: =FontWeight.Bold
+                        Size: =16
+                        Text: ="Saving purchase..."
+                        Width: =Parent.Width
+                        Y: =(Parent.Height - 40) / 2
+            # ──────────────────────────────────────────────────────
+            # ── SUBMIT BUTTON
+            # ──────────────────────────────────────────────────────
             - btnSubmitGas:
                 Control: Button@0.0.45
                 Properties:
@@ -294,14 +377,17 @@ Screens:
                     =If(
                         IsBlank(varGasVehicle) ||
                         varGasAmount <= 0 ||
-                        varGasGallons <= 0,
+                        varGasGallons <= 0 ||
+                        varIsSubmitting,
                         DisplayMode.Disabled,
                         DisplayMode.Edit
                     )
+                  FillPortions: =0
                   Height: =52
                   OnSelect: |-
                     =Set(varIsSubmitting, true);
 
+                    // Build the base record
                     Set(
                         varPatchResult,
                         Patch(
@@ -314,25 +400,30 @@ Screens:
                                 Gallons: varGasGallons,
                                 Source: 'Source (Fuel Transactions)'.Manual,
                                 Notes: varGasNotes,
-                                SubmittedBy: varUserAssociate
+                                SubmittedBy: varUserAssociate,
+                                ReceiptImage: addReceiptPhoto.Media
                             }
                         )
                     );
 
                     If(
                         IsError(varPatchResult),
-                        Notify("Failed to save — check connection and try again", NotificationType.Error),
+                        Notify("Failed to save — check connection and try again", NotificationType.Error);
+                        Set(varIsSubmitting, false),
+                        Set(varIsSubmitting, false);
                         Notify("Fuel purchase logged!", NotificationType.Success);
                         Navigate(scrHome, ScreenTransition.Fade)
-                    );
-
-                    Set(varIsSubmitting, false)
+                    )
                   Text: ="Submit Fuel Purchase"
                   Width: =Parent.Width - 40
+            # ──────────────────────────────────────────────────────
+            # ── CANCEL BUTTON
+            # ──────────────────────────────────────────────────────
             - btnCancelGas:
                 Control: Button@0.0.45
                 Properties:
                   Appearance: ="Secondary"
+                  FillPortions: =0
                   Height: =52
                   OnSelect: =Back()
                   Text: ="Cancel"
