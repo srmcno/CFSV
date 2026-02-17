@@ -1,0 +1,561 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+#
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+#
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  scrAdminSettings:
+    Properties:
+      Fill: =varTheme.Background
+      LoadingSpinnerColor: =varTheme.Primary
+      OnVisible: |-
+        =Set(varActiveScreen, "Settings");
+
+        // Refresh counts
+        Set(varSettingsTotalVehicles, CountRows(CFSVehicles));
+        Set(varSettingsTotalAssociates, CountRows(Associates));
+        Set(varSettingsTotalReservations, CountRows('Vehicle Reservations'));
+        Set(varSettingsTotalFuel, CountRows('Fuel Transactions'));
+        Set(varSettingsTotalMaint, CountRows('Vehicle Maintenances'));
+        Set(varSettingsTotalCheckouts, CountRows('Vehicle Checkouts'));
+        Set(varSettingsTotalFuelCards, CountRows('Fuel Card Assignments'));
+    Children:
+      - cmpAdminNav_Settings:
+          Control: CanvasComponent
+          ComponentName: cmpAdminNav
+          Properties:
+            ActiveScreen: ="Settings"
+            Height: =Parent.Height
+            Width: =220
+      - cnrSettingsContent:
+          Control: GroupContainer@1.4.0
+          Variant: ManualLayout
+          Properties:
+            Fill: =varTheme.Background
+            Height: =Parent.Height
+            PaddingBottom: =0
+            PaddingLeft: =0
+            Width: =Parent.Width - 220
+            X: =220
+          Children:
+            - cnrSettingsHeader:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  Height: =64
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  Width: =Parent.Width
+                Children:
+                  - lblSettingsTitle:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Bold
+                        Height: =40
+                        PaddingLeft: =8
+                        Size: =20
+                        Text: ="Admin Settings"
+                        Width: =400
+                        X: =24
+                        Y: =12
+                  - lblSettingsSubtitle:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        Height: =20
+                        Size: =12
+                        Text: ="Application configuration and data management"
+                        Width: =400
+                        X: =24
+                        Y: =40
+            - cnrSettingsScrollable:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =Color.Transparent
+                  Height: =Parent.Height - 64
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =20
+                  LayoutOverflowY: =LayoutOverflow.Scroll
+                  PaddingBottom: =24
+                  PaddingLeft: =24
+                  PaddingRight: =24
+                  PaddingTop: =24
+                  Width: =Parent.Width
+                  Y: =64
+                Children:
+                  - cnrAppInfo:
+                      Control: GroupContainer@1.4.0
+                      Variant: ManualLayout
+                      Properties:
+                        Fill: =varTheme.Surface
+                        FillPortions: =0
+                        Height: =200
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Width: =Parent.Width - 48
+                      Children:
+                        - lblAppInfoTitle:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextPrimary
+                              FontWeight: =FontWeight.Semibold
+                              Height: =36
+                              PaddingLeft: =8
+                              Size: =16
+                              Text: ="Application Information"
+                              Width: =400
+                              X: =24
+                              Y: =12
+                        - recAppInfoDivider:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              Fill: =varTheme.Border
+                              Height: =1
+                              Width: =Parent.Width - 48
+                              X: =24
+                              Y: =48
+                        - icoAppLogo:
+                            Control: Icon@0.0.7
+                            Properties:
+                              Height: =48
+                              Icon: ="Cars"
+                              IconColor: =varTheme.Primary
+                              Width: =48
+                              X: =24
+                              Y: =64
+                        - lblAppName:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextPrimary
+                              FontWeight: =FontWeight.Bold
+                              Height: =28
+                              Size: =16
+                              Text: ="CFS Tribal Vehicle Admin"
+                              Width: =400
+                              X: =88
+                              Y: =64
+                        - lblAppVersion:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              Height: =20
+                              Size: =12
+                              Text: ="Version 1.0  |  Desktop Administration Portal"
+                              Width: =400
+                              X: =88
+                              Y: =92
+                        - lblAppOrg:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              Height: =20
+                              Size: =12
+                              Text: ="Choctaw Nation EPS  |  Fleet Management System"
+                              Width: =400
+                              X: =88
+                              Y: =112
+                        - lblCurrentUser:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              Height: =20
+                              Size: =11
+                              Text: ="Logged in as: " & varUserDisplayName & " (" & varUserEmail & ")"
+                              Width: =Parent.Width - 48
+                              X: =24
+                              Y: =156
+                        - lblAdminStatus:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =If(varIsAdmin, varStatusColors.Available, varStatusColors.Cancelled)
+                              FontWeight: =FontWeight.Semibold
+                              Height: =20
+                              Size: =11
+                              Text: =If(varIsAdmin, "Admin Access: Granted", "Admin Access: Denied")
+                              Width: =300
+                              X: =24
+                              Y: =176
+                  - cnrDataManagement:
+                      Control: GroupContainer@1.4.0
+                      Variant: ManualLayout
+                      Properties:
+                        Fill: =varTheme.Surface
+                        FillPortions: =0
+                        Height: =340
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Width: =Parent.Width - 48
+                      Children:
+                        - lblDataMgmtTitle:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextPrimary
+                              FontWeight: =FontWeight.Semibold
+                              Height: =36
+                              PaddingLeft: =8
+                              Size: =16
+                              Text: ="Data Management"
+                              Width: =400
+                              X: =24
+                              Y: =12
+                        - recDataMgmtDivider:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              Fill: =varTheme.Border
+                              Height: =1
+                              Width: =Parent.Width - 48
+                              X: =24
+                              Y: =48
+                        - btnRefreshAll:
+                            Control: Button@0.0.45
+                            Properties:
+                              Height: =40
+                              OnSelect: |-
+                                =Set(varSettingsTotalVehicles, CountRows(CFSVehicles));
+                                Set(varSettingsTotalAssociates, CountRows(Associates));
+                                Set(varSettingsTotalReservations, CountRows('Vehicle Reservations'));
+                                Set(varSettingsTotalFuel, CountRows('Fuel Transactions'));
+                                Set(varSettingsTotalMaint, CountRows('Vehicle Maintenances'));
+                                Set(varSettingsTotalCheckouts, CountRows('Vehicle Checkouts'));
+                                Set(varSettingsTotalFuelCards, CountRows('Fuel Card Assignments'));
+                                Notify("Data counts refreshed successfully", NotificationType.Success)
+                              Text: ="Refresh All Data Counts"
+                              Width: =200
+                              X: =24
+                              Y: =64
+                        - lblDataCountsTitle:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              FontWeight: =FontWeight.Semibold
+                              Height: =28
+                              Size: =12
+                              Text: ="Record Counts"
+                              Width: =200
+                              X: =24
+                              Y: =116
+                        - cnrDataCountsGrid:
+                            Control: GroupContainer@1.4.0
+                            Variant: AutoLayout
+                            Properties:
+                              Fill: =Color.Transparent
+                              Height: =180
+                              LayoutDirection: =LayoutDirection.Horizontal
+                              LayoutGap: =16
+                              LayoutWrap: =true
+                              PaddingLeft: =24
+                              PaddingRight: =24
+                              Width: =Parent.Width
+                              Y: =148
+                            Children:
+                              - cnrCountVehicles:
+                                  Control: GroupContainer@1.4.0
+                                  Variant: ManualLayout
+                                  Properties:
+                                    Fill: =varTheme.Background
+                                    FillPortions: =0
+                                    Height: =70
+                                    RadiusBottomLeft: =6
+                                    RadiusBottomRight: =6
+                                    RadiusTopLeft: =6
+                                    RadiusTopRight: =6
+                                    Width: =160
+                                  Children:
+                                    - lblCountVehiclesVal:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Color: =varTheme.Primary
+                                          FontWeight: =FontWeight.Bold
+                                          Height: =30
+                                          Size: =18
+                                          Text: =varSettingsTotalVehicles
+                                          Width: =Parent.Width - 24
+                                          X: =12
+                                          Y: =8
+                                    - lblCountVehiclesLbl:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Color: =varTheme.TextSecondary
+                                          Height: =20
+                                          Size: =10
+                                          Text: ="Vehicles"
+                                          Width: =Parent.Width - 24
+                                          X: =12
+                                          Y: =38
+                              - cnrCountAssociates:
+                                  Control: GroupContainer@1.4.0
+                                  Variant: ManualLayout
+                                  Properties:
+                                    Fill: =varTheme.Background
+                                    FillPortions: =0
+                                    Height: =70
+                                    RadiusBottomLeft: =6
+                                    RadiusBottomRight: =6
+                                    RadiusTopLeft: =6
+                                    RadiusTopRight: =6
+                                    Width: =160
+                                  Children:
+                                    - lblCountAssocVal:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Color: =varTheme.Primary
+                                          FontWeight: =FontWeight.Bold
+                                          Height: =30
+                                          Size: =18
+                                          Text: =varSettingsTotalAssociates
+                                          Width: =Parent.Width - 24
+                                          X: =12
+                                          Y: =8
+                                    - lblCountAssocLbl:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Color: =varTheme.TextSecondary
+                                          Height: =20
+                                          Size: =10
+                                          Text: ="Associates"
+                                          Width: =Parent.Width - 24
+                                          X: =12
+                                          Y: =38
+                              - cnrCountReservations:
+                                  Control: GroupContainer@1.4.0
+                                  Variant: ManualLayout
+                                  Properties:
+                                    Fill: =varTheme.Background
+                                    FillPortions: =0
+                                    Height: =70
+                                    RadiusBottomLeft: =6
+                                    RadiusBottomRight: =6
+                                    RadiusTopLeft: =6
+                                    RadiusTopRight: =6
+                                    Width: =160
+                                  Children:
+                                    - lblCountResVal:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Color: =varTheme.Primary
+                                          FontWeight: =FontWeight.Bold
+                                          Height: =30
+                                          Size: =18
+                                          Text: =varSettingsTotalReservations
+                                          Width: =Parent.Width - 24
+                                          X: =12
+                                          Y: =8
+                                    - lblCountResLbl:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Color: =varTheme.TextSecondary
+                                          Height: =20
+                                          Size: =10
+                                          Text: ="Reservations"
+                                          Width: =Parent.Width - 24
+                                          X: =12
+                                          Y: =38
+                              - cnrCountFuel:
+                                  Control: GroupContainer@1.4.0
+                                  Variant: ManualLayout
+                                  Properties:
+                                    Fill: =varTheme.Background
+                                    FillPortions: =0
+                                    Height: =70
+                                    RadiusBottomLeft: =6
+                                    RadiusBottomRight: =6
+                                    RadiusTopLeft: =6
+                                    RadiusTopRight: =6
+                                    Width: =160
+                                  Children:
+                                    - lblCountFuelVal:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Color: =varTheme.Primary
+                                          FontWeight: =FontWeight.Bold
+                                          Height: =30
+                                          Size: =18
+                                          Text: =varSettingsTotalFuel
+                                          Width: =Parent.Width - 24
+                                          X: =12
+                                          Y: =8
+                                    - lblCountFuelLbl:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Color: =varTheme.TextSecondary
+                                          Height: =20
+                                          Size: =10
+                                          Text: ="Fuel Transactions"
+                                          Width: =Parent.Width - 24
+                                          X: =12
+                                          Y: =38
+                              - cnrCountMaint:
+                                  Control: GroupContainer@1.4.0
+                                  Variant: ManualLayout
+                                  Properties:
+                                    Fill: =varTheme.Background
+                                    FillPortions: =0
+                                    Height: =70
+                                    RadiusBottomLeft: =6
+                                    RadiusBottomRight: =6
+                                    RadiusTopLeft: =6
+                                    RadiusTopRight: =6
+                                    Width: =160
+                                  Children:
+                                    - lblCountMaintVal:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Color: =varTheme.Primary
+                                          FontWeight: =FontWeight.Bold
+                                          Height: =30
+                                          Size: =18
+                                          Text: =varSettingsTotalMaint
+                                          Width: =Parent.Width - 24
+                                          X: =12
+                                          Y: =8
+                                    - lblCountMaintLbl:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Color: =varTheme.TextSecondary
+                                          Height: =20
+                                          Size: =10
+                                          Text: ="Maintenance Records"
+                                          Width: =Parent.Width - 24
+                                          X: =12
+                                          Y: =38
+                              - cnrCountCheckouts:
+                                  Control: GroupContainer@1.4.0
+                                  Variant: ManualLayout
+                                  Properties:
+                                    Fill: =varTheme.Background
+                                    FillPortions: =0
+                                    Height: =70
+                                    RadiusBottomLeft: =6
+                                    RadiusBottomRight: =6
+                                    RadiusTopLeft: =6
+                                    RadiusTopRight: =6
+                                    Width: =160
+                                  Children:
+                                    - lblCountCheckoutsVal:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Color: =varTheme.Primary
+                                          FontWeight: =FontWeight.Bold
+                                          Height: =30
+                                          Size: =18
+                                          Text: =varSettingsTotalCheckouts
+                                          Width: =Parent.Width - 24
+                                          X: =12
+                                          Y: =8
+                                    - lblCountCheckoutsLbl:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Color: =varTheme.TextSecondary
+                                          Height: =20
+                                          Size: =10
+                                          Text: ="Checkouts"
+                                          Width: =Parent.Width - 24
+                                          X: =12
+                                          Y: =38
+                              - cnrCountFuelCards:
+                                  Control: GroupContainer@1.4.0
+                                  Variant: ManualLayout
+                                  Properties:
+                                    Fill: =varTheme.Background
+                                    FillPortions: =0
+                                    Height: =70
+                                    RadiusBottomLeft: =6
+                                    RadiusBottomRight: =6
+                                    RadiusTopLeft: =6
+                                    RadiusTopRight: =6
+                                    Width: =160
+                                  Children:
+                                    - lblCountFuelCardsVal:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Color: =varTheme.Primary
+                                          FontWeight: =FontWeight.Bold
+                                          Height: =30
+                                          Size: =18
+                                          Text: =varSettingsTotalFuelCards
+                                          Width: =Parent.Width - 24
+                                          X: =12
+                                          Y: =8
+                                    - lblCountFuelCardsLbl:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Color: =varTheme.TextSecondary
+                                          Height: =20
+                                          Size: =10
+                                          Text: ="Fuel Cards"
+                                          Width: =Parent.Width - 24
+                                          X: =12
+                                          Y: =38
+                  - cnrAboutSection:
+                      Control: GroupContainer@1.4.0
+                      Variant: ManualLayout
+                      Properties:
+                        Fill: =varTheme.Surface
+                        FillPortions: =0
+                        Height: =160
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Width: =Parent.Width - 48
+                      Children:
+                        - lblAboutSectionTitle:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextPrimary
+                              FontWeight: =FontWeight.Semibold
+                              Height: =36
+                              PaddingLeft: =8
+                              Size: =16
+                              Text: ="About"
+                              Width: =400
+                              X: =24
+                              Y: =12
+                        - recAboutDivider:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              Fill: =varTheme.Border
+                              Height: =1
+                              Width: =Parent.Width - 48
+                              X: =24
+                              Y: =48
+                        - lblAboutDesc:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              Height: =40
+                              Size: =12
+                              Text: ="CFS Tribal Vehicle Admin is the desktop administration portal for the CFS Tribal Vehicle Usage fleet management system. It provides tools for managing vehicles, reservations, fuel tracking, maintenance, and associates."
+                              Width: =Parent.Width - 48
+                              X: =24
+                              Y: =60
+                        - lblAboutTech:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              Height: =20
+                              Size: =11
+                              Text: ="Built with Microsoft Power Apps  |  Data: Microsoft Dataverse"
+                              Width: =Parent.Width - 48
+                              X: =24
+                              Y: =106
+                        - lblAboutCopyright:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              Height: =20
+                              Size: =11
+                              Text: ="Choctaw Nation EPS  |  2025"
+                              Width: =Parent.Width - 48
+                              X: =24
+                              Y: =128

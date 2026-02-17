@@ -1,9 +1,9 @@
 # ************************************************************************************************
 # Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
 # Use the maker portal to create and edit your Power Apps.
-# 
+#
 # The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
-# 
+#
 # For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
 # ************************************************************************************************
 Screens:
@@ -46,7 +46,7 @@ Screens:
                 Variant: ManualLayout
                 Properties:
                   Fill: =varTheme.Surface
-                  Height: =80
+                  Height: =90
                   PaddingBottom: =0.00
                   PaddingLeft: =0.00
                   RadiusBottomLeft: =12
@@ -65,16 +65,16 @@ Screens:
                         IconColor: =varTheme.Primary
                         Width: =40
                         X: =16
-                        Y: =20
+                        Y: =24
                   - lblUserName:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
-                        Height: =14.62
-                        PaddingBottom: =2.81
-                        PaddingLeft: =2.81
-                        Size: =8.00
+                        Height: =24
+                        PaddingBottom: =2
+                        PaddingLeft: =2
+                        Size: =14
                         Text: =varUserDisplayName
                         Width: =Parent.Width - 80
                         X: =64
@@ -83,78 +83,78 @@ Screens:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextSecondary
-                        Height: =11.24
-                        PaddingBottom: =2.81
-                        PaddingLeft: =2.81
-                        Size: =6.50
+                        Height: =20
+                        PaddingBottom: =2
+                        PaddingLeft: =2
+                        Size: =11
                         Text: =varUserEmail
                         Width: =Parent.Width - 80
                         X: =64
-                        Y: =38
+                        Y: =46
             - lblQuickLinksTitle:
                 Control: Label@2.5.1
                 Properties:
                   Color: =varTheme.TextPrimary
                   FontWeight: =FontWeight.Semibold
-                  Height: =16.87
-                  PaddingBottom: =2.81
-                  PaddingLeft: =2.81
-                  Size: =7.87
+                  Height: =24
+                  PaddingBottom: =2
+                  PaddingLeft: =2
+                  Size: =14
                   Text: ="Quick Links"
                   Width: =Parent.Width - 32
                   X: =16
-                  Y: =112
+                  Y: =122
             - btnGoMyReservations:
                 Control: Button@0.0.45
                 Properties:
                   Appearance: ="Secondary"
-                  Height: =40
+                  Height: =44
                   OnSelect: =Navigate(scrMyReservations, ScreenTransition.Fade)
                   Text: |-
-                    ="📅  My Reservations"
+                    ="My Reservations"
                   Width: =Parent.Width - 32
                   X: =16
-                  Y: =136
+                  Y: =152
             - btnGoGasPurchases:
                 Control: Button@0.0.45
                 Properties:
                   Appearance: ="Secondary"
-                  Height: =40
+                  Height: =44
                   OnSelect: =Navigate(scrGasPurchase, ScreenTransition.Fade)
-                  Text: ="⛽  Log Gas Purchase"
+                  Text: ="Log Gas Purchase"
                   Width: =Parent.Width - 32
                   X: =16
-                  Y: =184
+                  Y: =204
             - btnGoFuelHistory:
                 Control: Button@0.0.45
                 Properties:
                   Appearance: ="Secondary"
-                  Height: =40
+                  Height: =44
                   OnSelect: =Navigate(scrFuelHistory, ScreenTransition.Fade)
                   Text: |-
-                    ="📋  Fuel History"
+                    ="Fuel History"
                   Width: =Parent.Width - 32
                   X: =16
-                  Y: =232
+                  Y: =256
             - btnGoVehicles:
                 Control: Button@0.0.45
                 Properties:
                   Appearance: ="Secondary"
-                  Height: =40
+                  Height: =44
                   OnSelect: |-
                     =Set(varFilterStatus, "All");
                     Navigate(scrVehicleList, ScreenTransition.Fade)
                   Text: |-
-                    ="🚗  All Vehicles"
+                    ="All Vehicles"
                   Width: =Parent.Width - 32
                   X: =16
-                  Y: =280
+                  Y: =308
             - cnrAbout:
                 Control: GroupContainer@1.4.0
                 Variant: ManualLayout
                 Properties:
                   Fill: =varTheme.Surface
-                  Height: =70
+                  Height: =80
                   PaddingBottom: =0.00
                   PaddingLeft: =0.00
                   RadiusBottomLeft: =12
@@ -163,30 +163,30 @@ Screens:
                   RadiusTopRight: =12
                   Width: =Parent.Width - 32
                   X: =16
-                  Y: =340
+                  Y: =370
                 Children:
                   - lblAboutTitle:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
-                        Height: =14.62
-                        PaddingBottom: =2.81
-                        PaddingLeft: =2.81
-                        Size: =7.87
+                        Height: =24
+                        PaddingBottom: =2
+                        PaddingLeft: =2
+                        Size: =14
                         Text: ="CFS Tribal Vehicle Usage"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =12
+                        Y: =16
                   - lblAboutVersion:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextSecondary
-                        Height: =11.24
-                        PaddingBottom: =2.81
-                        PaddingLeft: =2.81
-                        Size: =6.50
+                        Height: =20
+                        PaddingBottom: =2
+                        PaddingLeft: =2
+                        Size: =11
                         Text: ="Choctaw Nation EPS  •  v1.1"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =32
+                        Y: =42
