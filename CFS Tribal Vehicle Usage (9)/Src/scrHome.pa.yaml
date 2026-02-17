@@ -14,62 +14,109 @@ Screens:
       OnVisible: |-
         =Set(varNow, Now());
 
-        // Count vehicles by status using Option Set
-        Set(varAvailableCount, CountRows(Filter(CFSVehicles, 'Status (cr63e_status)' = 'Status (CFSVehicles)'.Available)));
-        Set(varCheckedOutCount, CountRows(Filter(CFSVehicles, 'Status (cr63e_status)' = 'Status (CFSVehicles)'.'Checked Out')));
-        Set(varReservedCount, CountRows(Filter(CFSVehicles, 'Status (cr63e_status)' = 'Status (CFSVehicles)'.Reserved)));
-        Set(varMaintenanceCount, CountRows(Filter(CFSVehicles, 'Status (cr63e_status)' = 'Status (CFSVehicles)'.Maintenance)));
-        Set(varTotalVehicles, CountRows(CFSVehicles));
-
-        // Load user's upcoming reservations
-        ClearCollect(
-            colMyUpcoming,
-            FirstN(
-                Sort(
+        // ── Parallel data loading via Concurrent() ──
+        // All KPI counts, upcoming reservations, and monthly stats
+        // load simultaneously instead of sequentially.
+        Concurrent(
+            // Vehicle status counts
+            Set(
+                varAvailableCount,
+                CountRows(
                     Filter(
-                        'Vehicle Reservations',
-                        Associate.Associates = varUserAssociate.Associates &&
-                        EndDateTime >= Today() &&
-                        'Status (cr63e_status)' <> 'Status (Vehicle Reservations)'.Cancelled
+                        CFSVehicles,
+                        'Status (cr63e_status)' = 'Status (CFSVehicles)'.Available
+                    )
+                )
+            ),
+            Set(
+                varCheckedOutCount,
+                CountRows(
+                    Filter(
+                        CFSVehicles,
+                        'Status (cr63e_status)' = 'Status (CFSVehicles)'.'Checked Out'
+                    )
+                )
+            ),
+            Set(
+                varReservedCount,
+                CountRows(
+                    Filter(
+                        CFSVehicles,
+                        'Status (cr63e_status)' = 'Status (CFSVehicles)'.Reserved
+                    )
+                )
+            ),
+            Set(
+                varMaintenanceCount,
+                CountRows(
+                    Filter(
+                        CFSVehicles,
+                        'Status (cr63e_status)' = 'Status (CFSVehicles)'.Maintenance
+                    )
+                )
+            ),
+            Set(varTotalVehicles, CountRows(CFSVehicles)),
+
+            // User's upcoming reservations — null-guarded so app
+            // doesn't crash when user profile lookup fails
+            If(
+                varUserHasProfile,
+                ClearCollect(
+                    colMyUpcoming,
+                    FirstN(
+                        Sort(
+                            Filter(
+                                'Vehicle Reservations',
+                                Associate.Associates = varUserAssociate.Associates &&
+                                EndDateTime >= Today() &&
+                                'Status (cr63e_status)' <> 'Status (Vehicle Reservations)'.Cancelled
+                            ),
+                            StartDateTime,
+                            SortOrder.Ascending
+                        ),
+                        3
+                    )
+                ),
+                ClearCollect(colMyUpcoming, Blank())
+            ),
+
+            // Monthly fuel spend
+            Set(
+                varFuelSpendMonth,
+                Sum(
+                    Filter(
+                        'Fuel Transactions',
+                        TransactionDateTime >= Date(Year(Today()), Month(Today()), 1) &&
+                        TransactionDateTime <= Today()
                     ),
-                    StartDateTime,
-                    SortOrder.Ascending
-                ),
-                3
-            )
-        );
+                    Amount
+                )
+            ),
 
+            // Active checkouts (no return date yet)
+            Set(
+                varActiveCheckouts,
+                CountRows(
+                    Filter('Vehicle Checkouts', IsBlank(ReturnedAt))
+                )
+            ),
 
-        Set(
-            varFuelSpendMonth,
-            Sum(
-                Filter(
-                    'Fuel Transactions',
-                    TransactionDateTime >= Date(Year(Today()), Month(Today()), 1) &&
-                    TransactionDateTime <= Today()
-                ),
-                Amount
-            )
-        );
-
-        Set(
-            varActiveCheckouts,
-            CountRows(
-                Filter('Vehicle Checkouts', IsBlank(ReturnedAt))
-            )
-        );
-
-        Set(
-            varOpenMaintenance,
-            CountRows(
-                Filter(
-                    'Vehicle Maintenances',
-                    'Status (cr63e_status)' = 'Status (Vehicle Maintenances)'.Open ||
-                    'Status (cr63e_status)' = 'Status (Vehicle Maintenances)'.'In Progress'
+            // Open or in-progress maintenance items
+            Set(
+                varOpenMaintenance,
+                CountRows(
+                    Filter(
+                        'Vehicle Maintenances',
+                        'Status (cr63e_status)' = 'Status (Vehicle Maintenances)'.Open ||
+                        'Status (cr63e_status)' = 'Status (Vehicle Maintenances)'.'In Progress'
+                    )
                 )
             )
-        );
+        )
     Children:
+      # ══════════════════════════════════════════════════════════════
+      # HEADER (84px)
+      # ══════════════════════════════════════════════════════════════
       - cmpHeader_Home:
           Control: CanvasComponent
           ComponentName: cmpHeader
@@ -79,6 +126,9 @@ Screens:
             SubTitle: =varGreeting & ", " & varUserDisplayName
             Title: ="Fleet Dashboard"
             Width: =App.Width
+      # ══════════════════════════════════════════════════════════════
+      # BOTTOM NAV (72px)
+      # ══════════════════════════════════════════════════════════════
       - cmpBottomNav_Home:
           Control: CanvasComponent
           ComponentName: cmpBottomNav
@@ -87,6 +137,9 @@ Screens:
             Height: =varSize.NavH
             Width: =App.Width
             Y: =Parent.Height - Self.Height
+      # ══════════════════════════════════════════════════════════════
+      # SCROLLABLE DASHBOARD BODY
+      # ══════════════════════════════════════════════════════════════
       - cnrDashboard:
           Control: GroupContainer@1.4.0
           Variant: AutoLayout
@@ -524,7 +577,16 @@ Screens:
                         - recUpcomingAccent:
                             Control: Rectangle@2.3.0
                             Properties:
-                              Fill: =If(DateValue(ThisItem.StartDateTime) = Today(), varStatusColors.CheckedOut, varStatusColors.Reserved)
+                              Fill: |-
+                                =If(
+                                    DateValue(ThisItem.StartDateTime) < Today(),
+                                    varStatusColors.CheckedOut,
+                                    If(
+                                        DateValue(ThisItem.StartDateTime) = Today(),
+                                        varStatusColors.Warning,
+                                        varStatusColors.Reserved
+                                    )
+                                )
                               Height: =48
                               RadiusBottomLeft: =3
                               RadiusBottomRight: =3
@@ -567,34 +629,74 @@ Screens:
                         - recBadgeBg:
                             Control: Rectangle@2.3.0
                             Properties:
-                              Fill: =If(DateValue(ThisItem.StartDateTime) = Today(), varStatusColors.CheckedOutBg, varTheme.PrimaryLight)
+                              Fill: |-
+                                =If(
+                                    DateValue(ThisItem.StartDateTime) < Today(),
+                                    varStatusColors.CheckedOutBg,
+                                    If(
+                                        DateValue(ThisItem.StartDateTime) = Today(),
+                                        varStatusColors.ReservedBg,
+                                        varTheme.PrimaryLight
+                                    )
+                                )
                               Height: =26
                               RadiusBottomLeft: =13
                               RadiusBottomRight: =13
                               RadiusTopLeft: =13
                               RadiusTopRight: =13
-                              Width: =If(DateValue(ThisItem.StartDateTime) = Today(), 62, 56)
+                              Width: |-
+                                =If(
+                                    DateValue(ThisItem.StartDateTime) < Today(),
+                                    72,
+                                    If(
+                                        DateValue(ThisItem.StartDateTime) = Today(),
+                                        62,
+                                        56
+                                    )
+                                )
                               X: =Parent.Width - Self.Width - 14
                               Y: =27
                         - lblUpcomingBadge:
                             Control: Label@2.5.1
                             Properties:
                               Align: =Align.Center
-                              Color: =If(DateValue(ThisItem.StartDateTime) = Today(), varStatusColors.CheckedOut, varTheme.Primary)
+                              Color: |-
+                                =If(
+                                    DateValue(ThisItem.StartDateTime) < Today(),
+                                    varStatusColors.CheckedOut,
+                                    If(
+                                        DateValue(ThisItem.StartDateTime) = Today(),
+                                        varStatusColors.Warning,
+                                        varTheme.Primary
+                                    )
+                                )
                               FontWeight: =FontWeight.Bold
                               Height: =26
                               Size: =10
                               Text: |-
                                 =If(
-                                    DateValue(ThisItem.StartDateTime) = Today(),
-                                    "TODAY",
+                                    DateValue(ThisItem.StartDateTime) < Today(),
+                                    "OVERDUE",
                                     If(
-                                        DateDiff(Today(), DateValue(ThisItem.StartDateTime), TimeUnit.Days) = 1,
-                                        "1 day",
-                                        Text(DateDiff(Today(), DateValue(ThisItem.StartDateTime), TimeUnit.Days)) & " days"
+                                        DateValue(ThisItem.StartDateTime) = Today(),
+                                        "TODAY",
+                                        If(
+                                            DateDiff(Today(), DateValue(ThisItem.StartDateTime), TimeUnit.Days) = 1,
+                                            "1 day",
+                                            Text(DateDiff(Today(), DateValue(ThisItem.StartDateTime), TimeUnit.Days)) & " days"
+                                        )
                                     )
                                 )
-                              Width: =If(DateValue(ThisItem.StartDateTime) = Today(), 62, 56)
+                              Width: |-
+                                =If(
+                                    DateValue(ThisItem.StartDateTime) < Today(),
+                                    72,
+                                    If(
+                                        DateValue(ThisItem.StartDateTime) = Today(),
+                                        62,
+                                        56
+                                    )
+                                )
                               X: =Parent.Width - Self.Width - 14
                               Y: =27
                         - btnUpcomingTap:

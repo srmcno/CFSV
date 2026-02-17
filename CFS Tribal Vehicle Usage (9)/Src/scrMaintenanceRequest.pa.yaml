@@ -12,23 +12,40 @@ Screens:
       Fill: =varTheme.Background
       LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
       OnVisible: |-
-        =If(
+        =// Pre-fill vehicle when arriving from detail screen
+        If(
             IsBlank(varMaintVehicle) && !IsBlank(varSelectedVehicle),
             Set(varMaintVehicle, varSelectedVehicle)
         );
+
+        // Reset form fields to defaults
         Set(varMaintDescription, "");
         Set(varMaintUrgency, "Medium");
         Set(varMaintOutOfService, false);
+
+        // Reset the photo control
+        Reset(addMaintPhoto)
     Children:
+      # ════════════════════════════════════════════════════════════════
+      # HEADER
+      # ════════════════════════════════════════════════════════════════
       - cmpHeader_Maint:
           Control: CanvasComponent
           ComponentName: cmpHeader
           Properties:
             Height: =84
             ShowBackBtn: =true
-            SubTitle: =If(!IsBlank(varMaintVehicle), varMaintVehicle.'Vehicle Name', "Select a vehicle")
+            SubTitle: |-
+              =If(
+                  !IsBlank(varMaintVehicle),
+                  varMaintVehicle.'Vehicle Name',
+                  "Select a vehicle"
+              )
             Title: ="Report Issue"
             Width: =App.Width
+      # ════════════════════════════════════════════════════════════════
+      # BOTTOM NAV
+      # ════════════════════════════════════════════════════════════════
       - cmpBottomNav_Maint:
           Control: CanvasComponent
           ComponentName: cmpBottomNav
@@ -37,6 +54,9 @@ Screens:
             Height: =72
             Width: =App.Width
             Y: =Parent.Height - Self.Height
+      # ════════════════════════════════════════════════════════════════
+      # SCROLLABLE FORM BODY
+      # ════════════════════════════════════════════════════════════════
       - cnrMaintForm:
           Control: GroupContainer@1.4.0
           Variant: AutoLayout
@@ -53,13 +73,14 @@ Screens:
             Width: =Parent.Width
             Y: =cmpHeader_Maint.Height
           Children:
+            # ── Form Card ──────────────────────────────────────────────
             - cnrMaintCard:
                 Control: GroupContainer@1.4.0
                 Variant: ManualLayout
                 Properties:
                   Fill: =varTheme.Surface
                   FillPortions: =0
-                  Height: =500
+                  Height: =If(!IsBlank(addMaintPhoto.Media), 740, 580)
                   PaddingBottom: =0.00
                   PaddingLeft: =0.00
                   RadiusBottomLeft: =16
@@ -68,6 +89,7 @@ Screens:
                   RadiusTopRight: =16
                   Width: =Parent.Width - 40
                 Children:
+                  # ── Vehicle Dropdown ─────────────────────────────────
                   - lblMaintVehicle:
                       Control: Label@2.5.1
                       Properties:
@@ -85,6 +107,7 @@ Screens:
                       Control: DropDown@0.0.45
                       Properties:
                         DefaultSelectedItems: =If(!IsBlank(varMaintVehicle), [varMaintVehicle], [])
+                        DisplayMode: =If(varIsSubmitting, DisplayMode.Disabled, DisplayMode.Edit)
                         Height: =48
                         Items: =CFSVehicles
                         OnChange: =Set(varMaintVehicle, Self.Selected)
@@ -101,6 +124,7 @@ Screens:
                               FieldName: ="cr63e_vehiclename"
                               FieldType: ="s"
                               Order: =1
+                  # ── Issue Type Dropdown ──────────────────────────────
                   - lblMaintType:
                       Control: Label@2.5.1
                       Properties:
@@ -117,11 +141,13 @@ Screens:
                   - ddMaintType:
                       Control: DropDown@0.0.45
                       Properties:
+                        DisplayMode: =If(varIsSubmitting, DisplayMode.Disabled, DisplayMode.Edit)
                         Height: =48
                         Items: =Choices('Vehicle Maintenances'.Type)
                         Width: =Parent.Width - 32
                         X: =16
                         Y: =120
+                  # ── Urgency Dropdown ─────────────────────────────────
                   - lblMaintUrgency:
                       Control: Label@2.5.1
                       Properties:
@@ -139,12 +165,14 @@ Screens:
                       Control: DropDown@0.0.45
                       Properties:
                         DefaultSelectedItems: =["Medium"]
+                        DisplayMode: =If(varIsSubmitting, DisplayMode.Disabled, DisplayMode.Edit)
                         Height: =48
                         Items: =["Low", "Medium", "High", "Critical"]
                         OnChange: =Set(varMaintUrgency, Self.Selected.Value)
                         Width: =(Parent.Width - 48) / 2
                         X: =16
                         Y: =200
+                  # ── Pull from Service Toggle ────────────────────────
                   - lblMaintOOS:
                       Control: Label@2.5.1
                       Properties:
@@ -162,6 +190,9 @@ Screens:
                       Control: Button@0.0.45
                       Properties:
                         BasePaletteColor: =If(varMaintOutOfService, varTheme.Danger, Color.Transparent)
+                        BorderColor: =If(varMaintOutOfService, varTheme.Danger, varTheme.Border)
+                        BorderThickness: =If(varMaintOutOfService, 0, 1)
+                        DisplayMode: =If(varIsSubmitting, DisplayMode.Disabled, DisplayMode.Edit)
                         FontColor: =If(varMaintOutOfService, varTheme.TextOnPrimary, varTheme.TextSecondary)
                         Height: =48
                         OnSelect: =Set(varMaintOutOfService, true)
@@ -173,6 +204,9 @@ Screens:
                       Control: Button@0.0.45
                       Properties:
                         BasePaletteColor: =If(!varMaintOutOfService, varStatusColors.Available, Color.Transparent)
+                        BorderColor: =If(!varMaintOutOfService, varStatusColors.Available, varTheme.Border)
+                        BorderThickness: =If(!varMaintOutOfService, 0, 1)
+                        DisplayMode: =If(varIsSubmitting, DisplayMode.Disabled, DisplayMode.Edit)
                         FontColor: =If(!varMaintOutOfService, varTheme.TextOnPrimary, varTheme.TextSecondary)
                         Height: =48
                         OnSelect: =Set(varMaintOutOfService, false)
@@ -180,6 +214,20 @@ Screens:
                         Width: =((Parent.Width - 48) / 2 - 8) / 2
                         X: =(Parent.Width - 48) / 2 + 32 + ((Parent.Width - 48) / 2 - 8) / 2 + 8
                         Y: =200
+                  # ── Out of Service Warning ──────────────────────────
+                  - lblOOSWarning:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.Danger
+                        Height: =20
+                        PaddingLeft: =2
+                        Size: =10
+                        Text: ="This will set the vehicle to Maintenance status."
+                        Visible: =varMaintOutOfService
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =252
+                  # ── Description Textarea ────────────────────────────
                   - lblMaintDesc:
                       Control: Label@2.5.1
                       Properties:
@@ -192,17 +240,19 @@ Screens:
                         Text: ="Description *"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =256
+                        Y: =If(varMaintOutOfService, 278, 260)
                   - txtMaintDesc:
                       Control: TextInput@0.0.54
                       Properties:
+                        DisplayMode: =If(varIsSubmitting, DisplayMode.Disabled, DisplayMode.Edit)
                         Height: =100
                         Mode: =TextMode.MultiLine
                         OnChange: =Set(varMaintDescription, Self.Value)
-                        Placeholder: ="Describe the issue..."
+                        Placeholder: ="Describe the issue in detail..."
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =280
+                        Y: =If(varMaintOutOfService, 302, 284)
+                  # ── Photo Attachment ─────────────────────────────────
                   - lblMaintPhoto:
                       Control: Label@2.5.1
                       Properties:
@@ -215,46 +265,60 @@ Screens:
                         Text: ="Photo of Issue (optional)"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =388
-                  - lblMaintPhotoPlaceholder:
-                      Control: Label@2.5.1
+                        Y: =If(varMaintOutOfService, 414, 396)
+                  - addMaintPhoto:
+                      Control: AddMedia@2.2.1
                       Properties:
-                        Align: =Align.Center
-                        Color: =varTheme.TextTertiary
-                        Height: =70
-                        Size: =11
-                        Text: ="Add a photo via camera control in Studio"
+                        BorderColor: =RGBA(0, 0, 0, 0)
+                        BorderStyle: =BorderStyle.None
+                        BorderThickness: =0
+                        Color: =varTheme.TextOnPrimary
+                        DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                        DisabledColor: =RGBA(200, 198, 196, 1)
+                        DisabledFill: =RGBA(243, 242, 241, 1)
+                        DisplayMode: =If(varIsSubmitting, DisplayMode.Disabled, DisplayMode.Edit)
+                        Fill: =varTheme.Primary
+                        Font: =Font.'Segoe UI'
+                        HoverBorderColor: =RGBA(0, 0, 0, 0)
+                        HoverColor: =varTheme.TextOnPrimary
+                        HoverFill: =varTheme.PrimaryDark
+                        PressedBorderColor: =RGBA(0, 0, 0, 0)
+                        PressedColor: =varTheme.TextOnPrimary
+                        PressedFill: =varTheme.PrimaryDark
+                        Size: =14
+                        Text: ="Capture Issue Photo"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =412
-            - cnrMaintSubmitting:
-                Control: GroupContainer@1.4.0
-                Variant: ManualLayout
-                Properties:
-                  Fill: =RGBA(0, 0, 0, 0.4)
-                  FillPortions: =0
-                  Height: =Parent.Height
-                  PaddingBottom: =0.00
-                  PaddingLeft: =0.00
-                  Visible: =varIsSubmitting
-                  Width: =Parent.Width
-                Children:
-                  - lblMaintSaving:
-                      Control: Label@2.5.1
+                        Y: =If(varMaintOutOfService, 438, 420)
+                  - imgMaintPreview:
+                      Control: Image@2.2.3
                       Properties:
-                        Align: =Align.Center
-                        Color: =RGBA(255, 255, 255, 1)
-                        FontWeight: =FontWeight.Bold
-                        Size: =16
-                        Text: ="Saving..."
-                        Width: =Parent.Width
-                        Y: =(Parent.Height - 40) / 2
+                        BorderColor: =RGBA(0, 0, 0, 0)
+                        BorderThickness: =0
+                        DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                        DisabledFill: =RGBA(0, 0, 0, 0)
+                        Height: =If(!IsBlank(addMaintPhoto.Media), 150, 0)
+                        HoverBorderColor: =RGBA(0, 0, 0, 0)
+                        HoverFill: =RGBA(0, 0, 0, 0)
+                        Image: =addMaintPhoto.Media
+                        PressedBorderColor: =RGBA(0, 0, 0, 0)
+                        PressedFill: =RGBA(0, 0, 0, 0)
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Visible: =!IsBlank(addMaintPhoto.Media)
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =addMaintPhoto.Y + addMaintPhoto.Height + 8
+            # ── Submit Button ──────────────────────────────────────────
             - btnSubmitMaint:
                 Control: Button@0.0.45
                 Properties:
                   BasePaletteColor: =varTheme.Primary
                   DisplayMode: |-
                     =If(
+                        varIsSubmitting ||
                         IsBlank(varMaintVehicle) ||
                         IsBlank(ddMaintType.Selected) ||
                         IsBlank(varMaintDescription) ||
@@ -267,6 +331,7 @@ Screens:
                   OnSelect: |-
                     =Set(varIsSubmitting, true);
 
+                    // Patch the maintenance record
                     Set(
                         varPatchResult,
                         Patch(
@@ -277,17 +342,27 @@ Screens:
                                 Type: ddMaintType.Selected.Value,
                                 Description: varMaintDescription,
                                 'Status (cr63e_status)': 'Status (Vehicle Maintenances)'.Open,
-                                OutOfService: If(varMaintOutOfService, 'OutOfService (Vehicle Maintenances)'.Yes, 'OutOfService (Vehicle Maintenances)'.No),
+                                OutOfService: If(
+                                    varMaintOutOfService,
+                                    'OutOfService (Vehicle Maintenances)'.Yes,
+                                    'OutOfService (Vehicle Maintenances)'.No
+                                ),
                                 ReportedBy: varUserAssociate,
-                                ReportedDateTime: Now()
+                                ReportedDateTime: Now(),
+                                Urgency: varMaintUrgency
                             }
                         )
                     );
 
+                    // Check for errors — only navigate on success
                     If(
                         IsError(varPatchResult),
-                        Notify("Failed to submit — check connection and try again", NotificationType.Error);
+                        Notify(
+                            "Failed to submit — check connection and try again.",
+                            NotificationType.Error
+                        );
                         Set(varIsSubmitting, false),
+                        // Success path: update vehicle status if pulling from service
                         If(
                             varMaintOutOfService,
                             Patch(
@@ -297,17 +372,75 @@ Screens:
                             )
                         );
                         Set(varIsSubmitting, false);
-                        Notify("Issue reported!", NotificationType.Success);
+                        Notify("Issue reported successfully!", NotificationType.Success);
                         Back()
                     )
                   Text: ="Submit Issue Report"
                   Width: =Parent.Width - 40
+            # ── Cancel Button ──────────────────────────────────────────
             - btnCancelMaint:
                 Control: Button@0.0.45
                 Properties:
                   Appearance: ="Secondary"
+                  DisplayMode: =If(varIsSubmitting, DisplayMode.Disabled, DisplayMode.Edit)
                   FillPortions: =0
                   Height: =52
                   OnSelect: =Back()
                   Text: ="Cancel"
                   Width: =Parent.Width - 40
+      # ════════════════════════════════════════════════════════════════
+      # LOADING OVERLAY — full-screen, above all form content
+      # ════════════════════════════════════════════════════════════════
+      - cnrMaintOverlay:
+          Control: GroupContainer@1.4.0
+          Variant: ManualLayout
+          Properties:
+            Fill: =varTheme.Overlay
+            Height: =Parent.Height
+            PaddingBottom: =0.00
+            PaddingLeft: =0.00
+            Visible: =varIsSubmitting
+            Width: =Parent.Width
+          Children:
+            # ── Spinner ring (outer) ──
+            - recSpinnerOuter:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(255, 255, 255, 0.25)
+                  BorderThickness: =4
+                  Fill: =Color.Transparent
+                  Height: =48
+                  RadiusBottomLeft: =24
+                  RadiusBottomRight: =24
+                  RadiusTopLeft: =24
+                  RadiusTopRight: =24
+                  Width: =48
+                  X: =(Parent.Width - 48) / 2
+                  Y: =(Parent.Height - 80) / 2
+            # ── Spinner accent arc ──
+            - recSpinnerAccent:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(255, 255, 255, 1)
+                  BorderThickness: =4
+                  Fill: =Color.Transparent
+                  Height: =48
+                  RadiusBottomLeft: =24
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =24
+                  RadiusTopRight: =0
+                  Width: =48
+                  X: =(Parent.Width - 48) / 2
+                  Y: =(Parent.Height - 80) / 2
+            # ── "Saving..." text ──
+            - lblMaintSaving:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  Color: =RGBA(255, 255, 255, 1)
+                  FontWeight: =FontWeight.Bold
+                  Height: =24
+                  Size: =16
+                  Text: ="Saving..."
+                  Width: =Parent.Width
+                  Y: =(Parent.Height - 80) / 2 + 56

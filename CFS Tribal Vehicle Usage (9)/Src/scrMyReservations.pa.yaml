@@ -10,7 +10,7 @@ Screens:
   scrMyReservations:
     Properties:
       Fill: =varTheme.Background
-      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+      LoadingSpinnerColor: =varTheme.Primary
       OnVisible: |-
         =ClearCollect(
             colMyReservations,
@@ -23,10 +23,12 @@ Screens:
                 SortOrder.Descending
             )
         );
-        Set(varResFilter, "Upcoming")
+        Set(varResFilter, "Upcoming");
+        Set(varConfirmCancelRes, Blank());
+        Set(varIsSubmitting, false)
     Children:
       # ══════════════════════════════════════════════════════════════
-      # HEADER (84px) – Title, subtitle with count, back button
+      # HEADER (84px) – Title, subtitle with filtered count, back btn
       # ══════════════════════════════════════════════════════════════
       - cmpHeader_MyRes:
           Control: CanvasComponent
@@ -34,12 +36,23 @@ Screens:
           Properties:
             Height: =84
             ShowBackBtn: =true
-            SubTitle: =CountRows(colMyReservations) & " total"
+            SubTitle: |-
+              =CountRows(
+                  Filter(
+                      colMyReservations,
+                      Switch(
+                          varResFilter,
+                          "Upcoming", EndDateTime >= Today(),
+                          "Past", EndDateTime < Today(),
+                          true
+                      )
+                  )
+              ) & " " & Lower(varResFilter) & If(varResFilter = "All", " reservations", "")
             Title: ="My Reservations"
             Width: =App.Width
 
       # ══════════════════════════════════════════════════════════════
-      # FILTER BAR (52px) – Pill-shaped Upcoming / Past / All toggles
+      # FILTER BAR (52px) – Pill-track with Upcoming / Past / All
       # ══════════════════════════════════════════════════════════════
       - cnrResFilters:
           Control: GroupContainer@1.4.0
@@ -52,6 +65,20 @@ Screens:
             Width: =Parent.Width
             Y: =cmpHeader_MyRes.Height
           Children:
+            # ── Pill track background ──
+            - recResFilterTrack:
+                Control: Rectangle@2.3.0
+                Properties:
+                  Fill: =varTheme.Background
+                  Height: =40
+                  RadiusBottomLeft: =20
+                  RadiusBottomRight: =20
+                  RadiusTopLeft: =20
+                  RadiusTopRight: =20
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =6
+            # ── Upcoming pill ──
             - btnFilterUpcoming:
                 Control: Button@0.0.45
                 Properties:
@@ -59,10 +86,15 @@ Screens:
                   FontColor: =If(varResFilter = "Upcoming", varTheme.TextOnPrimary, varTheme.TextSecondary)
                   Height: =36
                   OnSelect: =Set(varResFilter, "Upcoming")
+                  RadiusBottomLeft: =18
+                  RadiusBottomRight: =18
+                  RadiusTopLeft: =18
+                  RadiusTopRight: =18
                   Text: ="Upcoming"
-                  Width: =(Parent.Width - 48) / 3
-                  X: =12
+                  Width: =(Parent.Width - 40) / 3
+                  X: =19
                   Y: =8
+            # ── Past pill ──
             - btnFilterPast:
                 Control: Button@0.0.45
                 Properties:
@@ -70,10 +102,15 @@ Screens:
                   FontColor: =If(varResFilter = "Past", varTheme.TextOnPrimary, varTheme.TextSecondary)
                   Height: =36
                   OnSelect: =Set(varResFilter, "Past")
+                  RadiusBottomLeft: =18
+                  RadiusBottomRight: =18
+                  RadiusTopLeft: =18
+                  RadiusTopRight: =18
                   Text: ="Past"
-                  Width: =(Parent.Width - 48) / 3
-                  X: =(Parent.Width - 48) / 3 + 20
+                  Width: =(Parent.Width - 40) / 3
+                  X: =(Parent.Width - 40) / 3 + 20
                   Y: =8
+            # ── All pill ──
             - btnFilterAll:
                 Control: Button@0.0.45
                 Properties:
@@ -81,20 +118,25 @@ Screens:
                   FontColor: =If(varResFilter = "All", varTheme.TextOnPrimary, varTheme.TextSecondary)
                   Height: =36
                   OnSelect: =Set(varResFilter, "All")
+                  RadiusBottomLeft: =18
+                  RadiusBottomRight: =18
+                  RadiusTopLeft: =18
+                  RadiusTopRight: =18
                   Text: ="All"
-                  Width: =(Parent.Width - 48) / 3
-                  X: =((Parent.Width - 48) / 3) * 2 + 28
+                  Width: =(Parent.Width - 40) / 3
+                  X: =((Parent.Width - 40) / 3) * 2 + 21
                   Y: =8
 
       # ══════════════════════════════════════════════════════════════
       # RESERVATION GALLERY – Cards with accent bar, info, badge, cancel
+      # Visible only when the FILTERED set has rows
       # ══════════════════════════════════════════════════════════════
       - galMyReservations:
           Control: Gallery@2.15.0
           Variant: BrowseLayout_Vertical_OneTextVariant_pcfCore
           Properties:
-            BorderColor: =RGBA(243, 242, 241, 1)
-            FocusedBorderColor: =RGBA(98, 100, 167, 1)
+            BorderColor: =Color.Transparent
+            FocusedBorderColor: =varTheme.Primary
             FocusedBorderThickness: =2
             Height: =Parent.Height - cmpHeader_MyRes.Height - cnrResFilters.Height - cmpBottomNav_MyRes.Height
             Items: |-
@@ -110,7 +152,18 @@ Screens:
             LoadingSpinner: =LoadingSpinner.Controls
             TemplatePadding: =6
             TemplateSize: =108
-            Visible: =CountRows(colMyReservations) > 0
+            Visible: |-
+              =CountRows(
+                  Filter(
+                      colMyReservations,
+                      Switch(
+                          varResFilter,
+                          "Upcoming", EndDateTime >= Today(),
+                          "Past", EndDateTime < Today(),
+                          true
+                      )
+                  )
+              ) > 0
             Width: =Parent.Width
             Y: =cmpHeader_MyRes.Height + cnrResFilters.Height
           Children:
@@ -250,77 +303,123 @@ Screens:
                         Height: =36
                         OnSelect: =Set(varConfirmCancelRes, ThisItem)
                         Text: ="Cancel"
+                        Visible: =ThisItem.EndDateTime >= Today() && ThisItem.'Status (cr63e_status)' = 'Status (Vehicle Reservations)'.Approved
                         Width: =88
                         X: =Parent.Width - 100
                         Y: =Parent.Height - 46
-                        Visible: =ThisItem.EndDateTime >= Today() && ThisItem.'Status (cr63e_status)' = 'Status (Vehicle Reservations)'.Approved
 
       # ══════════════════════════════════════════════════════════════
-      # EMPTY STATE – Calendar icon, message, CTA button
+      # EMPTY STATE – Per-filter messaging with icon, text, CTA
+      # Checks FILTERED count so each tab shows its own empty state
       # ══════════════════════════════════════════════════════════════
       - cnrNoReservations:
           Control: GroupContainer@1.4.0
           Variant: ManualLayout
           Properties:
             Fill: =varTheme.Surface
-            Height: =200
+            Height: =220
             PaddingBottom: =0.00
             PaddingLeft: =0.00
             RadiusBottomLeft: =16
             RadiusBottomRight: =16
             RadiusTopLeft: =16
             RadiusTopRight: =16
-            Visible: =CountRows(colMyReservations) = 0
+            Visible: |-
+              =CountRows(
+                  Filter(
+                      colMyReservations,
+                      Switch(
+                          varResFilter,
+                          "Upcoming", EndDateTime >= Today(),
+                          "Past", EndDateTime < Today(),
+                          true
+                      )
+                  )
+              ) = 0
             Width: =Parent.Width - 32
             X: =16
             Y: =cmpHeader_MyRes.Height + cnrResFilters.Height + 32
           Children:
+            # ── Icon background circle ──
+            - recNoResIconBg:
+                Control: Rectangle@2.3.0
+                Properties:
+                  Fill: =varTheme.PrimaryBg
+                  Height: =48
+                  RadiusBottomLeft: =24
+                  RadiusBottomRight: =24
+                  RadiusTopLeft: =24
+                  RadiusTopRight: =24
+                  Width: =48
+                  X: =(Parent.Width - 48) / 2
+                  Y: =20
+            # ── Calendar icon ──
             - icoNoRes:
                 Control: Icon@0.0.7
                 Properties:
-                  Height: =40
-                  Icon: ="Calendar"
-                  IconColor: =varTheme.TextTertiary
-                  Width: =40
-                  X: =(Parent.Width - 40) / 2
-                  Y: =24
+                  Height: =24
+                  Icon: ="CalendarBlank"
+                  IconColor: =varTheme.Primary
+                  Width: =24
+                  X: =(Parent.Width - 24) / 2
+                  Y: =32
+            # ── Primary empty message (per-filter) ──
             - lblNoResText:
                 Control: Label@2.5.1
                 Properties:
                   Align: =Align.Center
-                  Color: =varTheme.TextSecondary
-                  Height: =28
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Semibold
+                  Height: =24
                   Size: =14
-                  Text: ="No reservations yet"
+                  Text: |-
+                    =Switch(
+                        varResFilter,
+                        "Upcoming", "No upcoming reservations",
+                        "Past", "No past reservations yet",
+                        "No reservations found"
+                    )
                   Width: =Parent.Width
-                  Y: =72
+                  Y: =80
+            # ── Secondary description (per-filter) ──
             - lblNoResSubtext:
                 Control: Label@2.5.1
                 Properties:
                   Align: =Align.Center
                   Color: =varTheme.TextTertiary
                   Height: =22
-                  Size: =11
-                  Text: ="Reserve a vehicle to get started"
-                  Width: =Parent.Width
-                  Y: =98
+                  Size: =12
+                  Text: |-
+                    =Switch(
+                        varResFilter,
+                        "Upcoming", "Book a vehicle to get started",
+                        "Past", "Completed trips will appear here",
+                        "Use the filters above or make a new reservation"
+                    )
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =106
+            # ── CTA button (only on Upcoming & All filters) ──
             - btnMakeRes:
                 Control: Button@0.0.45
                 Properties:
-                  BasePaletteColor: =varTheme.Primary
-                  FontColor: =varTheme.TextOnPrimary
+                  Appearance: ="Transparent"
+                  FontColor: =varTheme.Primary
+                  FontWeight: =FontWeight.Bold
                   Height: =44
                   OnSelect: |-
                     =Set(varSelectedVehicle, Blank());
                     Set(varIsNewReservation, true);
                     Navigate(scrReservation, ScreenTransition.Fade)
-                  Text: ="Make a reservation"
+                  Text: ="Make a Reservation"
+                  Visible: =varResFilter <> "Past"
                   Width: =200
                   X: =(Parent.Width - 200) / 2
-                  Y: =132
+                  Y: =140
 
       # ══════════════════════════════════════════════════════════════
       # CANCEL CONFIRMATION OVERLAY – Dark backdrop + centered dialog
+      # With error handling and loading state during cancellation
       # ══════════════════════════════════════════════════════════════
       - cnrConfirmCancelRes:
           Control: GroupContainer@1.4.0
@@ -338,7 +437,7 @@ Screens:
                 Variant: ManualLayout
                 Properties:
                   Fill: =varTheme.Surface
-                  Height: =220
+                  Height: =230
                   PaddingBottom: =0.00
                   PaddingLeft: =0.00
                   RadiusBottomLeft: =16
@@ -347,8 +446,9 @@ Screens:
                   RadiusTopRight: =16
                   Width: =Parent.Width - 64
                   X: =32
-                  Y: =(Parent.Height - 220) / 2
+                  Y: =(Parent.Height - 230) / 2
                 Children:
+                  # ── Dialog title ──
                   - lblConfirmTitle:
                       Control: Label@2.5.1
                       Properties:
@@ -360,6 +460,7 @@ Screens:
                         Text: ="Cancel Reservation?"
                         Width: =Parent.Width
                         Y: =20
+                  # ── Descriptive message ──
                   - lblConfirmMessage:
                       Control: Label@2.5.1
                       Properties:
@@ -367,49 +468,70 @@ Screens:
                         Color: =varTheme.TextSecondary
                         Height: =50
                         Size: =12
-                        Text: =If(!IsBlank(varConfirmCancelRes), "Cancel reservation for " & varConfirmCancelRes.Vehicle.'Vehicle Name' & " on " & Text(varConfirmCancelRes.StartDateTime, "mmm d, yyyy") & "?", "")
+                        Text: |-
+                          =If(
+                              !IsBlank(varConfirmCancelRes),
+                              "This will cancel your reservation for " & varConfirmCancelRes.Vehicle.'Vehicle Name' & " on " & Text(varConfirmCancelRes.StartDateTime, "mmm d, yyyy") & ". This action cannot be undone.",
+                              ""
+                          )
                         Width: =Parent.Width - 32
                         X: =16
                         Y: =56
+                  # ── "Yes, Cancel It" danger button with error handling ──
                   - btnConfirmYes:
                       Control: Button@0.0.45
                       Properties:
                         BasePaletteColor: =varTheme.Danger
+                        DisplayMode: =If(varIsSubmitting, DisplayMode.Disabled, DisplayMode.Edit)
                         FontColor: =varTheme.TextOnPrimary
                         Height: =44
                         OnSelect: |-
-                          =Patch(
-                              'Vehicle Reservations',
-                              varConfirmCancelRes,
-                              {'Status (cr63e_status)': 'Status (Vehicle Reservations)'.Cancelled}
-                          );
-                          Notify("Reservation cancelled", NotificationType.Success);
-                          Set(varConfirmCancelRes, Blank());
-                          ClearCollect(
-                              colMyReservations,
-                              Sort(
-                                  Filter(
-                                      'Vehicle Reservations',
-                                      Associate.Associates = varUserAssociate.Associates
-                                  ),
-                                  StartDateTime,
-                                  SortOrder.Descending
+                          =Set(varIsSubmitting, true);
+                          Set(
+                              varPatchResult,
+                              Patch(
+                                  'Vehicle Reservations',
+                                  varConfirmCancelRes,
+                                  {'Status (cr63e_status)': 'Status (Vehicle Reservations)'.Cancelled}
                               )
+                          );
+                          If(
+                              IsError(varPatchResult),
+                              // Cancel failed — show error, keep dialog open
+                              Set(varIsSubmitting, false);
+                              Notify("Failed to cancel reservation. Please try again.", NotificationType.Error),
+                              // Cancel succeeded — dismiss dialog and reload
+                              Notify("Reservation cancelled", NotificationType.Success);
+                              Set(varConfirmCancelRes, Blank());
+                              ClearCollect(
+                                  colMyReservations,
+                                  Sort(
+                                      Filter(
+                                          'Vehicle Reservations',
+                                          Associate.Associates = varUserAssociate.Associates
+                                      ),
+                                      StartDateTime,
+                                      SortOrder.Descending
+                                  )
+                              );
+                              Set(varIsSubmitting, false)
                           )
-                        Text: ="Yes, Cancel It"
+                        Text: =If(varIsSubmitting, "Cancelling...", "Yes, Cancel It")
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =114
+                        Y: =118
+                  # ── "Go Back" secondary button ──
                   - btnConfirmNo:
                       Control: Button@0.0.45
                       Properties:
                         Appearance: ="Secondary"
+                        DisplayMode: =If(varIsSubmitting, DisplayMode.Disabled, DisplayMode.Edit)
                         Height: =44
                         OnSelect: =Set(varConfirmCancelRes, Blank())
                         Text: ="Go Back"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =164
+                        Y: =170
 
       # ══════════════════════════════════════════════════════════════
       # BOTTOM NAV (72px)
