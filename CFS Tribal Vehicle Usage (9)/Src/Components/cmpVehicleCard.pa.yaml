@@ -79,7 +79,7 @@ ComponentDefinitions:
             Color: =cmpVehicleCard.StatusColor
             FontWeight: =FontWeight.Semibold
             Height: =18
-            Size: =10
+            Size: =11
             Text: =cmpVehicleCard.StatusText
             Width: =80
             X: =Parent.Width - 96

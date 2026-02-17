@@ -51,7 +51,7 @@ ComponentDefinitions:
           Properties:
             AutoHeight: =true
             Color: =varTheme.TextSecondary
-            FontSize: =If(Parent.Width < 600, 10, 12)
+            FontSize: =If(Parent.Width < 600, 12, 12)
             Height: =20
             Text: |+
               =If(Hour(Now()) < 12, "Halito, ", If(Hour(Now()) < 17, "Good afternoon, ", "Good evening, ")) & varUserDisplayName

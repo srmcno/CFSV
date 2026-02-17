@@ -1,9 +1,9 @@
 # ************************************************************************************************
 # Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
 # Use the maker portal to create and edit your Power Apps.
-# 
+#
 # The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
-# 
+#
 # For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
 # ************************************************************************************************
 Screens:
@@ -39,12 +39,17 @@ Screens:
             Y: =Parent.Height - Self.Height
       - cnrMaintForm:
           Control: GroupContainer@1.4.0
-          Variant: ManualLayout
+          Variant: AutoLayout
           Properties:
             Fill: =Color.Transparent
             Height: =Parent.Height - cmpHeader_Maint.Height - cmpBottomNav_Maint.Height
-            PaddingBottom: =0.00
-            PaddingLeft: =0.00
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =12
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingBottom: =16
+            PaddingLeft: =16
+            PaddingRight: =16
+            PaddingTop: =12
             Width: =Parent.Width
             Y: =cmpHeader_Maint.Height
           Children:
@@ -53,7 +58,8 @@ Screens:
                 Variant: ManualLayout
                 Properties:
                   Fill: =varTheme.Surface
-                  Height: =380
+                  FillPortions: =0
+                  Height: =480
                   PaddingBottom: =0.00
                   PaddingLeft: =0.00
                   RadiusBottomLeft: =12
@@ -61,18 +67,16 @@ Screens:
                   RadiusTopLeft: =12
                   RadiusTopRight: =12
                   Width: =Parent.Width - 32
-                  X: =16
-                  Y: =12
                 Children:
                   - lblMaintVehicle:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
-                        Height: =13.49
-                        PaddingBottom: =2.81
-                        PaddingLeft: =2.81
-                        Size: =6.75
+                        Height: =22
+                        PaddingBottom: =2
+                        PaddingLeft: =2
+                        Size: =12
                         Text: ="Vehicle *"
                         Width: =Parent.Width - 32
                         X: =16
@@ -81,12 +85,12 @@ Screens:
                       Control: DropDown@0.0.45
                       Properties:
                         DefaultSelectedItems: =If(!IsBlank(varMaintVehicle), [varMaintVehicle], [])
-                        Height: =22.49
+                        Height: =40
                         Items: =CFSVehicles
                         OnChange: =Set(varMaintVehicle, Self.Selected)
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =28
+                        Y: =36
                       Children:
                         - MaintVehicleName:
                             Control: DropDownDataField@1.5.0
@@ -102,138 +106,128 @@ Screens:
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
-                        Height: =13.49
-                        PaddingBottom: =2.81
-                        PaddingLeft: =2.81
-                        Size: =6.75
+                        Height: =22
+                        PaddingBottom: =2
+                        PaddingLeft: =2
+                        Size: =12
                         Text: ="Issue Type *"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =60
+                        Y: =84
                   - ddMaintType:
                       Control: DropDown@0.0.45
                       Properties:
-                        Height: =22.49
+                        Height: =40
                         Items: =Choices('Vehicle Maintenances'.Type)
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =76
+                        Y: =108
                   - lblMaintUrgency:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
-                        Height: =13.49
-                        PaddingBottom: =2.81
-                        PaddingLeft: =2.81
-                        Size: =6.75
+                        Height: =22
+                        PaddingBottom: =2
+                        PaddingLeft: =2
+                        Size: =12
                         Text: ="Urgency"
                         Width: =(Parent.Width - 48) / 2
                         X: =16
-                        Y: =108
+                        Y: =156
                   - ddMaintUrgency:
                       Control: DropDown@0.0.45
                       Properties:
                         DefaultSelectedItems: =["Medium"]
-                        Height: =22.49
+                        Height: =40
                         Items: =["Low", "Medium", "High", "Critical"]
                         OnChange: =Set(varMaintUrgency, Self.Selected.Value)
                         Width: =(Parent.Width - 48) / 2
                         X: =16
-                        Y: =124
+                        Y: =180
                   - lblMaintOOS:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
-                        Height: =13.49
-                        PaddingBottom: =2.81
-                        PaddingLeft: =2.81
-                        Size: =6.75
+                        Height: =22
+                        PaddingBottom: =2
+                        PaddingLeft: =2
+                        Size: =12
                         Text: ="Pull from service?"
                         Width: =(Parent.Width - 48) / 2
                         X: =(Parent.Width - 48) / 2 + 32
-                        Y: =108
+                        Y: =156
                   - btnOOSYes:
                       Control: Button@0.0.45
                       Properties:
                         BasePaletteColor: =If(varMaintOutOfService, varStatusColors.Cancelled, Color.Transparent)
                         FontColor: =If(varMaintOutOfService, varTheme.TextOnPrimary, varTheme.TextSecondary)
-                        Height: =22.49
+                        Height: =40
                         OnSelect: =Set(varMaintOutOfService, true)
                         Text: ="Yes"
                         Width: =((Parent.Width - 48) / 2 - 8) / 2
                         X: =(Parent.Width - 48) / 2 + 32
-                        Y: =124
+                        Y: =180
                   - btnOOSNo:
                       Control: Button@0.0.45
                       Properties:
                         BasePaletteColor: =If(!varMaintOutOfService, varStatusColors.Available, Color.Transparent)
                         FontColor: =If(!varMaintOutOfService, varTheme.TextOnPrimary, varTheme.TextSecondary)
-                        Height: =22.49
+                        Height: =40
                         OnSelect: =Set(varMaintOutOfService, false)
                         Text: ="No"
                         Width: =((Parent.Width - 48) / 2 - 8) / 2
                         X: =(Parent.Width - 48) / 2 + 32 + ((Parent.Width - 48) / 2 - 8) / 2 + 8
-                        Y: =124
+                        Y: =180
                   - lblMaintDesc:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
-                        Height: =13.49
-                        PaddingBottom: =2.81
-                        PaddingLeft: =2.81
-                        Size: =6.75
+                        Height: =22
+                        PaddingBottom: =2
+                        PaddingLeft: =2
+                        Size: =12
                         Text: ="Description *"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =158
+                        Y: =228
                   - txtMaintDesc:
                       Control: TextInput@0.0.54
                       Properties:
-                        Height: =67.48
+                        Height: =80
                         Mode: =TextMode.MultiLine
                         OnChange: =Set(varMaintDescription, Self.Value)
                         Placeholder: ="Describe the issue..."
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =174
+                        Y: =252
                   - lblMaintPhoto:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
-                        Height: =13.49
-                        PaddingBottom: =2.81
-                        PaddingLeft: =2.81
-                        Size: =6.75
+                        Height: =22
+                        PaddingBottom: =2
+                        PaddingLeft: =2
+                        Size: =12
                         Text: ="Photo of Issue (optional — add via camera in Studio)"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =252
+                        Y: =340
                   - lblMaintPhotoPlaceholder:
                       Control: Label@2.5.1
                       Properties:
                         Align: =Align.Center
                         Color: =varTheme.TextSecondary
                         Height: =80
-                        Size: =6.75
+                        Size: =11
                         Text: |-
-                          ="📷 Insert an Add Picture control here in Studio"
+                          ="Insert an Add Picture control here in Studio"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =268
-                  - btnCancelMaint:
-                      Control: Button@0.0.45
-                      Properties:
-                        Appearance: ="Secondary"
-                        Height: =28.11
-                        OnSelect: =Back()
-                        Text: ="Cancel"
-                        Width: =Parent.Width - 32
-                        X: =16
-                        Y: =351.89
+                        Y: =364
             - cnrMaintSubmitting:
                 Control: GroupContainer@1.4.0
                 Variant: ManualLayout
@@ -251,7 +245,7 @@ Screens:
                         Align: =Align.Center
                         Color: =RGBA(255, 255, 255, 1)
                         FontWeight: =FontWeight.Bold
-                        Size: =14
+                        Size: =16
                         Text: ="Saving..."
                         Width: =Parent.Width
                         Y: =(Parent.Height - 40) / 2
@@ -268,7 +262,7 @@ Screens:
                         DisplayMode.Disabled,
                         DisplayMode.Edit
                     )
-                  Height: =28.11
+                  Height: =44
                   OnSelect: |-
                     =Set(varIsSubmitting, true);
 
@@ -307,15 +301,11 @@ Screens:
                     )
                   Text: ="Submit Issue Report"
                   Width: =Parent.Width - 32
-                  X: =16
-                  Y: =340
-            - btnCancelMaint_1:
+            - btnCancelMaint:
                 Control: Button@0.0.45
                 Properties:
                   Appearance: ="Secondary"
-                  Height: =28.11
+                  Height: =44
                   OnSelect: =Back()
                   Text: ="Cancel"
                   Width: =Parent.Width - 32
-                  X: =16
-                  Y: =340 + 36

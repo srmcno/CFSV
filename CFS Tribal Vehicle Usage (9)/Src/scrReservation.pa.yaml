@@ -1,9 +1,9 @@
 # ************************************************************************************************
 # Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
 # Use the maker portal to create and edit your Power Apps.
-# 
+#
 # The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
-# 
+#
 # For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
 # ************************************************************************************************
 Screens:
@@ -55,7 +55,7 @@ Screens:
                 Variant: ManualLayout
                 Properties:
                   Fill: =varTheme.Surface
-                  Height: =240
+                  Height: =340
                   RadiusBottomLeft: =12
                   RadiusBottomRight: =12
                   RadiusTopLeft: =12
@@ -67,22 +67,22 @@ Screens:
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
-                        Height: =14
-                        Size: =8
+                        Height: =22
+                        Size: =12
                         Text: ="Select Vehicle *"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =10
+                        Y: =12
                   - ddVehicle:
                       Control: DropDown@0.0.45
                       Properties:
                         DefaultSelectedItems: =If(!IsBlank(varResVehicleSelected), [varResVehicleSelected], [])
-                        Height: =24
+                        Height: =40
                         Items: =Filter(CFSVehicles, 'CFSVehicles (Views)'.'Active CFSVehicles')
                         OnChange: =Set(varResVehicleSelected, Self.Selected)
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =26
+                        Y: =36
                       Children:
                         - VehicleName1:
                             Control: DropDownDataField@1.5.0
@@ -98,16 +98,16 @@ Screens:
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
-                        Height: =14
-                        Size: =8
+                        Height: =22
+                        Size: =12
                         Text: ="Start Date *"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =58
+                        Y: =84
                   - dpStartDate:
                       Control: DatePicker@0.0.46
                       Properties:
-                        Height: =24
+                        Height: =40
                         OnChange: |-
                           =Set(varResStartDate, Self.SelectedDate);
                           If(varResEndDate < Self.SelectedDate, Set(varResEndDate, Self.SelectedDate))
@@ -115,58 +115,58 @@ Screens:
                         StartDate: =varResStartDate
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =74
+                        Y: =108
                   - lblEndDate:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
-                        Height: =14
-                        Size: =8
+                        Height: =22
+                        Size: =12
                         Text: ="End Date *"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =106
+                        Y: =156
                   - dpEndDate:
                       Control: DatePicker@0.0.46
                       Properties:
                         EndDate: =varResEndDate
-                        Height: =24
+                        Height: =40
                         OnChange: =Set(varResEndDate, Self.SelectedDate)
                         SelectedDate: =varResEndDate
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =122
+                        Y: =180
                   - lblPurpose:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
-                        Height: =14
-                        Size: =8
+                        Height: =22
+                        Size: =12
                         Text: ="Purpose / Notes"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =154
+                        Y: =228
                   - txtPurpose:
                       Control: TextInput@0.0.54
                       Properties:
-                        Height: =46
+                        Height: =60
                         Mode: =TextMode.MultiLine
                         OnChange: =Set(varResPurpose, Self.Value)
                         Placeholder: ="Enter purpose of trip..."
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =170
+                        Y: =252
                   - lblConflictWarning:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varStatusColors.Warning
-                        Height: =22
-                        Size: =8
+                        Height: =24
+                        Size: =11
                         Text: ="This vehicle has reservations during selected dates"
                         Visible: |-
-                          =!IsBlank(varResVehicleSelected) && 
+                          =!IsBlank(varResVehicleSelected) &&
                           CountRows(
                               Filter(
                                   'Vehicle Reservations',
@@ -176,21 +176,13 @@ Screens:
                           ) > 0
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =218
-            - btnCancelRes:
-                Control: Button@0.0.45
-                Properties:
-                  Appearance: ="Secondary"
-                  Height: =36
-                  OnSelect: =Back()
-                  Text: ="Cancel"
-                  Width: =Parent.Width - 32
+                        Y: =316
             - btnSubmitRes:
                 Control: Button@0.0.45
                 Properties:
                   BasePaletteColor: =varTheme.Primary
                   DisplayMode: =If(IsBlank(varResVehicleSelected) || varResEndDate < varResStartDate, DisplayMode.Disabled, DisplayMode.Edit)
-                  Height: =36
+                  Height: =44
                   OnSelect: |-
                     =Set(varIsSubmitting, true);
 
@@ -227,4 +219,12 @@ Screens:
 
                     Set(varIsSubmitting, false);
                   Text: ="Submit Reservation"
+                  Width: =Parent.Width - 32
+            - btnCancelRes:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ="Secondary"
+                  Height: =44
+                  OnSelect: =Back()
+                  Text: ="Cancel"
                   Width: =Parent.Width - 32

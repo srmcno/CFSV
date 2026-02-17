@@ -39,6 +39,7 @@ ComponentDefinitions:
           Properties:
             BasePaletteColor: =Color.Transparent
             FontColor: =If(cmpBottomNav.ActiveKey = "Home", varTheme.Primary, varTheme.TextSecondary)
+            FontSize: =10
             FontWeight: =If(cmpBottomNav.ActiveKey = "Home", FontWeight.Bold, FontWeight.Normal)
             Height: =Parent.Height
             OnSelect: =Navigate(scrHome, ScreenTransition.Fade)
@@ -49,6 +50,7 @@ ComponentDefinitions:
           Properties:
             BasePaletteColor: =Color.Transparent
             FontColor: =If(cmpBottomNav.ActiveKey = "Vehicles", varTheme.Primary, varTheme.TextSecondary)
+            FontSize: =10
             FontWeight: =If(cmpBottomNav.ActiveKey = "Vehicles", FontWeight.Bold, FontWeight.Normal)
             Height: =Parent.Height
             OnSelect: =Navigate(scrVehicleList, ScreenTransition.Fade)
@@ -60,6 +62,7 @@ ComponentDefinitions:
           Properties:
             BasePaletteColor: =Color.Transparent
             FontColor: =If(cmpBottomNav.ActiveKey = "Reserve", varTheme.Primary, varTheme.TextSecondary)
+            FontSize: =10
             FontWeight: =If(cmpBottomNav.ActiveKey = "Reserve", FontWeight.Bold, FontWeight.Normal)
             Height: =Parent.Height
             OnSelect: |-
@@ -74,6 +77,7 @@ ComponentDefinitions:
           Properties:
             BasePaletteColor: =Color.Transparent
             FontColor: =If(cmpBottomNav.ActiveKey = "Gas", varTheme.Primary, varTheme.TextSecondary)
+            FontSize: =10
             FontWeight: =If(cmpBottomNav.ActiveKey = "Gas", FontWeight.Bold, FontWeight.Normal)
             Height: =Parent.Height
             OnSelect: =Navigate(scrGasPurchase, ScreenTransition.Fade)
@@ -85,6 +89,7 @@ ComponentDefinitions:
           Properties:
             BasePaletteColor: =Color.Transparent
             FontColor: =If(cmpBottomNav.ActiveKey = "More", varTheme.Primary, varTheme.TextSecondary)
+            FontSize: =10
             FontWeight: =If(cmpBottomNav.ActiveKey = "More", FontWeight.Bold, FontWeight.Normal)
             Height: =Parent.Height
             OnSelect: =Navigate(scrSettings, ScreenTransition.Fade)

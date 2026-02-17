@@ -1,0 +1,261 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+#
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+#
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+ComponentDefinitions:
+  cmpAdminNav:
+    DefinitionType: CanvasComponent
+    AccessAppScope: true
+    CustomProperties:
+      ActiveScreen:
+        PropertyKind: Input
+        DisplayName: ActiveScreen
+        Description: Which navigation item is currently active (Dashboard, Vehicles, Reservations, Fuel, Maintenance, Associates, Settings)
+        DataType: Text
+        Default: ="Dashboard"
+    Properties:
+      Height: =App.Height
+      Width: =220
+    Children:
+      - recNavBackground:
+          Control: Rectangle@2.3.0
+          Properties:
+            Fill: =varTheme.PrimaryDark
+            Height: =Parent.Height
+            Width: =Parent.Width
+      - lblNavAppTitle:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Left
+            Color: =RGBA(255, 255, 255, 1)
+            FontWeight: =FontWeight.Bold
+            Height: =56
+            PaddingLeft: =20
+            Size: =16
+            Text: ="CFS Vehicle Admin"
+            Width: =Parent.Width
+            Y: =0
+      - recNavTitleDivider:
+          Control: Rectangle@2.3.0
+          Properties:
+            Fill: =RGBA(255, 255, 255, 0.15)
+            Height: =1
+            Width: =Parent.Width - 24
+            X: =12
+            Y: =56
+      - icoNavDashboard:
+          Control: Icon@0.0.7
+          Properties:
+            Height: =20
+            Icon: ="Home"
+            IconColor: =RGBA(255, 255, 255, 1)
+            Width: =20
+            X: =20
+            Y: =76
+      - btnNavDashboard:
+          Control: Button@0.0.45
+          Properties:
+            Align: =Align.Left
+            Appearance: ="Transparent"
+            BasePaletteColor: =If(cmpAdminNav.ActiveScreen = "Dashboard", varTheme.Primary, Color.Transparent)
+            FontColor: =RGBA(255, 255, 255, 1)
+            FontSize: =13
+            FontWeight: =If(cmpAdminNav.ActiveScreen = "Dashboard", FontWeight.Semibold, FontWeight.Normal)
+            Height: =40
+            OnSelect: |-
+              =Set(varActiveScreen, "Dashboard");
+              Navigate(scrAdminDashboard, ScreenTransition.None)
+            PaddingLeft: =48
+            Text: ="Dashboard"
+            Width: =Parent.Width
+            Y: =68
+      - icoNavVehicles:
+          Control: Icon@0.0.7
+          Properties:
+            Height: =20
+            Icon: ="Cars"
+            IconColor: =RGBA(255, 255, 255, 1)
+            Width: =20
+            X: =20
+            Y: =118
+      - btnNavVehicles:
+          Control: Button@0.0.45
+          Properties:
+            Align: =Align.Left
+            Appearance: ="Transparent"
+            BasePaletteColor: =If(cmpAdminNav.ActiveScreen = "Vehicles", varTheme.Primary, Color.Transparent)
+            FontColor: =RGBA(255, 255, 255, 1)
+            FontSize: =13
+            FontWeight: =If(cmpAdminNav.ActiveScreen = "Vehicles", FontWeight.Semibold, FontWeight.Normal)
+            Height: =40
+            OnSelect: |-
+              =Set(varActiveScreen, "Vehicles");
+              Navigate(scrAdminVehicles, ScreenTransition.None)
+            PaddingLeft: =48
+            Text: ="Vehicles"
+            Width: =Parent.Width
+            Y: =110
+      - icoNavReservations:
+          Control: Icon@0.0.7
+          Properties:
+            Height: =20
+            Icon: ="Calendar"
+            IconColor: =RGBA(255, 255, 255, 1)
+            Width: =20
+            X: =20
+            Y: =160
+      - btnNavReservations:
+          Control: Button@0.0.45
+          Properties:
+            Align: =Align.Left
+            Appearance: ="Transparent"
+            BasePaletteColor: =If(cmpAdminNav.ActiveScreen = "Reservations", varTheme.Primary, Color.Transparent)
+            FontColor: =RGBA(255, 255, 255, 1)
+            FontSize: =13
+            FontWeight: =If(cmpAdminNav.ActiveScreen = "Reservations", FontWeight.Semibold, FontWeight.Normal)
+            Height: =40
+            OnSelect: |-
+              =Set(varActiveScreen, "Reservations");
+              Navigate(scrAdminReservations, ScreenTransition.None)
+            PaddingLeft: =48
+            Text: ="Reservations"
+            Width: =Parent.Width
+            Y: =152
+      - icoNavFuel:
+          Control: Icon@0.0.7
+          Properties:
+            Height: =20
+            Icon: ="Money"
+            IconColor: =RGBA(255, 255, 255, 1)
+            Width: =20
+            X: =20
+            Y: =202
+      - btnNavFuel:
+          Control: Button@0.0.45
+          Properties:
+            Align: =Align.Left
+            Appearance: ="Transparent"
+            BasePaletteColor: =If(cmpAdminNav.ActiveScreen = "Fuel", varTheme.Primary, Color.Transparent)
+            FontColor: =RGBA(255, 255, 255, 1)
+            FontSize: =13
+            FontWeight: =If(cmpAdminNav.ActiveScreen = "Fuel", FontWeight.Semibold, FontWeight.Normal)
+            Height: =40
+            OnSelect: |-
+              =Set(varActiveScreen, "Fuel");
+              Navigate(scrAdminFuel, ScreenTransition.None)
+            PaddingLeft: =48
+            Text: ="Fuel"
+            Width: =Parent.Width
+            Y: =194
+      - icoNavMaintenance:
+          Control: Icon@0.0.7
+          Properties:
+            Height: =20
+            Icon: ="Tool"
+            IconColor: =RGBA(255, 255, 255, 1)
+            Width: =20
+            X: =20
+            Y: =244
+      - btnNavMaintenance:
+          Control: Button@0.0.45
+          Properties:
+            Align: =Align.Left
+            Appearance: ="Transparent"
+            BasePaletteColor: =If(cmpAdminNav.ActiveScreen = "Maintenance", varTheme.Primary, Color.Transparent)
+            FontColor: =RGBA(255, 255, 255, 1)
+            FontSize: =13
+            FontWeight: =If(cmpAdminNav.ActiveScreen = "Maintenance", FontWeight.Semibold, FontWeight.Normal)
+            Height: =40
+            OnSelect: |-
+              =Set(varActiveScreen, "Maintenance");
+              Navigate(scrAdminMaintenance, ScreenTransition.None)
+            PaddingLeft: =48
+            Text: ="Maintenance"
+            Width: =Parent.Width
+            Y: =236
+      - icoNavAssociates:
+          Control: Icon@0.0.7
+          Properties:
+            Height: =20
+            Icon: ="People"
+            IconColor: =RGBA(255, 255, 255, 1)
+            Width: =20
+            X: =20
+            Y: =286
+      - btnNavAssociates:
+          Control: Button@0.0.45
+          Properties:
+            Align: =Align.Left
+            Appearance: ="Transparent"
+            BasePaletteColor: =If(cmpAdminNav.ActiveScreen = "Associates", varTheme.Primary, Color.Transparent)
+            FontColor: =RGBA(255, 255, 255, 1)
+            FontSize: =13
+            FontWeight: =If(cmpAdminNav.ActiveScreen = "Associates", FontWeight.Semibold, FontWeight.Normal)
+            Height: =40
+            OnSelect: |-
+              =Set(varActiveScreen, "Associates");
+              Navigate(scrAdminAssociates, ScreenTransition.None)
+            PaddingLeft: =48
+            Text: ="Associates"
+            Width: =Parent.Width
+            Y: =278
+      - recNavSettingsDivider:
+          Control: Rectangle@2.3.0
+          Properties:
+            Fill: =RGBA(255, 255, 255, 0.15)
+            Height: =1
+            Width: =Parent.Width - 24
+            X: =12
+            Y: =330
+      - icoNavSettings:
+          Control: Icon@0.0.7
+          Properties:
+            Height: =20
+            Icon: ="Settings"
+            IconColor: =RGBA(255, 255, 255, 1)
+            Width: =20
+            X: =20
+            Y: =348
+      - btnNavSettings:
+          Control: Button@0.0.45
+          Properties:
+            Align: =Align.Left
+            Appearance: ="Transparent"
+            BasePaletteColor: =If(cmpAdminNav.ActiveScreen = "Settings", varTheme.Primary, Color.Transparent)
+            FontColor: =RGBA(255, 255, 255, 1)
+            FontSize: =13
+            FontWeight: =If(cmpAdminNav.ActiveScreen = "Settings", FontWeight.Semibold, FontWeight.Normal)
+            Height: =40
+            OnSelect: |-
+              =Set(varActiveScreen, "Settings");
+              Navigate(scrAdminSettings, ScreenTransition.None)
+            PaddingLeft: =48
+            Text: ="Settings"
+            Width: =Parent.Width
+            Y: =340
+      - lblNavUser:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Left
+            Color: =RGBA(255, 255, 255, 0.7)
+            Height: =20
+            PaddingLeft: =20
+            Size: =10
+            Text: =varUserDisplayName
+            Width: =Parent.Width
+            Y: =Parent.Height - 40
+      - lblNavRole:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Left
+            Color: =RGBA(255, 255, 255, 0.5)
+            Height: =16
+            PaddingLeft: =20
+            Size: =9
+            Text: ="Administrator"
+            Width: =Parent.Width
+            Y: =Parent.Height - 20
