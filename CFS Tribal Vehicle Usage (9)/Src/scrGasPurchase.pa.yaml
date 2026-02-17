@@ -14,7 +14,6 @@ Screens:
       OnVisible: |-
         =Set(varGasAmount, 0);
         Set(varGasGallons, 0);
-        Set(varGasOdometer, 0);
         Set(varGasDate, Today());
         Set(varGasCardLast4, "");
         Set(varGasVehicle, Blank());
@@ -28,17 +27,22 @@ Screens:
           Control: CanvasComponent
           ComponentName: cmpHeader
           Properties:
-            Height: =64
+            Height: =84
             ShowBackBtn: =true
-            SubTitle: =If(IsBlank(varGasVehicle), "Enter card or select vehicle", varGasVehicle.'Vehicle Name')
-            Title: ="Log Gas Purchase"
+            SubTitle: |-
+              =If(
+                  !IsBlank(varGasVehicle),
+                  varGasVehicle.'Vehicle Name',
+                  "Enter card or select vehicle"
+              )
+            Title: ="Log Fuel Purchase"
             Width: =App.Width
       - cmpBottomNav_Gas:
           Control: CanvasComponent
           ComponentName: cmpBottomNav
           Properties:
             ActiveKey: ="Gas"
-            Height: =56
+            Height: =72
             Width: =App.Width
             Y: =Parent.Height - Self.Height
       - cnrGasForm:
@@ -48,12 +52,12 @@ Screens:
             Fill: =Color.Transparent
             Height: =Parent.Height - cmpHeader_Gas.Height - cmpBottomNav_Gas.Height
             LayoutDirection: =LayoutDirection.Vertical
-            LayoutGap: =12
+            LayoutGap: =14
             LayoutOverflowY: =LayoutOverflow.Scroll
-            PaddingBottom: =16
-            PaddingLeft: =16
-            PaddingRight: =16
-            PaddingTop: =12
+            PaddingBottom: =20
+            PaddingLeft: =20
+            PaddingRight: =20
+            PaddingTop: =20
             Width: =Parent.Width
             Y: =cmpHeader_Gas.Height
           Children:
@@ -63,15 +67,14 @@ Screens:
                 Properties:
                   Fill: =varTheme.Surface
                   FillPortions: =0
-                  Height: |+
-                    =If(!IsBlank(addReceiptPhoto.Media), 620, 460)
+                  Height: =If(!IsBlank(addReceiptPhoto.Media), 640, 480)
                   PaddingBottom: =0.00
                   PaddingLeft: =0.00
-                  RadiusBottomLeft: =12
-                  RadiusBottomRight: =12
-                  RadiusTopLeft: =12
-                  RadiusTopRight: =12
-                  Width: =Parent.Width - 32
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                  Width: =Parent.Width - 40
                 Children:
                   - lblCardLast4:
                       Control: Label@2.5.1
@@ -82,14 +85,14 @@ Screens:
                         PaddingBottom: =2
                         PaddingLeft: =2
                         Size: =12
-                        Text: ="Fuel Card Last 4 Digits *"
+                        Text: ="Fuel Card Last 4 *"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =12
+                        Y: =16
                   - txtCardLast4:
                       Control: TextInput@0.0.54
                       Properties:
-                        Height: =40
+                        Height: =48
                         OnChange: |-
                           =Set(varGasCardLast4, Self.Value);
                           If(
@@ -110,12 +113,17 @@ Screens:
                         Placeholder: ="Enter last 4 digits..."
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =36
+                        Y: =40
                   - lblMatchedVehicle:
                       Control: Label@2.5.1
                       Properties:
-                        Color: =If(!IsBlank(varGasVehicle), varStatusColors.Available, varStatusColors.Warning)
-                        Height: =22
+                        Color: |-
+                          =If(
+                              !IsBlank(varGasVehicle),
+                              varTheme.Success,
+                              varStatusColors.Warning
+                          )
+                        Height: =24
                         PaddingBottom: =2
                         PaddingLeft: =2
                         Size: =12
@@ -128,7 +136,7 @@ Screens:
                         Visible: =Len(varGasCardLast4) >= 4
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =80
+                        Y: =92
                   - lblGasDate:
                       Control: Label@2.5.1
                       Properties:
@@ -141,16 +149,16 @@ Screens:
                         Text: ="Transaction Date *"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =108
+                        Y: =122
                   - dpGasDate:
                       Control: DatePicker@0.0.46
                       Properties:
-                        Height: =40
+                        Height: =48
                         OnChange: =Set(varGasDate, Self.SelectedDate)
                         SelectedDate: =varGasDate
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =132
+                        Y: =146
                   - lblAmount:
                       Control: Label@2.5.1
                       Properties:
@@ -163,7 +171,7 @@ Screens:
                         Text: ="Amount ($) *"
                         Width: =(Parent.Width - 48) / 2
                         X: =16
-                        Y: =180
+                        Y: =202
                   - lblGallons:
                       Control: Label@2.5.1
                       Properties:
@@ -176,32 +184,27 @@ Screens:
                         Text: ="Gallons *"
                         Width: =(Parent.Width - 48) / 2
                         X: =(Parent.Width - 48) / 2 + 32
-                        Y: =180
-                  - lblOdometer:
-                      Control: Label@2.5.1
-                      Properties:
-                        Color: =varTheme.TextPrimary
-                        FontWeight: =FontWeight.Semibold
-                        Height: =22
-                        PaddingBottom: =2
-                        PaddingLeft: =2
-                        Size: =12
-                        Text: ="Odometer Reading *"
-                        Visible: =false
-                        Width: =Parent.Width - 32
-                        X: =16
-                        Y: =268
-                  - txtOdometer:
+                        Y: =202
+                  - txtAmount:
                       Control: TextInput@0.0.54
                       Properties:
-                        Height: =40
-                        OnChange: =Set(varGasOdometer, Value(Self.Value))
-                        Placeholder: ="Current mileage"
+                        Height: =48
+                        OnChange: =Set(varGasAmount, Value(Self.Value))
+                        Placeholder: ="0.00"
                         Type: ="Number"
-                        Visible: =false
-                        Width: =Parent.Width - 32
+                        Width: =(Parent.Width - 48) / 2
                         X: =16
-                        Y: =292
+                        Y: =226
+                  - txtGallons:
+                      Control: TextInput@0.0.54
+                      Properties:
+                        Height: =48
+                        OnChange: =Set(varGasGallons, Value(Self.Value))
+                        Placeholder: ="0.00"
+                        Type: ="Number"
+                        Width: =(Parent.Width - 48) / 2
+                        X: =(Parent.Width - 48) / 2 + 32
+                        Y: =226
                   - lblPPG:
                       Control: Label@2.5.1
                       Properties:
@@ -211,11 +214,11 @@ Screens:
                         PaddingLeft: =2
                         Size: =12
                         Text: |-
-                          =If(!IsBlank(varGasAmount) && !IsBlank(varGasGallons) && varGasGallons > 0, "Price/gal: $" & Text(varGasAmount / varGasGallons, "#.000"), "")
-                        Visible: =!IsBlank(varGasAmount) && !IsBlank(varGasGallons) && varGasGallons > 0
+                          ="Price/gal: $" & Text(varGasAmount / varGasGallons, "#.000")
+                        Visible: =varGasAmount > 0 && varGasGallons > 0
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =252
+                        Y: =278
                   - lblNotes:
                       Control: Label@2.5.1
                       Properties:
@@ -228,22 +231,45 @@ Screens:
                         Text: ="Notes (optional)"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =280
+                        Y: =306
                   - txtGasNotes:
                       Control: TextInput@0.0.54
                       Properties:
-                        Height: =60
+                        Height: =70
                         Mode: =TextMode.MultiLine
                         OnChange: =Set(varGasNotes, Self.Value)
                         Placeholder: ="Any notes about this purchase..."
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =304
+                        Y: =330
+                  - addReceiptPhoto:
+                      Control: AddMedia@2.2.1
+                      Properties:
+                        BorderColor: =RGBA(0, 0, 0, 0)
+                        BorderStyle: =BorderStyle.None
+                        BorderThickness: =0
+                        Color: =varTheme.TextOnPrimary
+                        DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                        DisabledColor: =RGBA(200, 198, 196, 1)
+                        DisabledFill: =RGBA(243, 242, 241, 1)
+                        Fill: =varTheme.Primary
+                        Font: =Font.'Segoe UI'
+                        HoverBorderColor: =RGBA(0, 0, 0, 0)
+                        HoverColor: =varTheme.TextOnPrimary
+                        HoverFill: =varTheme.PrimaryDark
+                        PressedBorderColor: =RGBA(0, 0, 0, 0)
+                        PressedColor: =varTheme.TextOnPrimary
+                        PressedFill: =varTheme.PrimaryDark
+                        Size: =14
+                        Text: ="Capture Receipt"
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =410
                   - imgReceiptPreview:
                       Control: Image@2.2.3
                       Properties:
                         BorderColor: =RGBA(0, 0, 0, 0)
-                        BorderThickness: =2
+                        BorderThickness: =0
                         DisabledBorderColor: =RGBA(0, 0, 0, 0)
                         DisabledFill: =RGBA(0, 0, 0, 0)
                         Height: =If(!IsBlank(addReceiptPhoto.Media), 150, 0)
@@ -252,58 +278,14 @@ Screens:
                         Image: =addReceiptPhoto.Media
                         PressedBorderColor: =RGBA(0, 0, 0, 0)
                         PressedFill: =RGBA(0, 0, 0, 0)
-                        RadiusBottomLeft: =3
-                        RadiusBottomRight: =3
-                        RadiusTopLeft: =3
-                        RadiusTopRight: =3
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
                         Visible: =!IsBlank(addReceiptPhoto.Media)
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =addReceiptPhoto.Y + addReceiptPhoto.Height + 4
-                  - addReceiptPhoto:
-                      Control: AddMedia@2.2.1
-                      Properties:
-                        BorderColor: =RGBA(0, 0, 0, 0)
-                        BorderStyle: =BorderStyle.None
-                        BorderThickness: =2
-                        Color: =RGBA(255, 255, 255, 1)
-                        DisabledBorderColor: =RGBA(0, 0, 0, 0)
-                        DisabledColor: =RGBA(200, 198, 196, 1)
-                        DisabledFill: =RGBA(243, 242, 241, 1)
-                        Fill: =RGBA(98, 100, 167, 1)
-                        Font: =Font.'Segoe UI'
-                        HoverBorderColor: =RGBA(0, 0, 0, 0)
-                        HoverColor: =RGBA(255, 255, 255, 1)
-                        HoverFill: =ColorFade(RGBA(98, 100, 167, 1), -10%)
-                        PressedBorderColor: =ColorFade(RGBA(98, 100, 167, 1), -50%)
-                        PressedColor: =RGBA(255, 255, 255, 1)
-                        PressedFill: =ColorFade(RGBA(98, 100, 167, 1), -30%)
-                        Size: =25
-                        Text: |-
-                          ="Capture Receipt"
-                        Width: =Parent.Width - 32
-                        X: =16
-                        Y: =372
-                  - txtAmount:
-                      Control: TextInput@0.0.54
-                      Properties:
-                        Height: =40
-                        OnChange: =Set(varGasAmount, Value(Self.Value))
-                        Placeholder: ="0.00"
-                        Type: ="Number"
-                        Width: =(Parent.Width - 48) / 2
-                        X: =16
-                        Y: =204
-                  - txtGallons:
-                      Control: TextInput@0.0.54
-                      Properties:
-                        Height: =40
-                        OnChange: =Set(varGasGallons, Value(Self.Value))
-                        Placeholder: ="0.00"
-                        Type: ="Number"
-                        Width: =(Parent.Width - 48) / 2
-                        X: =(Parent.Width - 48) / 2 + 32
-                        Y: =204
+                        Y: =addReceiptPhoto.Y + addReceiptPhoto.Height + 8
             - btnSubmitGas:
                 Control: Button@0.0.45
                 Properties:
@@ -316,7 +298,7 @@ Screens:
                         DisplayMode.Disabled,
                         DisplayMode.Edit
                     )
-                  Height: =44
+                  Height: =52
                   OnSelect: |-
                     =Set(varIsSubmitting, true);
 
@@ -340,18 +322,18 @@ Screens:
                     If(
                         IsError(varPatchResult),
                         Notify("Failed to save — check connection and try again", NotificationType.Error),
-                        Notify("Gas purchase logged!", NotificationType.Success);
+                        Notify("Fuel purchase logged!", NotificationType.Success);
                         Navigate(scrHome, ScreenTransition.Fade)
                     );
 
                     Set(varIsSubmitting, false)
-                  Text: ="Submit Gas Purchase"
-                  Width: =Parent.Width - 32
+                  Text: ="Submit Fuel Purchase"
+                  Width: =Parent.Width - 40
             - btnCancelGas:
                 Control: Button@0.0.45
                 Properties:
                   Appearance: ="Secondary"
-                  Height: =44
+                  Height: =52
                   OnSelect: =Back()
                   Text: ="Cancel"
-                  Width: =Parent.Width - 32
+                  Width: =Parent.Width - 40

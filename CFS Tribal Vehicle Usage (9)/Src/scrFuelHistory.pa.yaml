@@ -10,117 +10,162 @@ Screens:
   scrFuelHistory:
     Properties:
       Fill: =varTheme.Background
-      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+      LoadingSpinnerColor: =varTheme.Primary
       OnVisible: |-
         =Set(varFuelHistoryFilter, "Mine");
-                ClearCollect(
-                    colFuelHistory,
-                    Sort(
-                        Filter(
-                            'Fuel Transactions',
-                            SubmittedBy.Associates = varUserAssociate.Associates
-                        ),
-                        TransactionDateTime,
-                        SortOrder.Descending
-                    )
-                );
-                Set(varViewReceipt, Blank())
+        ClearCollect(
+            colFuelHistory,
+            Sort(
+                Filter(
+                    'Fuel Transactions',
+                    SubmittedBy.Associates = varUserAssociate.Associates
+                ),
+                TransactionDateTime,
+                SortOrder.Descending
+            )
+        );
+        Set(varViewReceipt, Blank())
     Children:
+      # ══════════════════════════════════════════════════════════════
+      # ── HEADER (84px)
+      # ══════════════════════════════════════════════════════════════
       - cmpHeader_FuelHist:
           Control: CanvasComponent
           ComponentName: cmpHeader
           Properties:
-            Height: =64
+            Height: =84
             ShowBackBtn: =true
             SubTitle: =CountRows(colFuelHistory) & " transactions"
             Title: ="Fuel History"
             Width: =App.Width
+      # ══════════════════════════════════════════════════════════════
+      # ── BOTTOM NAVIGATION (72px)
+      # ══════════════════════════════════════════════════════════════
       - cmpBottomNav_FuelHist:
           Control: CanvasComponent
           ComponentName: cmpBottomNav
           Properties:
             ActiveKey: ="Gas"
-            Height: =56
+            Height: =72
             Width: =App.Width
             Y: =Parent.Height - Self.Height
+      # ══════════════════════════════════════════════════════════════
+      # ── FILTER BAR (52px) – My Transactions / All Transactions
+      # ══════════════════════════════════════════════════════════════
       - cnrFuelFilters:
           Control: GroupContainer@1.4.0
           Variant: ManualLayout
           Properties:
             Fill: =varTheme.Surface
-            Height: =48
+            Height: =52
             PaddingBottom: =0.00
             PaddingLeft: =0.00
             Width: =Parent.Width
             Y: =cmpHeader_FuelHist.Height
           Children:
+            # ── Pill track background ──
+            - recFilterTrack:
+                Control: Rectangle@2.3.0
+                Properties:
+                  Fill: =varTheme.Background
+                  Height: =40
+                  RadiusBottomLeft: =20
+                  RadiusBottomRight: =20
+                  RadiusTopLeft: =20
+                  RadiusTopRight: =20
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =6
+            # ── My Transactions pill ──
             - btnFuelFilterMine:
                 Control: Button@0.0.45
                 Properties:
                   BasePaletteColor: =If(varFuelHistoryFilter = "Mine", varTheme.Primary, Color.Transparent)
                   FontColor: =If(varFuelHistoryFilter = "Mine", varTheme.TextOnPrimary, varTheme.TextSecondary)
-                  Height: =40
+                  Height: =36
                   OnSelect: |-
                     =Set(varFuelHistoryFilter, "Mine");
                     ClearCollect(
                         colFuelHistory,
                         Sort(
-                            Filter('Fuel Transactions', SubmittedBy.Associates = varUserAssociate.Associates),
+                            Filter(
+                                'Fuel Transactions',
+                                SubmittedBy.Associates = varUserAssociate.Associates
+                            ),
                             TransactionDateTime,
                             SortOrder.Descending
                         )
                     )
+                  RadiusBottomLeft: =18
+                  RadiusBottomRight: =18
+                  RadiusTopLeft: =18
+                  RadiusTopRight: =18
                   Text: ="My Transactions"
-                  Width: =(Parent.Width - 32) / 2
-                  X: =8
-                  Y: =4
+                  Width: =(Parent.Width - 40) / 2
+                  X: =19
+                  Y: =8
+            # ── All Transactions pill ──
             - btnFuelFilterAll:
                 Control: Button@0.0.45
                 Properties:
                   BasePaletteColor: =If(varFuelHistoryFilter = "All", varTheme.Primary, Color.Transparent)
                   FontColor: =If(varFuelHistoryFilter = "All", varTheme.TextOnPrimary, varTheme.TextSecondary)
-                  Height: =40
+                  Height: =36
                   OnSelect: |-
                     =Set(varFuelHistoryFilter, "All");
                     ClearCollect(
                         colFuelHistory,
-                        Sort('Fuel Transactions', TransactionDateTime, SortOrder.Descending)
+                        Sort(
+                            'Fuel Transactions',
+                            TransactionDateTime,
+                            SortOrder.Descending
+                        )
                     )
+                  RadiusBottomLeft: =18
+                  RadiusBottomRight: =18
+                  RadiusTopLeft: =18
+                  RadiusTopRight: =18
                   Text: ="All Transactions"
-                  Width: =(Parent.Width - 32) / 2
-                  X: =(Parent.Width - 32) / 2 + 16
-                  Y: =4
+                  Width: =(Parent.Width - 40) / 2
+                  X: =(Parent.Width - 40) / 2 + 21
+                  Y: =8
+      # ══════════════════════════════════════════════════════════════
+      # ── TRANSACTION GALLERY
+      # ══════════════════════════════════════════════════════════════
       - galFuelHistory:
           Control: Gallery@2.15.0
           Variant: BrowseLayout_Vertical_OneTextVariant_pcfCore
           Properties:
-            BorderColor: =RGBA(243, 242, 241, 1)
-            FocusedBorderColor: =RGBA(98, 100, 167, 1)
+            BorderColor: =Color.Transparent
+            FocusedBorderColor: =varTheme.Primary
             FocusedBorderThickness: =2
             Height: =Parent.Height - cmpHeader_FuelHist.Height - cnrFuelFilters.Height - cmpBottomNav_FuelHist.Height
             Items: =colFuelHistory
             LoadingSpinner: =LoadingSpinner.Controls
-            TemplatePadding: =4
-            TemplateSize: =96
+            TemplatePadding: =6
+            TemplateSize: =104
+            Visible: =CountRows(colFuelHistory) > 0
             Width: =Parent.Width
             Y: =cmpHeader_FuelHist.Height + cnrFuelFilters.Height
           Children:
+            # ── Card container ──
             - cnrFuelCard:
                 Control: GroupContainer@1.4.0
                 Variant: ManualLayout
                 Properties:
                   Fill: =varTheme.Surface
-                  Height: =Parent.TemplateHeight - 4
+                  Height: =Parent.TemplateHeight - 8
                   PaddingBottom: =0.00
                   PaddingLeft: =0.00
-                  RadiusBottomLeft: =10
-                  RadiusBottomRight: =10
-                  RadiusTopLeft: =10
-                  RadiusTopRight: =10
-                  Width: =Parent.TemplateWidth - 16
-                  X: =8
+                  RadiusBottomLeft: =14
+                  RadiusBottomRight: =14
+                  RadiusTopLeft: =14
+                  RadiusTopRight: =14
+                  Width: =Parent.TemplateWidth - 24
+                  X: =12
                   Y: =0.00
                 Children:
+                  # ── Left accent bar (color by Source) ──
                   - recFuelAccent:
                       Control: Rectangle@2.3.0
                       Properties:
@@ -132,45 +177,59 @@ Screens:
                               "Import", varStatusColors.Warning,
                               RGBA(96, 94, 92, 1)
                           )
-                        Height: =Parent.Height
-                        Width: =5
+                        Height: =Parent.Height - 24
+                        RadiusBottomLeft: =3
+                        RadiusBottomRight: =3
+                        RadiusTopLeft: =3
+                        RadiusTopRight: =3
+                        Width: =6
+                        X: =0
+                        Y: =12
+                  # ── Vehicle name ──
                   - lblFuelVehicle:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextPrimary
-                        FontWeight: =FontWeight.Semibold
+                        FontWeight: =FontWeight.Bold
                         Height: =24
-                        PaddingBottom: =2
-                        PaddingLeft: =2
-                        Size: =14
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        Size: =15
                         Text: =ThisItem.Vehicle.'Vehicle Name'
-                        Width: =Parent.Width - 130
-                        X: =16
-                        Y: =8
+                        Width: =Parent.Width - 140
+                        X: =18
+                        Y: =10
+                  # ── Transaction date ──
                   - lblFuelDate:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextSecondary
                         Height: =20
-                        PaddingBottom: =2
-                        PaddingLeft: =2
-                        Size: =11
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        Size: =12
                         Text: =Text(ThisItem.TransactionDateTime, "mmm d, yyyy")
-                        Width: =Parent.Width - 130
-                        X: =16
-                        Y: =34
+                        Width: =Parent.Width - 140
+                        X: =18
+                        Y: =36
+                  # ── Gallons + PPG detail ──
                   - lblFuelDetail:
                       Control: Label@2.5.1
                       Properties:
-                        Color: =varTheme.TextSecondary
-                        Height: =20
-                        PaddingBottom: =2
-                        PaddingLeft: =2
-                        Size: =10
-                        Text: =Text(ThisItem.Gallons, "#,##0.00") & " gal  •  $" & Text(If(ThisItem.Gallons > 0, ThisItem.Amount / ThisItem.Gallons, 0), "#.00") & "/gal"
-                        Width: =Parent.Width - 130
-                        X: =16
-                        Y: =56
+                        Color: =varTheme.TextTertiary
+                        Height: =18
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        Size: =11
+                        Text: |-
+                          =Text(ThisItem.Gallons, "#,##0.00") & " gal  ·  $" & Text(
+                              If(ThisItem.Gallons > 0, ThisItem.Amount / ThisItem.Gallons, 0),
+                              "#,##0.00"
+                          ) & "/gal"
+                        Width: =Parent.Width - 140
+                        X: =18
+                        Y: =58
+                  # ── Amount (right-aligned) ──
                   - lblFuelAmount:
                       Control: Label@2.5.1
                       Properties:
@@ -178,26 +237,35 @@ Screens:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Bold
                         Height: =24
-                        PaddingBottom: =2
-                        PaddingLeft: =2
-                        Size: =14
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        Size: =15
                         Text: ="$" & Text(ThisItem.Amount, "#,##0.00")
                         Width: =100
                         X: =Parent.Width - 116
-                        Y: =8
+                        Y: =10
+                  # ── Source label (right-aligned) ──
                   - lblFuelSource:
                       Control: Label@2.5.1
                       Properties:
                         Align: =Align.Right
                         Color: =varTheme.TextSecondary
                         Height: =20
-                        PaddingBottom: =2
-                        PaddingLeft: =2
-                        Size: =10
-                        Text: =If(Text(ThisItem.Source) = "Manual", "Manual", If(Text(ThisItem.Source) = "VoyagerFeed", "Voyager", "Import"))
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        Size: =11
+                        Text: |-
+                          =Switch(
+                              Text(ThisItem.Source),
+                              "Manual", "Manual",
+                              "VoyagerFeed", "Voyager",
+                              "Import", "Import",
+                              Text(ThisItem.Source)
+                          )
                         Width: =80
                         X: =Parent.Width - 96
-                        Y: =34
+                        Y: =36
+                  # ── Camera / receipt icon ──
                   - icoFuelReceipt:
                       Control: Icon@0.0.7
                       Properties:
@@ -206,7 +274,8 @@ Screens:
                         IconColor: =If(!IsBlank(ThisItem.ReceiptImage), varTheme.Primary, varTheme.Border)
                         Width: =24
                         X: =Parent.Width - 40
-                        Y: =60
+                        Y: =62
+                  # ── Tap handler (full card overlay) ──
                   - btnFuelTap:
                       Control: Button@0.0.45
                       Properties:
@@ -217,12 +286,15 @@ Screens:
                         OnSelect: =If(!IsBlank(ThisItem.ReceiptImage), Set(varViewReceipt, ThisItem))
                         Text: =""
                         Width: =Parent.Width
+      # ══════════════════════════════════════════════════════════════
+      # ── EMPTY STATE
+      # ══════════════════════════════════════════════════════════════
       - cnrNoFuel:
           Control: GroupContainer@1.4.0
           Variant: ManualLayout
           Properties:
             Fill: =varTheme.Surface
-            Height: =160
+            Height: =200
             PaddingBottom: =0.00
             PaddingLeft: =0.00
             RadiusBottomLeft: =16
@@ -234,34 +306,69 @@ Screens:
             X: =16
             Y: =cmpHeader_FuelHist.Height + cnrFuelFilters.Height + 32
           Children:
+            # ── Icon background circle ──
+            - recNoFuelIconBg:
+                Control: Rectangle@2.3.0
+                Properties:
+                  Fill: =varTheme.PrimaryBg
+                  Height: =48
+                  RadiusBottomLeft: =24
+                  RadiusBottomRight: =24
+                  RadiusTopLeft: =24
+                  RadiusTopRight: =24
+                  Width: =48
+                  X: =(Parent.Width - 48) / 2
+                  Y: =24
+            # ── Cars icon ──
             - icoNoFuel:
                 Control: Icon@0.0.7
                 Properties:
+                  Height: =24
                   Icon: ="Cars"
-                  IconColor: =varTheme.TextSecondary
-                  X: =(Parent.Width - 32) / 2
-                  Y: =20
+                  IconColor: =varTheme.Primary
+                  Width: =24
+                  X: =(Parent.Width - 24) / 2
+                  Y: =36
+            # ── Empty message ──
             - lblNoFuelText:
                 Control: Label@2.5.1
                 Properties:
                   Align: =Align.Center
-                  Color: =varTheme.TextSecondary
-                  Height: =28
-                  Size: =12
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Semibold
+                  Height: =24
+                  Size: =14
                   Text: ="No fuel transactions found"
                   Width: =Parent.Width
-                  Y: =60
+                  Y: =84
+            # ── Description ──
+            - lblNoFuelDesc:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  Color: =varTheme.TextTertiary
+                  Height: =20
+                  Size: =12
+                  Text: ="Start tracking your fuel expenses"
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =110
+            # ── CTA button ──
             - btnGoLogGas:
                 Control: Button@0.0.45
                 Properties:
                   Appearance: ="Transparent"
                   FontColor: =varTheme.Primary
+                  FontWeight: =FontWeight.Bold
                   Height: =44
                   OnSelect: =Navigate(scrGasPurchase, ScreenTransition.Fade)
                   Text: ="Log a gas purchase"
                   Width: =200
                   X: =(Parent.Width - 200) / 2
-                  Y: =96
+                  Y: =140
+      # ══════════════════════════════════════════════════════════════
+      # ── RECEIPT OVERLAY
+      # ══════════════════════════════════════════════════════════════
       - cnrReceiptOverlay:
           Control: GroupContainer@1.4.0
           Variant: ManualLayout
@@ -273,6 +380,7 @@ Screens:
             Visible: =!IsBlank(varViewReceipt)
             Width: =Parent.Width
           Children:
+            # ── Vehicle name + date ──
             - lblReceiptTitle:
                 Control: Label@2.5.1
                 Properties:
@@ -280,41 +388,59 @@ Screens:
                   Color: =RGBA(255, 255, 255, 1)
                   FontWeight: =FontWeight.Semibold
                   Height: =30
-                  Size: =12
-                  Text: =If(!IsBlank(varViewReceipt), varViewReceipt.Vehicle.'Vehicle Name' & "  •  " & Text(varViewReceipt.TransactionDateTime, "mmm d, yyyy"), "")
-                  Width: =Parent.Width
-                  Y: =20
+                  Size: =14
+                  Text: |-
+                    =If(
+                        !IsBlank(varViewReceipt),
+                        varViewReceipt.Vehicle.'Vehicle Name' & "  ·  " & Text(varViewReceipt.TransactionDateTime, "mmm d, yyyy"),
+                        ""
+                    )
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =48
+            # ── Amount (bold) ──
             - lblReceiptAmount:
                 Control: Label@2.5.1
                 Properties:
                   Align: =Align.Center
                   Color: =RGBA(255, 255, 255, 1)
                   FontWeight: =FontWeight.Bold
-                  Height: =30
-                  Size: =18
+                  Height: =36
+                  Size: =20
                   Text: =If(!IsBlank(varViewReceipt), "$" & Text(varViewReceipt.Amount, "#,##0.00"), "")
-                  Width: =Parent.Width
-                  Y: =48
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =78
+            # ── Receipt image ──
+            - imgReceipt:
+                Control: Image@2.2.3
+                Properties:
+                  BorderColor: =RGBA(255, 255, 255, 0.15)
+                  BorderThickness: =1
+                  Height: =Parent.Height - 240
+                  Image: =If(!IsBlank(varViewReceipt), varViewReceipt.ReceiptImage)
+                  ImagePosition: =ImagePosition.Fit
+                  RadiusBottomLeft: =12
+                  RadiusBottomRight: =12
+                  RadiusTopLeft: =12
+                  RadiusTopRight: =12
+                  Width: =Parent.Width - 48
+                  X: =24
+                  Y: =128
+            # ── Close button ──
             - btnCloseReceipt:
                 Control: Button@0.0.45
                 Properties:
                   Appearance: ="Secondary"
                   BasePaletteColor: =RGBA(255, 255, 255, 1)
-                  Height: =44
+                  FontColor: =RGBA(255, 255, 255, 1)
+                  Height: =48
                   OnSelect: =Set(varViewReceipt, Blank())
+                  RadiusBottomLeft: =24
+                  RadiusBottomRight: =24
+                  RadiusTopLeft: =24
+                  RadiusTopRight: =24
                   Text: ="Close"
                   Width: =160
                   X: =(Parent.Width - 160) / 2
-                  Y: =Parent.Height - 80
-            - lblReceiptImagePlaceholder:
-                Control: Label@2.5.1
-                Properties:
-                  Align: =Align.Center
-                  Color: =RGBA(255, 255, 255, 1)
-                  Height: =80
-                  Size: =12
-                  Text: |-
-                    ="To display receipt images, add an Image control in Power Apps Studio and set its Image property to: varViewReceipt.ReceiptImage"
-                  Width: =Parent.Width - 64
-                  X: =32
-                  Y: =(Parent.Height - 80) / 2
+                  Y: =Parent.Height - 88

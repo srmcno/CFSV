@@ -13,97 +13,135 @@ Screens:
       LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
       OnVisible: |-
         =// Default to "All" only if no filter was passed from Home
-                If(IsBlank(varFilterStatus), Set(varFilterStatus, "All"));
-                Set(varShowAllLocations, false);
-                Reset(txtSearch)
+        If(IsBlank(varFilterStatus), Set(varFilterStatus, "All"));
+        Set(varShowAllLocations, false);
+        Reset(txtSearch)
     Children:
+      # ── Header ──
       - cmpHeader_List:
           Control: CanvasComponent
           ComponentName: cmpHeader
           Properties:
-            Height: =64
+            Height: =varSize.HeaderH
             ShowBackBtn: =true
             SubTitle: |-
-              =If(varFilterStatus = "All", "All Vehicles", "Showing: " & varFilterStatus)
+              =If(
+                  varFilterStatus = "All",
+                  If(varShowAllLocations, "All Locations", "My Location"),
+                  "Showing: " & varFilterStatus & If(varShowAllLocations, " (All Locations)", "")
+              )
             Title: ="Vehicle Fleet"
             Width: =App.Width
+      # ── Bottom Navigation ──
       - cmpBottomNav_List:
           Control: CanvasComponent
           ComponentName: cmpBottomNav
           Properties:
             ActiveKey: ="Vehicles"
-            Height: =56
+            Height: =varSize.NavH
             Width: =App.Width
             Y: =Parent.Height - Self.Height
-      - cnrSearch:
+      # ── Search & Filter Bar ──
+      - cnrSearchBar:
           Control: GroupContainer@1.4.0
           Variant: ManualLayout
           Properties:
             Fill: =varTheme.Surface
-            Height: =96
+            Height: =120
             PaddingBottom: =0.00
             PaddingLeft: =0.00
             RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
             Width: =Parent.Width
             Y: =cmpHeader_List.Height
           Children:
+            # ── Search Input Background (rounded pill) ──
+            - recSearchBg:
+                Control: Rectangle@2.3.0
+                Properties:
+                  Fill: =varTheme.Background
+                  Height: =varSize.ButtonH
+                  RadiusBottomLeft: =varSize.SmallRadius
+                  RadiusBottomRight: =varSize.SmallRadius
+                  RadiusTopLeft: =varSize.SmallRadius
+                  RadiusTopRight: =varSize.SmallRadius
+                  Width: =If(varFilterStatus = "All", Parent.Width - 32, Parent.Width - 84)
+                  X: =16
+                  Y: =12
             - txtSearch:
                 Control: TextInput@0.0.54
                 Properties:
-                  Height: =40
-                  Placeholder: ="Search by vehicle name..."
-                  Width: =If(varFilterStatus = "All", Parent.Width - 32, Parent.Width - 80)
+                  Height: =varSize.InputH
+                  Placeholder: ="Search vehicles..."
+                  Width: =If(varFilterStatus = "All", Parent.Width - 32, Parent.Width - 84)
                   X: =16
-                  Y: =8
+                  Y: =14
+            # ── Clear Filter Icon ──
             - icoClearFilter:
                 Control: Classic/Icon@2.5.0
                 Properties:
                   BorderColor: =RGBA(0, 0, 0, 0)
                   Color: =varTheme.Danger
-                  DisabledBorderColor: =RGBA(243, 242, 241, 1)
+                  DisabledBorderColor: =RGBA(0, 0, 0, 0)
                   DisabledColor: =RGBA(220, 220, 220, 1)
                   DisabledFill: =RGBA(0, 0, 0, 0)
-                  Height: =40
+                  Height: =varSize.TouchMin
                   HoverBorderColor: =RGBA(0, 0, 0, 0)
-                  HoverColor: =ColorFade(RGBA(98, 100, 167, 1), -30%)
-                  HoverFill: =RGBA(0, 0, 0, 0)
+                  HoverColor: =ColorFade(varTheme.Danger, -20%)
+                  HoverFill: =varTheme.DangerLight
                   Icon: =Icon.Cancel
                   OnSelect: =Set(varFilterStatus, "All")
-                  PaddingBottom: =8
-                  PaddingLeft: =8
+                  PaddingBottom: =10
+                  PaddingLeft: =10
                   PaddingRight: =10
                   PaddingTop: =10
                   PressedBorderColor: =RGBA(0, 0, 0, 0)
-                  PressedColor: =ColorFade(RGBA(98, 100, 167, 1), -30%)
-                  PressedFill: =RGBA(0, 0, 0, 0)
+                  PressedColor: =ColorFade(varTheme.Danger, -30%)
+                  PressedFill: =varTheme.DangerLight
                   Visible: =varFilterStatus <> "All"
-                  Width: =40
-                  X: =Parent.Width - 50
-                  Y: =8
+                  Width: =varSize.TouchMin
+                  X: =Parent.Width - 16 - varSize.TouchMin
+                  Y: =14
+            # ── Location Toggle Container ──
+            - recToggleBg:
+                Control: Rectangle@2.3.0
+                Properties:
+                  Fill: =varTheme.Background
+                  Height: =44
+                  RadiusBottomLeft: =22
+                  RadiusBottomRight: =22
+                  RadiusTopLeft: =22
+                  RadiusTopRight: =22
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =70
+            # ── My Location Toggle Pill ──
             - btnLocMine:
                 Control: Button@0.0.45
                 Properties:
                   BasePaletteColor: =If(!varShowAllLocations, varTheme.Primary, Color.Transparent)
                   FontColor: =If(!varShowAllLocations, varTheme.TextOnPrimary, varTheme.TextSecondary)
-                  Height: =40
+                  Height: =38
                   OnSelect: =Set(varShowAllLocations, false)
-                  Text: |-
-                    ="My Location"
+                  Text: ="My Location"
                   Width: =(Parent.Width - 40) / 2
-                  X: =8
-                  Y: =52
+                  X: =19
+                  Y: =73
+            # ── All Locations Toggle Pill ──
             - btnLocAll:
                 Control: Button@0.0.45
                 Properties:
                   BasePaletteColor: =If(varShowAllLocations, varTheme.Primary, Color.Transparent)
                   FontColor: =If(varShowAllLocations, varTheme.TextOnPrimary, varTheme.TextSecondary)
-                  Height: =40
+                  Height: =38
                   OnSelect: =Set(varShowAllLocations, true)
-                  Text: |-
-                    ="All Locations"
+                  Text: ="All Locations"
                   Width: =(Parent.Width - 40) / 2
-                  X: =(Parent.Width - 40) / 2 + 24
-                  Y: =52
+                  X: =(Parent.Width - 40) / 2 + 21
+                  Y: =73
+      # ── Vehicle Gallery ──
       - galVehicles:
           Control: Gallery@2.15.0
           Variant: BrowseLayout_Vertical_OneTextVariant_pcfCore
@@ -111,40 +149,42 @@ Screens:
             BorderColor: =RGBA(243, 242, 241, 1)
             FocusedBorderColor: =RGBA(98, 100, 167, 1)
             FocusedBorderThickness: =2
-            Height: =Parent.Height - cmpHeader_List.Height - cnrSearch.Height - cmpBottomNav_List.Height - 8
+            Height: =Parent.Height - cmpHeader_List.Height - cnrSearchBar.Height - cmpBottomNav_List.Height
             Items: |-
               =SortByColumns(
-                                Filter(
-                                    CFSVehicles,
-                                    (varFilterStatus = "All" || Text('Status (cr63e_status)') = varFilterStatus) &&
-                                    (IsBlank(txtSearch.Value) || txtSearch.Value in 'Vehicle Name') &&
-                                    (varShowAllLocations || Location = varUserAssociate.Location)
-                                ),
-                                "cr63e_vehiclename",
-                                SortOrder.Ascending
-                            )
+                  Filter(
+                      CFSVehicles,
+                      (varFilterStatus = "All" || Text('Status (cr63e_status)') = varFilterStatus) &&
+                      (IsBlank(txtSearch.Value) || txtSearch.Value in 'Vehicle Name') &&
+                      (varShowAllLocations || Location = varUserAssociate.Location)
+                  ),
+                  "cr63e_vehiclename",
+                  SortOrder.Ascending
+              )
             LoadingSpinner: =LoadingSpinner.Controls
-            TemplatePadding: =4
-            TemplateSize: =80
+            TemplatePadding: =6
+            TemplateSize: =96
             Width: =Parent.Width
-            Y: =cmpHeader_List.Height + cnrSearch.Height
+            Y: =cmpHeader_List.Height + cnrSearchBar.Height
           Children:
-            - cnrVehicleRow:
+            # ── Vehicle Card Row ──
+            - cnrVehicleCard:
                 Control: GroupContainer@1.4.0
                 Variant: ManualLayout
                 Properties:
                   Fill: =varTheme.Surface
-                  Height: =Parent.TemplateHeight - 4
+                  Height: =Parent.TemplateHeight - 6
                   PaddingBottom: =0.00
                   PaddingLeft: =0.00
-                  RadiusBottomLeft: =12
-                  RadiusBottomRight: =12
-                  RadiusTopLeft: =12
-                  RadiusTopRight: =12
-                  Width: =Parent.TemplateWidth - 16
-                  X: =8
+                  RadiusBottomLeft: =varSize.CardRadius
+                  RadiusBottomRight: =varSize.CardRadius
+                  RadiusTopLeft: =varSize.CardRadius
+                  RadiusTopRight: =varSize.CardRadius
+                  Width: =Parent.TemplateWidth - 24
+                  X: =12
                   Y: =0.00
                 Children:
+                  # ── Left Status Accent Bar ──
                   - recStatusAccent:
                       Control: Rectangle@2.3.0
                       Properties:
@@ -157,57 +197,96 @@ Screens:
                               'Status (CFSVehicles)'.Maintenance, varStatusColors.Maintenance,
                               RGBA(96, 94, 92, 1)
                           )
-                        Height: =Parent.Height
-                        Width: =5
+                        Height: =Parent.Height - 24
+                        RadiusBottomLeft: =3
+                        RadiusBottomRight: =3
+                        RadiusTopLeft: =3
+                        RadiusTopRight: =3
+                        Width: =6
+                        X: =8
+                        Y: =12
+                  # ── Vehicle Name ──
                   - lblVehicleName:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextPrimary
-                        FontWeight: =FontWeight.Semibold
-                        Height: =24
-                        PaddingBottom: =2
-                        PaddingLeft: =2
-                        Size: =14
+                        FontWeight: =FontWeight.Bold
+                        Height: =26
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        Size: =15
                         Text: =ThisItem.'Vehicle Name'
-                        Width: =Parent.Width - 110
-                        X: =16
-                        Y: =8
+                        Width: =Parent.Width - 140
+                        X: =24
+                        Y: =14
+                  # ── Year / Make / Model / Tag ──
                   - lblVehicleMeta:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextSecondary
                         Height: =20
-                        PaddingBottom: =2
-                        PaddingLeft: =2
-                        Size: =11
-                        Text: =ThisItem.Year & " " & ThisItem.Make & " " & ThisItem.Model & " • " & ThisItem.Tag
-                        Width: =Parent.Width - 110
-                        X: =16
-                        Y: =34
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        Size: =12
+                        Text: =ThisItem.Year & " " & ThisItem.Make & " " & ThisItem.Model & " · " & ThisItem.Tag
+                        Width: =Parent.Width - 140
+                        X: =24
+                        Y: =42
+                  # ── Status Pill Badge ──
+                  - recStatusPill:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Fill: |-
+                          =Switch(
+                              ThisItem.'Status (cr63e_status)',
+                              'Status (CFSVehicles)'.Available, varStatusColors.AvailableBg,
+                              'Status (CFSVehicles)'.'Checked Out', varStatusColors.CheckedOutBg,
+                              'Status (CFSVehicles)'.Reserved, varStatusColors.ReservedBg,
+                              'Status (CFSVehicles)'.Maintenance, varStatusColors.MaintenanceBg,
+                              varTheme.Background
+                          )
+                        Height: =24
+                        RadiusBottomLeft: =12
+                        RadiusBottomRight: =12
+                        RadiusTopLeft: =12
+                        RadiusTopRight: =12
+                        Width: =90
+                        X: =Parent.Width - 118
+                        Y: =(Parent.Height - 24) / 2
                   - lblVehicleStatus:
                       Control: Label@2.5.1
                       Properties:
-                        Align: =Align.Right
-                        Color: =recStatusAccent.Fill
+                        Align: =Align.Center
+                        Color: |-
+                          =Switch(
+                              ThisItem.'Status (cr63e_status)',
+                              'Status (CFSVehicles)'.Available, varStatusColors.Available,
+                              'Status (CFSVehicles)'.'Checked Out', varStatusColors.CheckedOut,
+                              'Status (CFSVehicles)'.Reserved, varStatusColors.Reserved,
+                              'Status (CFSVehicles)'.Maintenance, varStatusColors.Maintenance,
+                              varTheme.TextSecondary
+                          )
                         FontWeight: =FontWeight.Semibold
-                        Height: =20
-                        PaddingBottom: =2
-                        PaddingLeft: =2
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
                         Size: =10
                         Text: =Upper(Text(ThisItem.'Status (cr63e_status)'))
-                        Width: =80
-                        X: =Parent.Width - 96
-                        Y: =16
+                        Width: =90
+                        X: =Parent.Width - 118
+                        Y: =(Parent.Height - 24) / 2
+                  # ── Chevron Right Indicator ──
                   - icoChevron:
                       Control: Icon@0.0.7
                       Properties:
                         Height: =16
                         Icon: ="ChevronRight"
-                        IconColor: =varTheme.TextSecondary
+                        IconColor: =varTheme.TextTertiary
                         Width: =16
                         X: =Parent.Width - 24
                         Y: =(Parent.Height - 16) / 2
-                  - btnVehicleRowTap:
+                  # ── Tap Handler (full card overlay) ──
+                  - btnVehicleCardTap:
                       Control: Button@0.0.45
                       Properties:
                         Appearance: ="Transparent"

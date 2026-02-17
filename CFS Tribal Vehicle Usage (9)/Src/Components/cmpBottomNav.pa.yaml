@@ -1,9 +1,9 @@
 # ************************************************************************************************
 # Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
 # Use the maker portal to create and edit your Power Apps.
-# 
+#
 # The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
-# 
+#
 # For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
 # ************************************************************************************************
 ComponentDefinitions:
@@ -14,85 +14,285 @@ ComponentDefinitions:
       ActiveKey:
         PropertyKind: Input
         DisplayName: ActiveKey
-        Description: Which nav button is active (Home, Vehicles, Reserve, Gas, More)
+        Description: Which nav tab is active (Home, Vehicles, Reserve, Gas, More)
         DataType: Text
         Default: =""
     Properties:
-      Height: =56
+      Height: =72
       Width: =App.Width
     Children:
       - recNavBg:
           Control: Rectangle@2.3.0
           Properties:
-            BorderColor: =RGBA(243, 242, 241, 1)
             BorderStyle: =BorderStyle.None
-            BorderThickness: =2
-            DisabledFill: =RGBA(200, 198, 196, 1)
-            Fill: =RGBA(255, 255, 255, 1)
-            FocusedBorderColor: =RGBA(98, 100, 167, 1)
+            Fill: =varTheme.Surface
             Height: =Parent.Height
-            HoverFill: =RGBA(98, 100, 167, 1)
-            PressedFill: =RGBA(98, 100, 167, 1)
             Width: =Parent.Width
-      - btnNavHome:
-          Control: Button@0.0.45
+      - recNavTopBorder:
+          Control: Rectangle@2.3.0
           Properties:
-            BasePaletteColor: =Color.Transparent
-            FontColor: =If(cmpBottomNav.ActiveKey = "Home", varTheme.Primary, varTheme.TextSecondary)
-            FontSize: =10
-            FontWeight: =If(cmpBottomNav.ActiveKey = "Home", FontWeight.Bold, FontWeight.Normal)
-            Height: =Parent.Height
-            OnSelect: =Navigate(scrHome, ScreenTransition.Fade)
-            Text: ="Home"
+            Fill: =varTheme.BorderLight
+            Height: =1
+            Width: =Parent.Width
+      # ── Tab: Home ──
+      - cnrTabHome:
+          Control: GroupContainer@1.4.0
+          Variant: ManualLayout
+          Properties:
+            Fill: =Color.Transparent
+            Height: =Parent.Height - 4
+            PaddingBottom: =0.00
+            PaddingLeft: =0.00
             Width: =Parent.Width / 5
-      - btnNavVehicles:
-          Control: Button@0.0.45
+            Y: =4
+          Children:
+            - recActiveHome:
+                Control: Rectangle@2.3.0
+                Properties:
+                  Fill: =If(cmpBottomNav.ActiveKey = "Home", varTheme.Primary, Color.Transparent)
+                  Height: =3
+                  RadiusBottomLeft: =2
+                  RadiusBottomRight: =2
+                  Width: =28
+                  X: =(Parent.Width - 28) / 2
+            - icoHome:
+                Control: Icon@0.0.7
+                Properties:
+                  Height: =26
+                  Icon: ="Home"
+                  IconColor: =If(cmpBottomNav.ActiveKey = "Home", varTheme.Primary, varTheme.TextTertiary)
+                  Width: =26
+                  X: =(Parent.Width - 26) / 2
+                  Y: =8
+            - lblTabHome:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  Color: =If(cmpBottomNav.ActiveKey = "Home", varTheme.Primary, varTheme.TextTertiary)
+                  FontWeight: =If(cmpBottomNav.ActiveKey = "Home", FontWeight.Semibold, FontWeight.Normal)
+                  Height: =16
+                  Size: =10
+                  Text: ="Home"
+                  Width: =Parent.Width
+                  Y: =36
+            - btnTapHome:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ="Transparent"
+                  BasePaletteColor: =Color.Transparent
+                  FontColor: =Color.Transparent
+                  Height: =Parent.Height
+                  OnSelect: =Navigate(scrHome, ScreenTransition.Fade)
+                  Text: =""
+                  Width: =Parent.Width
+      # ── Tab: Vehicles ──
+      - cnrTabVehicles:
+          Control: GroupContainer@1.4.0
+          Variant: ManualLayout
           Properties:
-            BasePaletteColor: =Color.Transparent
-            FontColor: =If(cmpBottomNav.ActiveKey = "Vehicles", varTheme.Primary, varTheme.TextSecondary)
-            FontSize: =10
-            FontWeight: =If(cmpBottomNav.ActiveKey = "Vehicles", FontWeight.Bold, FontWeight.Normal)
-            Height: =Parent.Height
-            OnSelect: =Navigate(scrVehicleList, ScreenTransition.Fade)
-            Text: ="Vehicles"
+            Fill: =Color.Transparent
+            Height: =Parent.Height - 4
+            PaddingBottom: =0.00
+            PaddingLeft: =0.00
             Width: =Parent.Width / 5
             X: =Parent.Width / 5
-      - btnNavReserve:
-          Control: Button@0.0.45
+            Y: =4
+          Children:
+            - recActiveVehicles:
+                Control: Rectangle@2.3.0
+                Properties:
+                  Fill: =If(cmpBottomNav.ActiveKey = "Vehicles", varTheme.Primary, Color.Transparent)
+                  Height: =3
+                  RadiusBottomLeft: =2
+                  RadiusBottomRight: =2
+                  Width: =28
+                  X: =(Parent.Width - 28) / 2
+            - icoVehicles:
+                Control: Icon@0.0.7
+                Properties:
+                  Height: =26
+                  Icon: ="Cars"
+                  IconColor: =If(cmpBottomNav.ActiveKey = "Vehicles", varTheme.Primary, varTheme.TextTertiary)
+                  Width: =26
+                  X: =(Parent.Width - 26) / 2
+                  Y: =8
+            - lblTabVehicles:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  Color: =If(cmpBottomNav.ActiveKey = "Vehicles", varTheme.Primary, varTheme.TextTertiary)
+                  FontWeight: =If(cmpBottomNav.ActiveKey = "Vehicles", FontWeight.Semibold, FontWeight.Normal)
+                  Height: =16
+                  Size: =10
+                  Text: ="Fleet"
+                  Width: =Parent.Width
+                  Y: =36
+            - btnTapVehicles:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ="Transparent"
+                  BasePaletteColor: =Color.Transparent
+                  FontColor: =Color.Transparent
+                  Height: =Parent.Height
+                  OnSelect: =Navigate(scrVehicleList, ScreenTransition.Fade)
+                  Text: =""
+                  Width: =Parent.Width
+      # ── Tab: Reserve ──
+      - cnrTabReserve:
+          Control: GroupContainer@1.4.0
+          Variant: ManualLayout
           Properties:
-            BasePaletteColor: =Color.Transparent
-            FontColor: =If(cmpBottomNav.ActiveKey = "Reserve", varTheme.Primary, varTheme.TextSecondary)
-            FontSize: =10
-            FontWeight: =If(cmpBottomNav.ActiveKey = "Reserve", FontWeight.Bold, FontWeight.Normal)
-            Height: =Parent.Height
-            OnSelect: |-
-              =Set(varIsNewReservation, true);
-              Set(varSelectedVehicle, Blank());
-              Navigate(scrReservation, ScreenTransition.Fade)
-            Text: ="Reserve"
+            Fill: =Color.Transparent
+            Height: =Parent.Height - 4
+            PaddingBottom: =0.00
+            PaddingLeft: =0.00
             Width: =Parent.Width / 5
             X: =(Parent.Width / 5) * 2
-      - btnNavGas:
-          Control: Button@0.0.45
+            Y: =4
+          Children:
+            - recActiveReserve:
+                Control: Rectangle@2.3.0
+                Properties:
+                  Fill: =If(cmpBottomNav.ActiveKey = "Reserve", varTheme.Primary, Color.Transparent)
+                  Height: =3
+                  RadiusBottomLeft: =2
+                  RadiusBottomRight: =2
+                  Width: =28
+                  X: =(Parent.Width - 28) / 2
+            - icoReserve:
+                Control: Icon@0.0.7
+                Properties:
+                  Height: =26
+                  Icon: ="Calendar"
+                  IconColor: =If(cmpBottomNav.ActiveKey = "Reserve", varTheme.Primary, varTheme.TextTertiary)
+                  Width: =26
+                  X: =(Parent.Width - 26) / 2
+                  Y: =8
+            - lblTabReserve:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  Color: =If(cmpBottomNav.ActiveKey = "Reserve", varTheme.Primary, varTheme.TextTertiary)
+                  FontWeight: =If(cmpBottomNav.ActiveKey = "Reserve", FontWeight.Semibold, FontWeight.Normal)
+                  Height: =16
+                  Size: =10
+                  Text: ="Reserve"
+                  Width: =Parent.Width
+                  Y: =36
+            - btnTapReserve:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ="Transparent"
+                  BasePaletteColor: =Color.Transparent
+                  FontColor: =Color.Transparent
+                  Height: =Parent.Height
+                  OnSelect: |-
+                    =Set(varIsNewReservation, true);
+                    Set(varSelectedVehicle, Blank());
+                    Navigate(scrReservation, ScreenTransition.Fade)
+                  Text: =""
+                  Width: =Parent.Width
+      # ── Tab: Gas ──
+      - cnrTabGas:
+          Control: GroupContainer@1.4.0
+          Variant: ManualLayout
           Properties:
-            BasePaletteColor: =Color.Transparent
-            FontColor: =If(cmpBottomNav.ActiveKey = "Gas", varTheme.Primary, varTheme.TextSecondary)
-            FontSize: =10
-            FontWeight: =If(cmpBottomNav.ActiveKey = "Gas", FontWeight.Bold, FontWeight.Normal)
-            Height: =Parent.Height
-            OnSelect: =Navigate(scrGasPurchase, ScreenTransition.Fade)
-            Text: ="Gas"
+            Fill: =Color.Transparent
+            Height: =Parent.Height - 4
+            PaddingBottom: =0.00
+            PaddingLeft: =0.00
             Width: =Parent.Width / 5
             X: =(Parent.Width / 5) * 3
-      - btnNavMore:
-          Control: Button@0.0.45
+            Y: =4
+          Children:
+            - recActiveGas:
+                Control: Rectangle@2.3.0
+                Properties:
+                  Fill: =If(cmpBottomNav.ActiveKey = "Gas", varTheme.Primary, Color.Transparent)
+                  Height: =3
+                  RadiusBottomLeft: =2
+                  RadiusBottomRight: =2
+                  Width: =28
+                  X: =(Parent.Width - 28) / 2
+            - icoGas:
+                Control: Icon@0.0.7
+                Properties:
+                  Height: =26
+                  Icon: ="Money"
+                  IconColor: =If(cmpBottomNav.ActiveKey = "Gas", varTheme.Primary, varTheme.TextTertiary)
+                  Width: =26
+                  X: =(Parent.Width - 26) / 2
+                  Y: =8
+            - lblTabGas:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  Color: =If(cmpBottomNav.ActiveKey = "Gas", varTheme.Primary, varTheme.TextTertiary)
+                  FontWeight: =If(cmpBottomNav.ActiveKey = "Gas", FontWeight.Semibold, FontWeight.Normal)
+                  Height: =16
+                  Size: =10
+                  Text: ="Fuel"
+                  Width: =Parent.Width
+                  Y: =36
+            - btnTapGas:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ="Transparent"
+                  BasePaletteColor: =Color.Transparent
+                  FontColor: =Color.Transparent
+                  Height: =Parent.Height
+                  OnSelect: =Navigate(scrGasPurchase, ScreenTransition.Fade)
+                  Text: =""
+                  Width: =Parent.Width
+      # ── Tab: More ──
+      - cnrTabMore:
+          Control: GroupContainer@1.4.0
+          Variant: ManualLayout
           Properties:
-            BasePaletteColor: =Color.Transparent
-            FontColor: =If(cmpBottomNav.ActiveKey = "More", varTheme.Primary, varTheme.TextSecondary)
-            FontSize: =10
-            FontWeight: =If(cmpBottomNav.ActiveKey = "More", FontWeight.Bold, FontWeight.Normal)
-            Height: =Parent.Height
-            OnSelect: =Navigate(scrSettings, ScreenTransition.Fade)
-            Text: ="More"
+            Fill: =Color.Transparent
+            Height: =Parent.Height - 4
+            PaddingBottom: =0.00
+            PaddingLeft: =0.00
             Width: =Parent.Width / 5
             X: =(Parent.Width / 5) * 4
+            Y: =4
+          Children:
+            - recActiveMore:
+                Control: Rectangle@2.3.0
+                Properties:
+                  Fill: =If(cmpBottomNav.ActiveKey = "More", varTheme.Primary, Color.Transparent)
+                  Height: =3
+                  RadiusBottomLeft: =2
+                  RadiusBottomRight: =2
+                  Width: =28
+                  X: =(Parent.Width - 28) / 2
+            - icoMore:
+                Control: Icon@0.0.7
+                Properties:
+                  Height: =26
+                  Icon: ="DetailList"
+                  IconColor: =If(cmpBottomNav.ActiveKey = "More", varTheme.Primary, varTheme.TextTertiary)
+                  Width: =26
+                  X: =(Parent.Width - 26) / 2
+                  Y: =8
+            - lblTabMore:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  Color: =If(cmpBottomNav.ActiveKey = "More", varTheme.Primary, varTheme.TextTertiary)
+                  FontWeight: =If(cmpBottomNav.ActiveKey = "More", FontWeight.Semibold, FontWeight.Normal)
+                  Height: =16
+                  Size: =10
+                  Text: ="More"
+                  Width: =Parent.Width
+                  Y: =36
+            - btnTapMore:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ="Transparent"
+                  BasePaletteColor: =Color.Transparent
+                  FontColor: =Color.Transparent
+                  Height: =Parent.Height
+                  OnSelect: =Navigate(scrSettings, ScreenTransition.Fade)
+                  Text: =""
+                  Width: =Parent.Width

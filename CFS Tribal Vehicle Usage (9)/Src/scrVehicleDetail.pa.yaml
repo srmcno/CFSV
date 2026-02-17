@@ -17,7 +17,7 @@ Screens:
           Control: CanvasComponent
           ComponentName: cmpHeader
           Properties:
-            Height: =64
+            Height: =84
             ShowBackBtn: =true
             SubTitle: =varSelectedVehicle.Year & " " & varSelectedVehicle.Make & " " & varSelectedVehicle.Model
             Title: =varSelectedVehicle.'Vehicle Name'
@@ -27,10 +27,10 @@ Screens:
           ComponentName: cmpBottomNav
           Properties:
             ActiveKey: ="Vehicles"
-            Height: =56
+            Height: =72
             Width: =App.Width
             Y: =Parent.Height - Self.Height
-      - cnrDetailContent:
+      - cnrDetailScroll:
           Control: GroupContainer@1.4.0
           Variant: AutoLayout
           Properties:
@@ -38,24 +38,32 @@ Screens:
             Height: =Parent.Height - cmpHeader_Detail.Height - cmpBottomNav_Detail.Height
             LayoutAlignItems: =LayoutAlignItems.Center
             LayoutDirection: =LayoutDirection.Vertical
-            LayoutGap: =12
+            LayoutGap: =16
             LayoutOverflowY: =LayoutOverflow.Scroll
-            LayoutWrap: =true
-            PaddingBottom: =16
+            PaddingBottom: =24
             Width: =Parent.Width
             Y: =cmpHeader_Detail.Height
           Children:
+            # ── Status Banner ────────────────────────────────────────────────
             - cnrStatusBanner:
                 Control: GroupContainer@1.4.0
                 Variant: ManualLayout
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
-                  Fill: =Switch(Text(varSelectedVehicle.'Status (cr63e_status)'), "Available", varStatusColors.Available, "Checked Out", varStatusColors.CheckedOut, "Reserved", varStatusColors.Reserved, "Maintenance", varStatusColors.Maintenance, RGBA(96, 94, 92, 1))
+                  Fill: |-
+                    =Switch(
+                        Text(varSelectedVehicle.'Status (cr63e_status)'),
+                        "Available", varStatusColors.Available,
+                        "Checked Out", varStatusColors.CheckedOut,
+                        "Reserved", varStatusColors.Reserved,
+                        "Maintenance", varStatusColors.Maintenance,
+                        RGBA(96, 94, 92, 1)
+                    )
                   FillPortions: =0
-                  Height: =36
+                  Height: =40
                   Width: =Parent.Width
                 Children:
-                  - lblStatusBanner:
+                  - lblStatusBannerText:
                       Control: Label@2.5.1
                       Properties:
                         Align: =Align.Center
@@ -65,6 +73,8 @@ Screens:
                         Size: =14
                         Text: =Upper(Text(varSelectedVehicle.'Status (cr63e_status)'))
                         Width: =Parent.Width
+
+            # ── Vehicle Info Card ────────────────────────────────────────────
             - cnrInfoCard:
                 Control: GroupContainer@1.4.0
                 Variant: ManualLayout
@@ -72,169 +82,181 @@ Screens:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   Fill: =varTheme.Surface
                   FillPortions: =0
-                  Height: =If(Text(varSelectedVehicle.'Status (cr63e_status)') = "Checked Out", 220, 200)
-                  LayoutMinWidth: =0
-                  RadiusBottomLeft: =12
-                  RadiusBottomRight: =12
-                  RadiusTopLeft: =12
-                  RadiusTopRight: =12
+                  Height: =If(Text(varSelectedVehicle.'Status (cr63e_status)') = "Checked Out", 196, 170)
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
                   Width: =Parent.Width - 32
                 Children:
-                  - lblInfoTitle:
-                      Control: Label@2.5.1
-                      Properties:
-                        Color: =varTheme.TextPrimary
-                        FontWeight: =FontWeight.Semibold
-                        Height: =24
-                        Size: =14
-                        Text: ="Vehicle Information"
-                        Width: =Parent.Width - 32
-                        X: =16
-                        Y: =10
+                  # ── Row 1: Tag ──
                   - lblTagLabel:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextSecondary
-                        Height: =22
+                        Height: =26
                         Size: =12
                         Text: ="Tag"
-                        Width: =100
+                        Width: =140
                         X: =16
-                        Y: =38
+                        Y: =12
                   - lblTagValue:
                       Control: Label@2.5.1
                       Properties:
                         Align: =Align.Right
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
-                        Height: =22
+                        Height: =26
                         Size: =12
-                        Text: =varSelectedVehicle.Tag
-                        Width: =Parent.Width - 132
-                        X: =116
-                        Y: =38
+                        Text: =If(!IsBlank(varSelectedVehicle.Tag), varSelectedVehicle.Tag, "—")
+                        Width: =Parent.Width - 172
+                        X: =156
+                        Y: =12
+
+                  # ── Row 2: VIN ──
                   - lblVINLabel:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextSecondary
-                        Height: =22
+                        Height: =26
                         Size: =12
                         Text: ="VIN"
-                        Width: =100
+                        Width: =140
                         X: =16
-                        Y: =62
+                        Y: =38
                   - lblVINValue:
                       Control: Label@2.5.1
                       Properties:
                         Align: =Align.Right
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
-                        Height: =22
-                        Size: =10
+                        Height: =26
+                        Size: =12
                         Text: =If(!IsBlank(varSelectedVehicle.VIN), varSelectedVehicle.VIN, "—")
-                        Width: =Parent.Width - 132
-                        X: =116
-                        Y: =62
+                        Width: =Parent.Width - 172
+                        X: =156
+                        Y: =38
+
+                  # ── Row 3: Assigned Office ──
                   - lblOfficeLabel:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextSecondary
-                        Height: =22
+                        Height: =26
                         Size: =12
                         Text: ="Assigned Office"
-                        Width: =100
+                        Width: =140
                         X: =16
-                        Y: =86
+                        Y: =64
                   - lblOfficeValue:
                       Control: Label@2.5.1
                       Properties:
                         Align: =Align.Right
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
-                        Height: =22
+                        Height: =26
                         Size: =12
-                        Text: =varSelectedVehicle.Location
-                        Width: =Parent.Width - 132
-                        X: =116
-                        Y: =86
+                        Text: =If(!IsBlank(varSelectedVehicle.Location), varSelectedVehicle.Location, "—")
+                        Width: =Parent.Width - 172
+                        X: =156
+                        Y: =64
+
+                  # ── Row 4: Fuel Card (Last 4) ──
                   - lblFuelCardLabel:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextSecondary
-                        Height: =22
+                        Height: =26
                         Size: =12
                         Text: ="Fuel Card (Last 4)"
-                        Width: =120
+                        Width: =140
                         X: =16
-                        Y: =110
+                        Y: =90
                   - lblFuelCardValue:
                       Control: Label@2.5.1
                       Properties:
                         Align: =Align.Right
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
-                        Height: =22
+                        Height: =26
                         Size: =12
                         Text: =If(IsBlank(varVehicleFuelCard), "Not Assigned", "****" & varVehicleFuelCard.CardLast4)
-                        Width: =Parent.Width - 152
-                        X: =136
-                        Y: =110
+                        Width: =Parent.Width - 172
+                        X: =156
+                        Y: =90
+
+                  # ── Row 5: Current Mileage ──
                   - lblMileageLabel:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextSecondary
-                        Height: =22
+                        Height: =26
                         Size: =12
                         Text: ="Current Mileage"
-                        Width: =120
+                        Width: =140
                         X: =16
-                        Y: =134
+                        Y: =116
                   - lblMileageValue:
                       Control: Label@2.5.1
                       Properties:
                         Align: =Align.Right
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
-                        Height: =22
+                        Height: =26
                         Size: =12
                         Text: =Text(varSelectedVehicle.'Current Mileage', "#,##0") & " mi"
-                        Width: =Parent.Width - 152
-                        X: =136
-                        Y: =134
+                        Width: =Parent.Width - 172
+                        X: =156
+                        Y: =116
+
+                  # ── Divider above checked-out-by ──
+                  - recInfoDivider:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Fill: =varTheme.Divider
+                        Height: =1
+                        Visible: =Text(varSelectedVehicle.'Status (cr63e_status)') = "Checked Out"
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =148
+
+                  # ── Row 6: Checked out by (conditional) ──
                   - lblCheckedOutBy:
                       Control: Label@2.5.1
                       Properties:
-                        Color: =varStatusColors.CheckedOut
+                        Color: =varTheme.Danger
                         FontWeight: =FontWeight.Semibold
-                        Height: =22
+                        Height: =26
                         Size: =12
                         Text: |-
                           ="Checked out by: " & LookUp('Vehicle Checkouts', Vehicle.CFSVehicles = varSelectedVehicle.CFSVehicles && IsBlank(ReturnedAt)).Associate.Associate
                         Visible: =Text(varSelectedVehicle.'Status (cr63e_status)') = "Checked Out"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =162
+                        Y: =156
+
+            # ── Action Buttons ───────────────────────────────────────────────
             - cnrActions:
                 Control: GroupContainer@1.4.0
                 Variant: AutoLayout
                 Properties:
                   AlignInContainer: =AlignInContainer.SetByContainer
                   FillPortions: =0
-                  Height: =44
-                  LayoutAlignItems: =LayoutAlignItems.Center
+                  Height: =52
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
                   LayoutDirection: =LayoutDirection.Horizontal
                   LayoutGap: =12
-                  LayoutJustifyContent: =LayoutJustifyContent.Center
                   PaddingLeft: =16
                   PaddingRight: =16
+                  Visible: =Text(varSelectedVehicle.'Status (cr63e_status)') = "Available" || Text(varSelectedVehicle.'Status (cr63e_status)') = "Checked Out"
                   Width: =Parent.Width
                 Children:
-                  - btnReserveThis:
+                  - btnReserve:
                       Control: Button@0.0.45
                       Properties:
                         BasePaletteColor: =varTheme.Primary
                         FillPortions: =1
-                        Height: =44
+                        Height: =52
                         OnSelect: |-
                           =Set(varIsNewReservation, true);
                           Navigate(scrReservation, ScreenTransition.Fade)
@@ -245,7 +267,7 @@ Screens:
                       Properties:
                         BasePaletteColor: =varStatusColors.CheckedOut
                         FillPortions: =1
-                        Height: =44
+                        Height: =52
                         OnSelect: |-
                           =Patch(
                               'Vehicle Checkouts',
@@ -272,7 +294,7 @@ Screens:
                       Properties:
                         BasePaletteColor: =varStatusColors.Available
                         FillPortions: =1
-                        Height: =44
+                        Height: =52
                         OnSelect: |-
                           =With(
                               {openCheckout: LookUp('Vehicle Checkouts', Vehicle.CFSVehicles = varSelectedVehicle.CFSVehicles && IsBlank(ReturnedAt))},
@@ -292,18 +314,29 @@ Screens:
                           Navigate(scrVehicleList, ScreenTransition.Fade)
                         Text: ="Check In Vehicle"
                         Visible: =Text(varSelectedVehicle.'Status (cr63e_status)') = "Checked Out"
-            - lblUpcomingTitle:
-                Control: Label@2.5.1
+
+            # ── Upcoming Reservations Header ─────────────────────────────────
+            - cnrUpcomingHeader:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
                 Properties:
-                  Align: =Align.Center
-                  Color: =varTheme.TextPrimary
-                  FontWeight: =FontWeight.Semibold
-                  Height: =24
-                  PaddingLeft: =16
-                  Size: =14
-                  Text: ="Upcoming Reservations"
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  FillPortions: =0
+                  Height: =28
                   Visible: =CountRows(colVehicleReservations) > 0
                   Width: =Parent.Width - 32
+                Children:
+                  - lblUpcomingTitle:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =28
+                        Size: =14
+                        Text: ="Upcoming Reservations"
+                        Width: =Parent.Width
+
+            # ── Upcoming Reservations Gallery ────────────────────────────────
             - galUpcoming:
                 Control: Gallery@2.15.0
                 Variant: BrowseLayout_Vertical_OneTextVariant_pcfCore
@@ -313,9 +346,10 @@ Screens:
                   FillPortions: =0
                   FocusedBorderColor: =RGBA(98, 100, 167, 1)
                   FocusedBorderThickness: =2
-                  Height: =Min(CountRows(colVehicleReservations) * 56, 224)
+                  Height: =Min(CountRows(colVehicleReservations) * 64, 256)
                   Items: =colVehicleReservations
-                  TemplateSize: =52
+                  TemplatePadding: =4
+                  TemplateSize: =60
                   Visible: =CountRows(colVehicleReservations) > 0
                   Width: =Parent.Width - 32
                 Children:
@@ -323,25 +357,25 @@ Screens:
                       Control: GroupContainer@1.4.0
                       Variant: ManualLayout
                       Properties:
-                        Fill: =varTheme.PrimaryLight
-                        Height: =48
-                        RadiusBottomLeft: =8
-                        RadiusBottomRight: =8
-                        RadiusTopLeft: =8
-                        RadiusTopRight: =8
+                        Fill: =varTheme.PrimaryBg
+                        Height: =56
+                        RadiusBottomLeft: =10
+                        RadiusBottomRight: =10
+                        RadiusTopLeft: =10
+                        RadiusTopRight: =10
                         Width: =Parent.TemplateWidth
                       Children:
-                        - lblResDate:
+                        - lblResDateRange:
                             Control: Label@2.5.1
                             Properties:
                               Color: =varTheme.TextPrimary
                               FontWeight: =FontWeight.Semibold
-                              Height: =22
+                              Height: =24
                               Size: =12
                               Text: =Text(ThisItem.StartDateTime, "mmm d") & " - " & Text(ThisItem.EndDateTime, "mmm d, yyyy")
                               Width: =Parent.Width - 24
                               X: =12
-                              Y: =4
+                              Y: =6
                         - lblResBy:
                             Control: Label@2.5.1
                             Properties:
@@ -349,28 +383,33 @@ Screens:
                               Height: =20
                               Size: =10
                               Text: |-
-                                ="By: " & ThisItem.'Reserved By'
+                                ="Reserved by: " & ThisItem.'Reserved By'
                               Width: =Parent.Width - 24
                               X: =12
-                              Y: =26
-            - lblNoRes:
+                              Y: =28
+
+            # ── No Upcoming Reservations ─────────────────────────────────────
+            - lblNoReservations:
                 Control: Label@2.5.1
                 Properties:
                   Align: =Align.Center
-                  Color: =varTheme.TextSecondary
-                  Height: =28
-                  PaddingLeft: =16
+                  AlignInContainer: =AlignInContainer.SetByContainer
+                  Color: =varTheme.TextTertiary
+                  FillPortions: =0
+                  Height: =32
                   Size: =12
                   Text: ="No upcoming reservations"
                   Visible: =CountRows(colVehicleReservations) = 0
                   Width: =Parent.Width - 32
+
+            # ── Maintenance Buttons ──────────────────────────────────────────
             - btnSetMaintenance:
                 Control: Button@0.0.45
                 Properties:
-                  Align: =Align.Center
+                  AlignInContainer: =AlignInContainer.SetByContainer
                   Appearance: ="Secondary"
                   BasePaletteColor: =varStatusColors.Maintenance
-                  Height: =44
+                  Height: =52
                   OnSelect: |-
                     =Patch(
                         CFSVehicles,
@@ -383,11 +422,13 @@ Screens:
                   VerticalAlign: =VerticalAlign.Middle
                   Visible: =varSelectedVehicle.'Status (cr63e_status)' <> 'Status (CFSVehicles)'.Maintenance
                   Width: =Parent.Width - 32
+
             - btnClearMaintenance:
                 Control: Button@0.0.45
                 Properties:
+                  AlignInContainer: =AlignInContainer.SetByContainer
                   BasePaletteColor: =varStatusColors.Available
-                  Height: =44
+                  Height: =52
                   OnSelect: |-
                     =Patch(
                         CFSVehicles,
