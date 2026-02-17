@@ -1,0 +1,321 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  scrMaintenanceRequest:
+    Properties:
+      Fill: =varTheme.Background
+      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+      OnVisible: |-
+        =If(
+                    IsBlank(varMaintVehicle) && !IsBlank(varSelectedVehicle),
+                    Set(varMaintVehicle, varSelectedVehicle)
+                );
+                Set(varMaintDescription, "");
+                Set(varMaintUrgency, "Medium");
+                Set(varMaintOutOfService, false);
+    Children:
+      - cmpHeader_Maint:
+          Control: CanvasComponent
+          ComponentName: cmpHeader
+          Properties:
+            Height: =64
+            ShowBackBtn: =true
+            SubTitle: =If(!IsBlank(varMaintVehicle), varMaintVehicle.'Vehicle Name', "Select a vehicle")
+            Title: ="Report Issue"
+            Width: =App.Width
+      - cmpBottomNav_Maint:
+          Control: CanvasComponent
+          ComponentName: cmpBottomNav
+          Properties:
+            ActiveKey: ="Vehicles"
+            Height: =56
+            Width: =App.Width
+            Y: =Parent.Height - Self.Height
+      - cnrMaintForm:
+          Control: GroupContainer@1.4.0
+          Variant: ManualLayout
+          Properties:
+            Fill: =Color.Transparent
+            Height: =Parent.Height - cmpHeader_Maint.Height - cmpBottomNav_Maint.Height
+            PaddingBottom: =0.00
+            PaddingLeft: =0.00
+            Width: =Parent.Width
+            Y: =cmpHeader_Maint.Height
+          Children:
+            - cnrMaintCard:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  Height: =380
+                  PaddingBottom: =0.00
+                  PaddingLeft: =0.00
+                  RadiusBottomLeft: =12
+                  RadiusBottomRight: =12
+                  RadiusTopLeft: =12
+                  RadiusTopRight: =12
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =12
+                Children:
+                  - lblMaintVehicle:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =13.49
+                        PaddingBottom: =2.81
+                        PaddingLeft: =2.81
+                        Size: =6.75
+                        Text: ="Vehicle *"
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =12
+                  - ddMaintVehicle:
+                      Control: DropDown@0.0.45
+                      Properties:
+                        DefaultSelectedItems: =If(!IsBlank(varMaintVehicle), [varMaintVehicle], [])
+                        Height: =22.49
+                        Items: =CFSVehicles
+                        OnChange: =Set(varMaintVehicle, Self.Selected)
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =28
+                      Children:
+                        - MaintVehicleName:
+                            Control: DropDownDataField@1.5.0
+                            Variant: textualColumn
+                            IsLocked: true
+                            Properties:
+                              FieldDisplayName: ="Vehicle"
+                              FieldName: ="cr63e_vehiclename"
+                              FieldType: ="s"
+                              Order: =1
+                  - lblMaintType:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =13.49
+                        PaddingBottom: =2.81
+                        PaddingLeft: =2.81
+                        Size: =6.75
+                        Text: ="Issue Type *"
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =60
+                  - ddMaintType:
+                      Control: DropDown@0.0.45
+                      Properties:
+                        Height: =22.49
+                        Items: =Choices('Vehicle Maintenances'.Type)
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =76
+                  - lblMaintUrgency:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =13.49
+                        PaddingBottom: =2.81
+                        PaddingLeft: =2.81
+                        Size: =6.75
+                        Text: ="Urgency"
+                        Width: =(Parent.Width - 48) / 2
+                        X: =16
+                        Y: =108
+                  - ddMaintUrgency:
+                      Control: DropDown@0.0.45
+                      Properties:
+                        DefaultSelectedItems: =["Medium"]
+                        Height: =22.49
+                        Items: =["Low", "Medium", "High", "Critical"]
+                        OnChange: =Set(varMaintUrgency, Self.Selected.Value)
+                        Width: =(Parent.Width - 48) / 2
+                        X: =16
+                        Y: =124
+                  - lblMaintOOS:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =13.49
+                        PaddingBottom: =2.81
+                        PaddingLeft: =2.81
+                        Size: =6.75
+                        Text: ="Pull from service?"
+                        Width: =(Parent.Width - 48) / 2
+                        X: =(Parent.Width - 48) / 2 + 32
+                        Y: =108
+                  - btnOOSYes:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =If(varMaintOutOfService, varStatusColors.Cancelled, Color.Transparent)
+                        FontColor: =If(varMaintOutOfService, varTheme.TextOnPrimary, varTheme.TextSecondary)
+                        Height: =22.49
+                        OnSelect: =Set(varMaintOutOfService, true)
+                        Text: ="Yes"
+                        Width: =((Parent.Width - 48) / 2 - 8) / 2
+                        X: =(Parent.Width - 48) / 2 + 32
+                        Y: =124
+                  - btnOOSNo:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =If(!varMaintOutOfService, varStatusColors.Available, Color.Transparent)
+                        FontColor: =If(!varMaintOutOfService, varTheme.TextOnPrimary, varTheme.TextSecondary)
+                        Height: =22.49
+                        OnSelect: =Set(varMaintOutOfService, false)
+                        Text: ="No"
+                        Width: =((Parent.Width - 48) / 2 - 8) / 2
+                        X: =(Parent.Width - 48) / 2 + 32 + ((Parent.Width - 48) / 2 - 8) / 2 + 8
+                        Y: =124
+                  - lblMaintDesc:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =13.49
+                        PaddingBottom: =2.81
+                        PaddingLeft: =2.81
+                        Size: =6.75
+                        Text: ="Description *"
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =158
+                  - txtMaintDesc:
+                      Control: TextInput@0.0.54
+                      Properties:
+                        Height: =67.48
+                        Mode: =TextMode.MultiLine
+                        OnChange: =Set(varMaintDescription, Self.Value)
+                        Placeholder: ="Describe the issue..."
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =174
+                  - lblMaintPhoto:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =13.49
+                        PaddingBottom: =2.81
+                        PaddingLeft: =2.81
+                        Size: =6.75
+                        Text: ="Photo of Issue (optional — add via camera in Studio)"
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =252
+                  - lblMaintPhotoPlaceholder:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        Color: =varTheme.TextSecondary
+                        Height: =80
+                        Size: =6.75
+                        Text: |-
+                          ="📷 Insert an Add Picture control here in Studio"
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =268
+                  - btnCancelMaint:
+                      Control: Button@0.0.45
+                      Properties:
+                        Appearance: ="Secondary"
+                        Height: =28.11
+                        OnSelect: =Back()
+                        Text: ="Cancel"
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =351.89
+            - cnrMaintSubmitting:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =RGBA(0, 0, 0, 0.4)
+                  Height: =Parent.Height
+                  PaddingBottom: =0.00
+                  PaddingLeft: =0.00
+                  Visible: =varIsSubmitting
+                  Width: =Parent.Width
+                Children:
+                  - lblMaintSaving:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        Color: =RGBA(255, 255, 255, 1)
+                        FontWeight: =FontWeight.Bold
+                        Size: =14
+                        Text: ="Saving..."
+                        Width: =Parent.Width
+                        Y: =(Parent.Height - 40) / 2
+            - btnSubmitMaint:
+                Control: Button@0.0.45
+                Properties:
+                  BasePaletteColor: =varTheme.Primary
+                  DisplayMode: |-
+                    =If(
+                        IsBlank(varMaintVehicle) ||
+                        IsBlank(ddMaintType.Selected) ||
+                        IsBlank(varMaintDescription) ||
+                        varMaintDescription = "",
+                        DisplayMode.Disabled,
+                        DisplayMode.Edit
+                    )
+                  Height: =28.11
+                  OnSelect: |-
+                    =Set(varIsSubmitting, true);
+
+                    Set(
+                        varPatchResult,
+                        Patch(
+                            'Vehicle Maintenances',
+                            Defaults('Vehicle Maintenances'),
+                            {
+                                Vehicle: varMaintVehicle,
+                                Type: ddMaintType.Selected.Value,
+                                Description: varMaintDescription,
+                                'Status (cr63e_status)': 'Status (Vehicle Maintenances)'.Open,
+                                OutOfService: If(varMaintOutOfService, 'OutOfService (Vehicle Maintenances)'.Yes, 'OutOfService (Vehicle Maintenances)'.No),
+                                ReportedBy: varUserAssociate,
+                                ReportedDateTime: Now()
+                            }
+                        )
+                    );
+
+                    If(
+                        IsError(varPatchResult),
+                        Notify("Failed to submit — check connection and try again", NotificationType.Error);
+                        Set(varIsSubmitting, false),
+                        If(
+                            varMaintOutOfService,
+                            Patch(
+                                CFSVehicles,
+                                varMaintVehicle,
+                                {'Status (cr63e_status)': 'Status (CFSVehicles)'.Maintenance}
+                            )
+                        );
+                        Set(varIsSubmitting, false);
+                        Notify("Issue reported!", NotificationType.Success);
+                        Back()
+                    )
+                  Text: ="Submit Issue Report"
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =340
+            - btnCancelMaint_1:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ="Secondary"
+                  Height: =28.11
+                  OnSelect: =Back()
+                  Text: ="Cancel"
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =340 + 36

@@ -1,0 +1,93 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+ComponentDefinitions:
+  cmpBottomNav:
+    DefinitionType: CanvasComponent
+    AccessAppScope: true
+    CustomProperties:
+      ActiveKey:
+        PropertyKind: Input
+        DisplayName: ActiveKey
+        Description: Which nav button is active (Home, Vehicles, Reserve, Gas, More)
+        DataType: Text
+        Default: =""
+    Properties:
+      Height: =56
+      Width: =App.Width
+    Children:
+      - recNavBg:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(243, 242, 241, 1)
+            BorderStyle: =BorderStyle.None
+            BorderThickness: =2
+            DisabledFill: =RGBA(200, 198, 196, 1)
+            Fill: =RGBA(255, 255, 255, 1)
+            FocusedBorderColor: =RGBA(98, 100, 167, 1)
+            Height: =Parent.Height
+            HoverFill: =RGBA(98, 100, 167, 1)
+            PressedFill: =RGBA(98, 100, 167, 1)
+            Width: =Parent.Width
+      - btnNavHome:
+          Control: Button@0.0.45
+          Properties:
+            BasePaletteColor: =Color.Transparent
+            FontColor: =If(cmpBottomNav.ActiveKey = "Home", varTheme.Primary, varTheme.TextSecondary)
+            FontWeight: =If(cmpBottomNav.ActiveKey = "Home", FontWeight.Bold, FontWeight.Normal)
+            Height: =Parent.Height
+            OnSelect: =Navigate(scrHome, ScreenTransition.Fade)
+            Text: ="Home"
+            Width: =Parent.Width / 5
+      - btnNavVehicles:
+          Control: Button@0.0.45
+          Properties:
+            BasePaletteColor: =Color.Transparent
+            FontColor: =If(cmpBottomNav.ActiveKey = "Vehicles", varTheme.Primary, varTheme.TextSecondary)
+            FontWeight: =If(cmpBottomNav.ActiveKey = "Vehicles", FontWeight.Bold, FontWeight.Normal)
+            Height: =Parent.Height
+            OnSelect: =Navigate(scrVehicleList, ScreenTransition.Fade)
+            Text: ="Vehicles"
+            Width: =Parent.Width / 5
+            X: =Parent.Width / 5
+      - btnNavReserve:
+          Control: Button@0.0.45
+          Properties:
+            BasePaletteColor: =Color.Transparent
+            FontColor: =If(cmpBottomNav.ActiveKey = "Reserve", varTheme.Primary, varTheme.TextSecondary)
+            FontWeight: =If(cmpBottomNav.ActiveKey = "Reserve", FontWeight.Bold, FontWeight.Normal)
+            Height: =Parent.Height
+            OnSelect: |-
+              =Set(varIsNewReservation, true);
+              Set(varSelectedVehicle, Blank());
+              Navigate(scrReservation, ScreenTransition.Fade)
+            Text: ="Reserve"
+            Width: =Parent.Width / 5
+            X: =(Parent.Width / 5) * 2
+      - btnNavGas:
+          Control: Button@0.0.45
+          Properties:
+            BasePaletteColor: =Color.Transparent
+            FontColor: =If(cmpBottomNav.ActiveKey = "Gas", varTheme.Primary, varTheme.TextSecondary)
+            FontWeight: =If(cmpBottomNav.ActiveKey = "Gas", FontWeight.Bold, FontWeight.Normal)
+            Height: =Parent.Height
+            OnSelect: =Navigate(scrGasPurchase, ScreenTransition.Fade)
+            Text: ="Gas"
+            Width: =Parent.Width / 5
+            X: =(Parent.Width / 5) * 3
+      - btnNavMore:
+          Control: Button@0.0.45
+          Properties:
+            BasePaletteColor: =Color.Transparent
+            FontColor: =If(cmpBottomNav.ActiveKey = "More", varTheme.Primary, varTheme.TextSecondary)
+            FontWeight: =If(cmpBottomNav.ActiveKey = "More", FontWeight.Bold, FontWeight.Normal)
+            Height: =Parent.Height
+            OnSelect: =Navigate(scrSettings, ScreenTransition.Fade)
+            Text: ="More"
+            Width: =Parent.Width / 5
+            X: =(Parent.Width / 5) * 4

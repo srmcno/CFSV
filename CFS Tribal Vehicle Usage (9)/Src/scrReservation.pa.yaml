@@ -1,0 +1,230 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  scrReservation:
+    Properties:
+      Fill: =varTheme.Background
+      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+      OnVisible: |-
+        =Set(varResStartDate, Today());
+          Set(varResEndDate, Today());
+          Set(varResPurpose, "");
+          Set(varResVehicleSelected, If(IsBlank(varSelectedVehicle), Blank(), varSelectedVehicle))
+    Children:
+      - cmpHeader_Res:
+          Control: CanvasComponent
+          ComponentName: cmpHeader
+          Properties:
+            Height: =64
+            ShowBackBtn: =true
+            SubTitle: =If(IsBlank(varResVehicleSelected), "Select a vehicle", varResVehicleSelected.'Vehicle Name')
+            Title: ="New Reservation"
+            Width: =App.Width
+      - cmpBottomNav_Res:
+          Control: CanvasComponent
+          ComponentName: cmpBottomNav
+          Properties:
+            ActiveKey: ="Reserve"
+            Height: =56
+            Width: =App.Width
+            Y: =Parent.Height - Self.Height
+      - cnrResForm:
+          Control: GroupContainer@1.4.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =Color.Transparent
+            Height: =Parent.Height - cmpHeader_Res.Height - cmpBottomNav_Res.Height
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =12
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingBottom: =16
+            PaddingLeft: =16
+            PaddingRight: =16
+            PaddingTop: =12
+            Width: =Parent.Width
+            Y: =cmpHeader_Res.Height
+          Children:
+            - cnrFormCard:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  Height: =240
+                  RadiusBottomLeft: =12
+                  RadiusBottomRight: =12
+                  RadiusTopLeft: =12
+                  RadiusTopRight: =12
+                  Width: =Parent.Width - 32
+                Children:
+                  - lblSelectVehicle:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =14
+                        Size: =8
+                        Text: ="Select Vehicle *"
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =10
+                  - ddVehicle:
+                      Control: DropDown@0.0.45
+                      Properties:
+                        DefaultSelectedItems: =If(!IsBlank(varResVehicleSelected), [varResVehicleSelected], [])
+                        Height: =24
+                        Items: =Filter(CFSVehicles, 'CFSVehicles (Views)'.'Active CFSVehicles')
+                        OnChange: =Set(varResVehicleSelected, Self.Selected)
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =26
+                      Children:
+                        - VehicleName1:
+                            Control: DropDownDataField@1.5.0
+                            Variant: textualColumn
+                            IsLocked: true
+                            Properties:
+                              FieldDisplayName: ="Location"
+                              FieldName: ="cr63e_vehiclename"
+                              FieldType: ="s"
+                              Order: =1
+                  - lblStartDate:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =14
+                        Size: =8
+                        Text: ="Start Date *"
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =58
+                  - dpStartDate:
+                      Control: DatePicker@0.0.46
+                      Properties:
+                        Height: =24
+                        OnChange: |-
+                          =Set(varResStartDate, Self.SelectedDate);
+                          If(varResEndDate < Self.SelectedDate, Set(varResEndDate, Self.SelectedDate))
+                        SelectedDate: =varResStartDate
+                        StartDate: =varResStartDate
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =74
+                  - lblEndDate:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =14
+                        Size: =8
+                        Text: ="End Date *"
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =106
+                  - dpEndDate:
+                      Control: DatePicker@0.0.46
+                      Properties:
+                        EndDate: =varResEndDate
+                        Height: =24
+                        OnChange: =Set(varResEndDate, Self.SelectedDate)
+                        SelectedDate: =varResEndDate
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =122
+                  - lblPurpose:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =14
+                        Size: =8
+                        Text: ="Purpose / Notes"
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =154
+                  - txtPurpose:
+                      Control: TextInput@0.0.54
+                      Properties:
+                        Height: =46
+                        Mode: =TextMode.MultiLine
+                        OnChange: =Set(varResPurpose, Self.Value)
+                        Placeholder: ="Enter purpose of trip..."
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =170
+                  - lblConflictWarning:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varStatusColors.Warning
+                        Height: =22
+                        Size: =8
+                        Text: ="This vehicle has reservations during selected dates"
+                        Visible: |-
+                          =!IsBlank(varResVehicleSelected) && 
+                          CountRows(
+                              Filter(
+                                  'Vehicle Reservations',
+                                  Vehicle.CFSVehicles = varResVehicleSelected.CFSVehicles &&
+                                  !(EndDateTime < varResStartDate || StartDateTime > varResEndDate)
+                              )
+                          ) > 0
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =218
+            - btnCancelRes:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ="Secondary"
+                  Height: =36
+                  OnSelect: =Back()
+                  Text: ="Cancel"
+                  Width: =Parent.Width - 32
+            - btnSubmitRes:
+                Control: Button@0.0.45
+                Properties:
+                  BasePaletteColor: =varTheme.Primary
+                  DisplayMode: =If(IsBlank(varResVehicleSelected) || varResEndDate < varResStartDate, DisplayMode.Disabled, DisplayMode.Edit)
+                  Height: =36
+                  OnSelect: |-
+                    =Set(varIsSubmitting, true);
+
+                    Set(
+                        varPatchResult,
+                        Patch(
+                            'Vehicle Reservations',
+                            Defaults('Vehicle Reservations'),
+                            {
+                                Vehicle: varResVehicleSelected,
+                                Associate: varUserAssociate,
+                                StartDateTime: varResStartDate,
+                                EndDateTime: varResEndDate,
+                                Purpose: varResPurpose,
+                                'Status (cr63e_status)': 'Status (Vehicle Reservations)'.Approved
+                            }
+                        )
+                    );
+
+                    If(
+                        IsError(varPatchResult),
+                        Notify("Failed to save - check your connection and try again", NotificationType.Error),
+                        If(
+                            varResStartDate = Today(),
+                            Patch(
+                                CFSVehicles,
+                                varResVehicleSelected,
+                                {'Status (cr63e_status)': 'Status (CFSVehicles)'.Reserved}
+                            )
+                        );
+                        Notify("Reservation created!", NotificationType.Success);
+                        Navigate(scrMyReservations, ScreenTransition.Fade)
+                    );
+
+                    Set(varIsSubmitting, false);
+                  Text: ="Submit Reservation"
+                  Width: =Parent.Width - 32

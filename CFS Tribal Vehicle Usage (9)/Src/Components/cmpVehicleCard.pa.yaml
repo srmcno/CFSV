@@ -1,0 +1,86 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+ComponentDefinitions:
+  cmpVehicleCard:
+    DefinitionType: CanvasComponent
+    AccessAppScope: true
+    CustomProperties:
+      MetaInfo:
+        PropertyKind: Input
+        DisplayName: MetaInfo
+        Description: Year make model tag line
+        DataType: Text
+        Default: =""
+      StatusColor:
+        PropertyKind: Input
+        DisplayName: StatusColor
+        Description: Color for status indicator
+        DataType: Color
+        Default: =RGBA(96, 94, 92, 1)
+      StatusText:
+        PropertyKind: Input
+        DisplayName: StatusText
+        Description: Status label text
+        DataType: Text
+        Default: =""
+      VehicleName:
+        PropertyKind: Input
+        DisplayName: VehicleName
+        Description: Display name of the vehicle
+        DataType: Text
+        Default: =""
+    Properties:
+      Height: =64
+      Width: =App.Width - 24
+    Children:
+      - recCardBg:
+          Control: Rectangle@2.3.0
+          Properties:
+            Fill: =varTheme.Surface
+            Height: =Parent.Height
+            Width: =Parent.Width
+      - recStatusBar:
+          Control: Rectangle@2.3.0
+          Properties:
+            Fill: =cmpVehicleCard.StatusColor
+            Height: =Parent.Height
+            Width: =5
+      - lblVehicleName_1:
+          Control: Label@2.5.1
+          Properties:
+            Color: =varTheme.TextPrimary
+            FontWeight: =FontWeight.Semibold
+            Height: =22
+            Size: =14
+            Text: =cmpVehicleCard.VehicleName
+            Width: =Parent.Width - 100
+            X: =16
+            Y: =8
+      - lblMetaInfo:
+          Control: Label@2.5.1
+          Properties:
+            Color: =varTheme.TextSecondary
+            Height: =18
+            Size: =11
+            Text: =cmpVehicleCard.MetaInfo
+            Width: =Parent.Width - 100
+            X: =16
+            Y: =30
+      - lblStatusText:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Right
+            Color: =cmpVehicleCard.StatusColor
+            FontWeight: =FontWeight.Semibold
+            Height: =18
+            Size: =10
+            Text: =cmpVehicleCard.StatusText
+            Width: =80
+            X: =Parent.Width - 96
+            Y: =20

@@ -1,0 +1,192 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  scrSettings:
+    Properties:
+      Fill: |+
+        =varTheme.Background
+      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+    Children:
+      - cmpHeader_Settings:
+          Control: CanvasComponent
+          ComponentName: cmpHeader
+          Properties:
+            Height: =64
+            ShowBackBtn: =true
+            SubTitle: =varUserDisplayName
+            Title: ="More"
+            Width: =App.Width
+      - cmpBottomNav_Settings:
+          Control: CanvasComponent
+          ComponentName: cmpBottomNav
+          Properties:
+            ActiveKey: ="More"
+            Height: =56
+            Width: =App.Width
+            Y: =Parent.Height - Self.Height
+      - cnrSettingsContent:
+          Control: GroupContainer@1.4.0
+          Variant: ManualLayout
+          Properties:
+            Fill: =Color.Transparent
+            Height: =Parent.Height - cmpHeader_Settings.Height - cmpBottomNav_Settings.Height
+            PaddingBottom: =0.00
+            PaddingLeft: =0.00
+            Width: =Parent.Width
+            Y: =cmpHeader_Settings.Height
+          Children:
+            - cnrUserCard:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  Height: =80
+                  PaddingBottom: =0.00
+                  PaddingLeft: =0.00
+                  RadiusBottomLeft: =12
+                  RadiusBottomRight: =12
+                  RadiusTopLeft: =12
+                  RadiusTopRight: =12
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =16
+                Children:
+                  - icoUser:
+                      Control: Icon@0.0.7
+                      Properties:
+                        Height: =40
+                        Icon: ="Person"
+                        IconColor: =varTheme.Primary
+                        Width: =40
+                        X: =16
+                        Y: =20
+                  - lblUserName:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =14.62
+                        PaddingBottom: =2.81
+                        PaddingLeft: =2.81
+                        Size: =8.00
+                        Text: =varUserDisplayName
+                        Width: =Parent.Width - 80
+                        X: =64
+                        Y: =20
+                  - lblUserEmail:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        Height: =11.24
+                        PaddingBottom: =2.81
+                        PaddingLeft: =2.81
+                        Size: =6.50
+                        Text: =varUserEmail
+                        Width: =Parent.Width - 80
+                        X: =64
+                        Y: =38
+            - lblQuickLinksTitle:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Semibold
+                  Height: =16.87
+                  PaddingBottom: =2.81
+                  PaddingLeft: =2.81
+                  Size: =7.87
+                  Text: ="Quick Links"
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =112
+            - btnGoMyReservations:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ="Secondary"
+                  Height: =40
+                  OnSelect: =Navigate(scrMyReservations, ScreenTransition.Fade)
+                  Text: |-
+                    ="📅  My Reservations"
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =136
+            - btnGoGasPurchases:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ="Secondary"
+                  Height: =40
+                  OnSelect: =Navigate(scrGasPurchase, ScreenTransition.Fade)
+                  Text: ="⛽  Log Gas Purchase"
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =184
+            - btnGoFuelHistory:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ="Secondary"
+                  Height: =40
+                  OnSelect: =Navigate(scrFuelHistory, ScreenTransition.Fade)
+                  Text: |-
+                    ="📋  Fuel History"
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =232
+            - btnGoVehicles:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ="Secondary"
+                  Height: =40
+                  OnSelect: |-
+                    =Set(varFilterStatus, "All");
+                    Navigate(scrVehicleList, ScreenTransition.Fade)
+                  Text: |-
+                    ="🚗  All Vehicles"
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =280
+            - cnrAbout:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  Height: =70
+                  PaddingBottom: =0.00
+                  PaddingLeft: =0.00
+                  RadiusBottomLeft: =12
+                  RadiusBottomRight: =12
+                  RadiusTopLeft: =12
+                  RadiusTopRight: =12
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =340
+                Children:
+                  - lblAboutTitle:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =14.62
+                        PaddingBottom: =2.81
+                        PaddingLeft: =2.81
+                        Size: =7.87
+                        Text: ="CFS Tribal Vehicle Usage"
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =12
+                  - lblAboutVersion:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        Height: =11.24
+                        PaddingBottom: =2.81
+                        PaddingLeft: =2.81
+                        Size: =6.50
+                        Text: ="Choctaw Nation EPS  •  v1.1"
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =32

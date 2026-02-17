@@ -1,0 +1,224 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  scrVehicleList:
+    Properties:
+      Fill: =varTheme.Background
+      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+      OnVisible: |-
+        =// Default to "All" only if no filter was passed from Home
+                If(IsBlank(varFilterStatus), Set(varFilterStatus, "All"));
+                Reset(txtSearch); 
+
+                If(IsBlank(varFilterStatus), Set(varFilterStatus, "All"));
+                Set(varShowAllLocations, false);
+                Reset(txtSearch)
+    Children:
+      - cmpHeader_List:
+          Control: CanvasComponent
+          ComponentName: cmpHeader
+          Properties:
+            Height: =64
+            ShowBackBtn: =true
+            SubTitle: |-
+              =If(varFilterStatus = "All", "All Vehicles", "Showing: " & varFilterStatus)
+            Title: ="Vehicle Fleet"
+            Width: =App.Width
+      - cmpBottomNav_List:
+          Control: CanvasComponent
+          ComponentName: cmpBottomNav
+          Properties:
+            ActiveKey: ="Vehicles"
+            Height: =56
+            Width: =App.Width
+            Y: =Parent.Height - Self.Height
+      - cnrSearch:
+          Control: GroupContainer@1.4.0
+          Variant: ManualLayout
+          Properties:
+            Fill: =varTheme.Surface
+            Height: =68
+            PaddingBottom: =0.00
+            PaddingLeft: =0.00
+            RadiusBottomLeft: =0
+            Width: =Parent.Width
+            Y: =cmpHeader_List.Height
+          Children:
+            - txtSearch:
+                Control: TextInput@0.0.54
+                Properties:
+                  Height: =22.49
+                  Placeholder: ="Search by vehicle name..."
+                  Width: =If(varFilterStatus = "All", Parent.Width - 32, Parent.Width - 80)
+                  X: =16
+                  Y: =5.62
+            - icoClearFilter:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  Color: =varTheme.Danger
+                  DisabledBorderColor: =RGBA(243, 242, 241, 1)
+                  DisabledColor: =RGBA(220, 220, 220, 1)
+                  DisabledFill: =RGBA(0, 0, 0, 0)
+                  Height: =22.49
+                  HoverBorderColor: =RGBA(0, 0, 0, 0)
+                  HoverColor: =ColorFade(RGBA(98, 100, 167, 1), -30%)
+                  HoverFill: =RGBA(0, 0, 0, 0)
+                  Icon: =Icon.Cancel
+                  OnSelect: =Set(varFilterStatus, "All")
+                  PaddingBottom: =5.62
+                  PaddingLeft: =5.62
+                  PaddingRight: =10
+                  PaddingTop: =10
+                  PressedBorderColor: =RGBA(0, 0, 0, 0)
+                  PressedColor: =ColorFade(RGBA(98, 100, 167, 1), -30%)
+                  PressedFill: =RGBA(0, 0, 0, 0)
+                  Visible: =varFilterStatus <> "All"
+                  Width: =40
+                  X: =Parent.Width - 50
+                  Y: =5.62
+            - btnLocMine:
+                Control: Button@0.0.45
+                Properties:
+                  BasePaletteColor: =If(!varShowAllLocations, varTheme.Primary, Color.Transparent)
+                  FontColor: =If(!varShowAllLocations, varTheme.TextOnPrimary, varTheme.TextSecondary)
+                  Height: =24
+                  OnSelect: =Set(varShowAllLocations, false)
+                  Text: |-
+                    ="📍 My Location"
+                  Width: =(Parent.Width - 40) / 2
+                  X: =8
+                  Y: =36
+            - btnLocAll:
+                Control: Button@0.0.45
+                Properties:
+                  BasePaletteColor: =If(varShowAllLocations, varTheme.Primary, Color.Transparent)
+                  FontColor: =If(varShowAllLocations, varTheme.TextOnPrimary, varTheme.TextSecondary)
+                  Height: =24
+                  OnSelect: =Set(varShowAllLocations, true)
+                  Text: |-
+                    ="🌐 All Locations"
+                  Width: =(Parent.Width - 40) / 2
+                  X: =(Parent.Width - 40) / 2 + 24
+                  Y: =36
+      - galVehicles:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_OneTextVariant_pcfCore
+          Properties:
+            BorderColor: =RGBA(243, 242, 241, 1)
+            FocusedBorderColor: =RGBA(98, 100, 167, 1)
+            FocusedBorderThickness: =2
+            Height: =Parent.Height - cmpHeader_List.Height - cnrSearch.Height - cmpBottomNav_List.Height - 8
+            Items: |-
+              =SortByColumns(
+                                Filter(
+                                    CFSVehicles,
+                                    (varFilterStatus = "All" || Text('Status (cr63e_status)') = varFilterStatus) &&
+                                    (IsBlank(txtSearch.Value) || txtSearch.Value in 'Vehicle Name') &&
+                                    (varShowAllLocations || Location = varUserAssociate.Location)
+                                ),
+                                "cr63e_vehiclename",
+                                SortOrder.Ascending
+                            )
+            LoadingSpinner: =LoadingSpinner.Controls
+            TemplatePadding: =4
+            TemplateSize: =61.84
+            Width: =Parent.Width
+            Y: =cmpHeader_List.Height + cnrSearch.Height
+          Children:
+            - cnrVehicleRow:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  Height: =Parent.TemplateHeight - 4
+                  PaddingBottom: =0.00
+                  PaddingLeft: =0.00
+                  RadiusBottomLeft: =12
+                  RadiusBottomRight: =12
+                  RadiusTopLeft: =12
+                  RadiusTopRight: =12
+                  Width: =Parent.TemplateWidth - 16
+                  X: =8
+                  Y: =0.00
+                Children:
+                  - recStatusAccent:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Fill: |-
+                          =Switch(
+                              ThisItem.'Status (cr63e_status)',
+                              'Status (CFSVehicles)'.Available, varStatusColors.Available,
+                              'Status (CFSVehicles)'.'Checked Out', varStatusColors.CheckedOut,
+                              'Status (CFSVehicles)'.Reserved, varStatusColors.Reserved,
+                              'Status (CFSVehicles)'.Maintenance, varStatusColors.Maintenance,
+                              RGBA(96, 94, 92, 1)
+                          )
+                        Height: =Parent.Height
+                        Width: =5
+                  - lblVehicleName:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =14.62
+                        PaddingBottom: =2.81
+                        PaddingLeft: =2.81
+                        Size: =8.00
+                        Text: =ThisItem.'Vehicle Name'
+                        Width: =Parent.Width - 110
+                        X: =16
+                        Y: =8
+                  - lblVehicleMeta:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        Height: =11.24
+                        PaddingBottom: =2.81
+                        PaddingLeft: =2.81
+                        Size: =6.50
+                        Text: =ThisItem.Year & " " & ThisItem.Make & " " & ThisItem.Model & " • " & ThisItem.Tag
+                        Width: =Parent.Width - 110
+                        X: =16
+                        Y: =24
+                  - lblVehicleStatus:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Right
+                        Color: =recStatusAccent.Fill
+                        FontWeight: =FontWeight.Semibold
+                        Height: =11.24
+                        PaddingBottom: =2.81
+                        PaddingLeft: =2.81
+                        Size: =5.62
+                        Text: =Upper(Text(ThisItem.'Status (cr63e_status)'))
+                        Width: =80
+                        X: =Parent.Width - 96
+                        Y: =12
+                  - icoChevron:
+                      Control: Icon@0.0.7
+                      Properties:
+                        Height: =16
+                        Icon: ="ChevronRight"
+                        IconColor: =varTheme.TextSecondary
+                        Width: =16
+                        X: =Parent.Width - 24
+                        Y: =(Parent.Height - 16) / 2
+                  - btnVehicleRowTap:
+                      Control: Button@0.0.45
+                      Properties:
+                        Appearance: ="Transparent"
+                        BasePaletteColor: =Color.Transparent
+                        FontColor: =Color.Transparent
+                        Height: =Parent.Height
+                        OnSelect: |-
+                          =Set(varSelectedVehicle, ThisItem);
+                          Navigate(scrVehicleDetail, ScreenTransition.Fade)
+                        Text: =""
+                        Width: =Parent.Width

@@ -1,0 +1,614 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  scrHome:
+    Properties:
+      Fill: =varTheme.Background
+      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+      OnVisible: |-
+        =Set(varNow, Now());
+
+        // Count vehicles by status using Option Set
+        Set(varAvailableCount, CountRows(Filter(CFSVehicles, 'Status (cr63e_status)' = 'Status (CFSVehicles)'.Available)));
+        Set(varCheckedOutCount, CountRows(Filter(CFSVehicles, 'Status (cr63e_status)' = 'Status (CFSVehicles)'.'Checked Out')));
+        Set(varReservedCount, CountRows(Filter(CFSVehicles, 'Status (cr63e_status)' = 'Status (CFSVehicles)'.Reserved)));
+        Set(varMaintenanceCount, CountRows(Filter(CFSVehicles, 'Status (cr63e_status)' = 'Status (CFSVehicles)'.Maintenance)));
+        Set(varTotalVehicles, CountRows(CFSVehicles));
+
+        // Load user's upcoming reservations
+        ClearCollect(
+            colMyUpcoming,
+            FirstN(
+                Sort(
+                    Filter(
+                        'Vehicle Reservations',
+                        Associate.Associates = varUserAssociate.Associates &&
+                        EndDateTime >= Today() &&
+                        'Status (cr63e_status)' <> 'Status (Vehicle Reservations)'.Cancelled
+                    ),
+                    StartDateTime,
+                    SortOrder.Ascending
+                ),
+                3
+            )
+        );
+
+
+        Set(
+            varFuelSpendMonth,
+            Sum(
+                Filter(
+                    'Fuel Transactions',
+                    TransactionDateTime >= Date(Year(Today()), Month(Today()), 1) &&
+                    TransactionDateTime <= Today()
+                ),
+                Amount
+            )
+        );
+
+        Set(
+            varActiveCheckouts,
+            CountRows(
+                Filter('Vehicle Checkouts', IsBlank(ReturnedAt))
+            )
+        );
+
+        Set(
+            varOpenMaintenance,
+            CountRows(
+                Filter(
+                    'Vehicle Maintenances',
+                    'Status (cr63e_status)' = 'Status (Vehicle Maintenances)'.Open ||
+                    'Status (cr63e_status)' = 'Status (Vehicle Maintenances)'.'In Progress'
+                )
+            )
+        );
+    Children:
+      - cmpHeader_Home:
+          Control: CanvasComponent
+          ComponentName: cmpHeader
+          Properties:
+            Height: =64
+            ShowBackBtn: =false
+            SubTitle: ="Halito, " & varUserDisplayName
+            Title: ="Fleet Dashboard"
+            Width: =App.Width
+      - cmpBottomNav_Home:
+          Control: CanvasComponent
+          ComponentName: cmpBottomNav
+          Properties:
+            ActiveKey: ="Home"
+            Height: =56
+            Width: =App.Width
+            Y: =Parent.Height - Self.Height
+      - cnrDashboard:
+          Control: GroupContainer@1.4.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =Color.Transparent
+            Height: =Parent.Height - cmpHeader_Home.Height - cmpBottomNav_Home.Height
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =12
+            LayoutOverflowY: =LayoutOverflow.Scroll
+            PaddingBottom: =16
+            PaddingLeft: =16
+            PaddingRight: =16
+            PaddingTop: =16
+            Width: =Parent.Width
+            Y: =cmpHeader_Home.Height
+          Children:
+            - cnrStatGrid:
+                Control: GroupContainer@1.4.0
+                Variant: GridLayout
+                Properties:
+                  FillPortions: =0
+                  Height: =216
+                  LayoutGap: =12
+                  LayoutGridColumns: =2
+                  LayoutMinHeight: =16
+                  LayoutMinWidth: =""
+                  Width: =Parent.Width - 32
+                Children:
+                  - cnrStatAvailable:
+                      Control: GroupContainer@1.4.0
+                      Variant: ManualLayout
+                      Properties:
+                        Fill: =varTheme.Surface
+                        RadiusBottomLeft: =16
+                        RadiusBottomRight: =16
+                        RadiusTopLeft: =16
+                        RadiusTopRight: =16
+                      Children:
+                        - recAvailableAccent:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              Fill: =varStatusColors.Available
+                              Height: =4
+                              Width: =Parent.Width
+                        - icoStat1:
+                            Control: Icon@0.0.7
+                            Properties:
+                              Height: =28
+                              Icon: ="CircleCheck"
+                              IconColor: =varStatusColors.Available
+                              Width: =28
+                              X: =16
+                              Y: =20
+                        - lblCount1:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextPrimary
+                              FontWeight: =FontWeight.Bold
+                              Height: =42
+                              Size: =If(Parent.Width < 120, 22, 32)
+                              Text: =varAvailableCount
+                              Width: =Parent.Width - 32
+                              X: =32
+                              Y: =18
+                        - lblLabel1:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              Height: =20
+                              Size: =12
+                              Text: ="Available"
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =60
+                        - btnStatAvailable:
+                            Control: Button@0.0.45
+                            Properties:
+                              Appearance: ="Transparent"
+                              BasePaletteColor: =Color.Transparent
+                              FontColor: =Color.Transparent
+                              Height: =Parent.Height
+                              OnSelect: |-
+                                =Navigate(scrVehicleList, ScreenTransition.Fade, {varFilterStatus: "Available"})
+                              Text: =""
+                              Width: =Parent.Width
+                  - cnrStatCheckedOut:
+                      Control: GroupContainer@1.4.0
+                      Variant: ManualLayout
+                      Properties:
+                        Fill: =varTheme.Surface
+                        RadiusBottomLeft: =16
+                        RadiusBottomRight: =16
+                        RadiusTopLeft: =16
+                        RadiusTopRight: =16
+                      Children:
+                        - recCheckedOutAccent:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              Fill: =varStatusColors.CheckedOut
+                              Height: =4
+                              Width: =Parent.Width
+                        - icoStat2:
+                            Control: Icon@0.0.7
+                            Properties:
+                              Height: =28
+                              Icon: ="Send"
+                              IconColor: =varStatusColors.CheckedOut
+                              Width: =28
+                              X: =16
+                              Y: =20
+                        - lblCount2:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextPrimary
+                              FontWeight: =FontWeight.Bold
+                              Size: =If(Parent.Width < 120, 22, 32)
+                              Text: =varCheckedOutCount
+                              Width: =Parent.Width - 32
+                              X: =32
+                              Y: =18
+                        - lblLabel2:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              Height: =20
+                              Size: =12
+                              Text: ="On Road"
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =60
+                        - btnStatCheckedOut:
+                            Control: Button@0.0.45
+                            Properties:
+                              Appearance: ="Transparent"
+                              BasePaletteColor: =Color.Transparent
+                              FontColor: =Color.Transparent
+                              Height: =Parent.Height
+                              OnSelect: |-
+                                =Navigate(scrVehicleList, ScreenTransition.Fade, {varFilterStatus: "Checked Out"})
+                              Text: =""
+                              Width: =Parent.Width
+                  - cnrStatReserved:
+                      Control: GroupContainer@1.4.0
+                      Variant: ManualLayout
+                      Properties:
+                        Fill: =varTheme.Surface
+                        RadiusBottomLeft: =16
+                        RadiusBottomRight: =16
+                        RadiusTopLeft: =16
+                        RadiusTopRight: =16
+                      Children:
+                        - recReservedAccent:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              Fill: =varStatusColors.Reserved
+                              Height: =4
+                              Width: =Parent.Width
+                        - icoStat3:
+                            Control: Icon@0.0.7
+                            Properties:
+                              Height: =28
+                              Icon: ="Calendar"
+                              IconColor: =varStatusColors.Reserved
+                              Width: =28
+                              X: =16
+                              Y: =20
+                        - lblCount3:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextPrimary
+                              FontWeight: =FontWeight.Bold
+                              Size: =If(Parent.Width < 120, 22, 32)
+                              Text: =varReservedCount
+                              Width: =Parent.Width - 32
+                              X: =32
+                              Y: =18
+                        - lblLabel3:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              Height: =20
+                              Size: =12
+                              Text: ="Reserved"
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =60
+                        - btnStatReserved:
+                            Control: Button@0.0.45
+                            Properties:
+                              Appearance: ="Transparent"
+                              BasePaletteColor: =Color.Transparent
+                              FontColor: =Color.Transparent
+                              Height: =Parent.Height
+                              OnSelect: |-
+                                =Navigate(scrVehicleList, ScreenTransition.Fade, {varFilterStatus: "Reserved"})
+                              Text: =""
+                              Width: =Parent.Width
+                  - cnrStatMaintenance:
+                      Control: GroupContainer@1.4.0
+                      Variant: ManualLayout
+                      Properties:
+                        Fill: =varTheme.Surface
+                        RadiusBottomLeft: =16
+                        RadiusBottomRight: =16
+                        RadiusTopLeft: =16
+                        RadiusTopRight: =16
+                      Children:
+                        - recMaintenanceAccent:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              Fill: =varStatusColors.Maintenance
+                              Height: =4
+                              Width: =Parent.Width
+                        - icoStat4:
+                            Control: Icon@0.0.7
+                            Properties:
+                              Height: =28
+                              Icon: ="Warning"
+                              IconColor: =varStatusColors.Maintenance
+                              Width: =28
+                              X: =16
+                              Y: =20
+                        - lblCount4:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextPrimary
+                              FontWeight: =FontWeight.Bold
+                              Size: =If(Parent.Width < 120, 22, 32)
+                              Text: =varMaintenanceCount
+                              Width: =Parent.Width - 32
+                              X: =32
+                              Y: =18
+                        - lblLabel4:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              Height: =20
+                              Size: =12
+                              Text: ="Maintenance"
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =60
+                        - btnStatMaintenance:
+                            Control: Button@0.0.45
+                            Properties:
+                              Appearance: ="Transparent"
+                              BasePaletteColor: =Color.Transparent
+                              FontColor: =Color.Transparent
+                              Height: =Parent.Height
+                              OnSelect: |-
+                                =Navigate(scrVehicleList, ScreenTransition.Fade, {varFilterStatus: "Maintenance"})
+                              Text: =""
+                              Width: =Parent.Width
+            - lblQuickActions:
+                Control: Label@2.5.1
+                Properties:
+                  AlignInContainer: =AlignInContainer.Stretch
+                  AutoHeight: =true
+                  Color: =varTheme.TextPrimary
+                  FillPortions: =1
+                  FontWeight: =FontWeight.Semibold
+                  Height: =28
+                  Size: =16
+                  Text: ="Quick Actions"
+                  Width: =Parent.Width - 32
+            - cnrQuickActions:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  Height: =50
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =8
+                  LayoutWrap: =true
+                  Width: =Parent.Width - 32
+                Children:
+                  - btnQuickReserve:
+                      Control: Button@0.0.45
+                      Properties:
+                        AlignInContainer: =AlignInContainer.Center
+                        FillPortions: =1
+                        Height: =50
+                        OnSelect: |-
+                          =Set(varSelectedVehicle, Blank());
+                          Set(varIsNewReservation, true);
+                          Navigate(scrReservation, ScreenTransition.Fade)
+                        Text: ="+ Reserve"
+                  - btnQuickGas:
+                      Control: Button@0.0.45
+                      Properties:
+                        Appearance: ="Secondary"
+                        FillPortions: =1
+                        Height: =50
+                        OnSelect: =Navigate(scrGasPurchase, ScreenTransition.Fade)
+                        Text: ="Gas"
+                  - btnQuickVehicles:
+                      Control: Button@0.0.45
+                      Properties:
+                        Appearance: ="Secondary"
+                        FillPortions: =1
+                        Height: =50
+                        OnSelect: |-
+                          =Navigate(scrVehicleList, ScreenTransition.Fade, {varFilterStatus: "All"})
+                        Text: ="All"
+                  - btnQuickMaint:
+                      Control: Button@0.0.45
+                      Properties:
+                        Appearance: ="Secondary"
+                        FillPortions: =1
+                        Height: =50
+                        OnSelect: |-
+                          =Set(varMaintVehicle, Blank());
+                          Navigate(scrMaintenanceRequest, ScreenTransition.Fade)
+                        Text: ="Issue"
+            - cnrUpcomingHeader:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  FillPortions: =0
+                  Height: =28
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutWrap: =true
+                  Visible: =CountRows(colMyUpcoming) > 0
+                  Width: =Parent.Width - 32
+                Children:
+                  - lblUpcoming:
+                      Control: Label@2.5.1
+                      Properties:
+                        AutoHeight: =true
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =28
+                        Size: =16
+                        Text: ="My Upcoming"
+                  - btnSeeAllRes:
+                      Control: Button@0.0.45
+                      Properties:
+                        Appearance: ="Transparent"
+                        FontColor: =varTheme.Primary
+                        Height: =28
+                        OnSelect: =Navigate(scrMyReservations, ScreenTransition.Fade)
+                        Text: ="See All"
+                        Width: =80
+            - galMyUpcoming:
+                Control: Gallery@2.15.0
+                Variant: BrowseLayout_Vertical_OneTextVariant_pcfCore
+                Properties:
+                  BorderColor: =RGBA(243, 242, 241, 1)
+                  FillPortions: =0
+                  FocusedBorderColor: =RGBA(98, 100, 167, 1)
+                  FocusedBorderThickness: =2
+                  Height: =Min(CountRows(colMyUpcoming) * 75, 225)
+                  Items: =colMyUpcoming
+                  Visible: =CountRows(colMyUpcoming) > 0
+                  Width: =Parent.Width - 32
+                Children:
+                  - cnrUpcomingCard:
+                      Control: GroupContainer@1.4.0
+                      Variant: ManualLayout
+                      Properties:
+                        Fill: =varTheme.Surface
+                        Height: =64
+                        RadiusBottomLeft: =12
+                        RadiusBottomRight: =12
+                        RadiusTopLeft: =12
+                        RadiusTopRight: =12
+                        Width: =Parent.TemplateWidth
+                      Children:
+                        - recUpcomingAccent:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              Fill: =If(ThisItem.StartDateTime = Today(), varStatusColors.CheckedOut, varStatusColors.Reserved)
+                              Height: =32
+                              Width: =5
+                        - lblUpcomingVehicle:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextPrimary
+                              FontWeight: =FontWeight.Semibold
+                              Height: =24
+                              Size: =14
+                              Text: =ThisItem.Vehicle.'Vehicle Name'
+                              Width: =Parent.Width - 100
+                              X: =16
+                              Y: =8
+                        - lblUpcomingDate:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              Height: =20
+                              Size: =11
+                              Text: =If(ThisItem.StartDateTime = Today(), "Today", Text(ThisItem.StartDateTime, "mmm d"))
+                              Width: =Parent.Width - 100
+                              X: =16
+                              Y: =12
+                        - lblUpcomingBadge:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Center
+                              Color: =If(ThisItem.StartDateTime = Today(), varStatusColors.CheckedOut, varTheme.TextSecondary)
+                              FontWeight: =FontWeight.Semibold
+                              Height: =24
+                              Size: =10
+                              Text: =If(ThisItem.StartDateTime = Today(), "TODAY", Text(ThisItem.StartDateTime - Today()) & " days")
+                              Width: =70
+                              X: =Parent.Width - 80
+                              Y: =8
+            - cnrNoUpcoming:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  Height: =120
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                  Visible: =CountRows(colMyUpcoming) = 0
+                  Width: =Parent.Width - 32
+                Children:
+                  - icoNoUpcoming:
+                      Control: Icon@0.0.7
+                      Properties:
+                        Icon: ="Calendar"
+                        IconColor: =varTheme.TextSecondary
+                        X: =(Parent.Width - 32) / 2
+                        Y: =20
+                  - lblNoUpcomingText:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        Color: =varTheme.TextSecondary
+                        Height: =24
+                        Text: ="No upcoming reservations"
+                        Width: =Parent.Width
+                        Y: =58
+                  - btnMakeFirstRes:
+                      Control: Button@0.0.45
+                      Properties:
+                        Appearance: ="Transparent"
+                        FontColor: =varTheme.Primary
+                        Height: =30
+                        OnSelect: |-
+                          =Set(varSelectedVehicle, Blank());
+                          Set(varIsNewReservation, true);
+                          Navigate(scrReservation, ScreenTransition.Fade)
+                        Text: ="Make a reservation"
+                        Width: =180
+                        X: =(Parent.Width - 180) / 2
+                        Y: =82
+            - lblKPITitle:
+                Control: Label@2.5.1
+                Properties:
+                  AlignInContainer: =AlignInContainer.Stretch
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Semibold
+                  Height: =20
+                  Size: =10
+                  Text: ="This Month's Snapshot"
+                  Width: =Parent.Width - 32
+            - cnrKPIStrip:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  Height: =60
+                  LayoutAlignItems: =LayoutAlignItems.Center
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  RadiusBottomLeft: =12
+                  RadiusBottomRight: =12
+                  RadiusTopLeft: =12
+                  RadiusTopRight: =12
+                  Width: =Parent.Width - 32
+                Children:
+                  - lblKPIFuel:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        Color: =varTheme.TextPrimary
+                        FillPortions: =1
+                        Height: =Parent.Height
+                        Size: =9
+                        Text: ="$" & Text(varFuelSpendMonth, "#,##0.00")
+                  - lblKPICheckouts:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        Color: =varTheme.TextPrimary
+                        FillPortions: =1
+                        Height: =Parent.Height
+                        Size: =9
+                        Text: =varActiveCheckouts & " Out"
+                  - lblKPIMaint:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        Color: =If(varOpenMaintenance > 0, varStatusColors.Warning, varTheme.TextPrimary)
+                        FillPortions: =1
+                        Height: =Parent.Height
+                        Size: =9
+                        Text: =varOpenMaintenance & " Open"
+            - cnrFleetSummary:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Primary
+                  Height: =50
+                  RadiusBottomLeft: =12
+                  RadiusBottomRight: =12
+                  RadiusTopLeft: =12
+                  RadiusTopRight: =12
+                  Width: =Parent.Width - 32
+                Children:
+                  - lblFleetTotal:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        Color: =RGBA(255, 255, 255, 1)
+                        FontWeight: =FontWeight.Semibold
+                        Height: =Parent.Height
+                        Size: =14
+                        Text: |-
+                          ="Fleet Total: " & varTotalVehicles & " vehicles  |  " & varAvailableCount & " ready to go"
+                        Width: =Parent.Width

@@ -1,0 +1,67 @@
+{
+  "QualifiedValues": [
+    {
+      "Namespace": "Associates (Forms)",
+      "Kind": "default.cds_cr63e_associates_forms",
+      "Values": {
+        "Information": "69d9857a-4349-4351-afbc-da0cb4650d2c"
+      }
+    },
+    {
+      "Namespace": "CFSVehicles (Forms)",
+      "Kind": "default.cds_cr63e_cfsvehicles_forms",
+      "Values": {
+        "Information": "443bdfc7-5088-4415-9c68-dc6006dc124a"
+      }
+    },
+    {
+      "Namespace": "Fuel Card Assignments (Forms)",
+      "Kind": "default.cds_cr63e_fuelcardassignments_forms",
+      "Values": {
+        "Information": "e80ed450-022a-4178-9a28-ad7ae2a787af"
+      }
+    },
+    {
+      "Namespace": "Fuel Transactions (Forms)",
+      "Kind": "default.cds_cr63e_fueltransactions_forms",
+      "Values": {
+        "Information": "8f6947a0-8223-44d5-af38-647173bcba17"
+      }
+    },
+    {
+      "Namespace": "Vehicle Checkouts (Forms)",
+      "Kind": "default.cds_cr63e_vehiclecheckouts_forms",
+      "Values": {
+        "Information": "9caaecc4-89a6-49ad-979a-abb0fd1e1ea2"
+      }
+    },
+    {
+      "Namespace": "Vehicle Maintenances (Forms)",
+      "Kind": "default.cds_cr63e_vehiclemaintenance_forms",
+      "Values": {
+        "Information": "946b9c37-7f5a-4ee9-bc6e-1ae882ea0136"
+      }
+    },
+    {
+      "Namespace": "Vehicle Reservations (Forms)",
+      "Kind": "default.cds_cr63e_vehiclereservations_forms",
+      "Values": {
+        "Information": "9dc7a9b0-1e12-4ee0-99ae-b16edd4bb9d6"
+      }
+    },
+    {
+      "Namespace": "Vehicles (Forms)",
+      "Kind": "default.cds_cr63e_newtable_forms",
+      "Values": {
+        "Information": "57819de3-e3aa-4936-97e2-fc19092a555b"
+      }
+    },
+    {
+      "Namespace": "New tables (Forms)",
+      "Kind": "default.cds_cr63e_newtable_forms",
+      "Values": {
+        "Information": "57819de3-e3aa-4936-97e2-fc19092a555b"
+      }
+    }
+  ]
+}

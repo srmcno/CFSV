@@ -1,0 +1,253 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  scrMyReservations:
+    Properties:
+      Fill: =varTheme.Background
+      LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
+      OnVisible: |-
+        =ClearCollect(
+            colMyReservations,
+            Sort(
+                Filter(
+                    'Vehicle Reservations',
+                    Associate.Associates = varUserAssociate.Associates
+                ),
+                StartDateTime,
+                SortOrder.Descending
+            )
+        );
+        Set(varResFilter, "Upcoming")
+    Children:
+      - cmpBottomNav_MyRes:
+          Control: CanvasComponent
+          ComponentName: cmpBottomNav
+          Properties:
+            ActiveKey: ="More"
+            Height: =56
+            Width: =App.Width
+            Y: =Parent.Height - Self.Height
+      - cnrNoReservations:
+          Control: GroupContainer@1.4.0
+          Variant: ManualLayout
+          Properties:
+            Fill: =varTheme.Surface
+            Height: =140
+            PaddingBottom: =0.00
+            PaddingLeft: =0.00
+            RadiusBottomLeft: =16
+            RadiusBottomRight: =16
+            RadiusTopLeft: =16
+            RadiusTopRight: =16
+            Visible: =CountRows(colMyReservations) = 0
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =cmpHeader_MyRes.Height + cnrResFilters.Height + 32
+          Children:
+            - icoNoRes:
+                Control: Icon@0.0.7
+                Properties:
+                  Icon: ="Calendar"
+                  IconColor: =varTheme.TextSecondary
+                  X: =(Parent.Width - 32) / 2
+                  Y: =20
+            - lblNoResText:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  Color: =varTheme.TextSecondary
+                  Height: =24
+                  Size: =7.87
+                  Text: ="No reservations yet"
+                  Width: =Parent.Width
+                  Y: =58
+            - btnMakeRes:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ="Transparent"
+                  FontColor: =varTheme.Primary
+                  Height: =30
+                  OnSelect: |-
+                    =Set(varSelectedVehicle, Blank());
+                    Set(varIsNewReservation, true);
+                    Navigate(scrReservation, ScreenTransition.Fade)
+                  Text: ="Make a reservation →"
+                  Width: =180
+                  X: =(Parent.Width - 180) / 2
+                  Y: =90
+      - galMyReservations:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_OneTextVariant_pcfCore
+          Properties:
+            BorderColor: =RGBA(243, 242, 241, 1)
+            FocusedBorderColor: =RGBA(98, 100, 167, 1)
+            FocusedBorderThickness: =2
+            Height: =Parent.Height - cmpHeader_MyRes.Height - cnrResFilters.Height - cmpBottomNav_MyRes.Height
+            Items: |-
+              =Filter(
+                  colMyReservations,
+                  Switch(
+                      varResFilter,
+                      "Upcoming", EndDateTime >= Today(),
+                      "Past", EndDateTime < Today(),
+                      true
+                  )
+              )
+            LoadingSpinner: =LoadingSpinner.Controls
+            TemplatePadding: =4
+            TemplateSize: =80
+            Visible: =CountRows(colMyReservations) > 0
+            Width: =Parent.Width
+            Y: =cmpHeader_MyRes.Height + cnrResFilters.Height
+          Children:
+            - cnrResCard:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  Height: =Parent.TemplateHeight - 4
+                  PaddingBottom: =0.00
+                  PaddingLeft: =0.00
+                  RadiusBottomLeft: =12
+                  RadiusBottomRight: =12
+                  RadiusTopLeft: =12
+                  RadiusTopRight: =12
+                  Width: =Parent.TemplateWidth - 16
+                  X: =8
+                  Y: =0.00
+                Children:
+                  - recResAccent:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Fill: |-
+                          =Switch(
+                              ThisItem.'Status (cr63e_status)',
+                              'Status (Vehicle Reservations)'.Approved, varStatusColors.Available,
+                              'Status (Vehicle Reservations)'.Submitted, varStatusColors.Draft,
+                              'Status (Vehicle Reservations)'.CheckedOut, varStatusColors.CheckedOut,
+                              'Status (Vehicle Reservations)'.Returned, varStatusColors.Available,
+                              'Status (Vehicle Reservations)'.Cancelled, varStatusColors.Cancelled,
+                              RGBA(96, 94, 92, 1)
+                          )
+                        Height: =Parent.Height
+                        Width: =5
+                  - lblResVehicle:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =14.62
+                        PaddingBottom: =2.81
+                        PaddingLeft: =2.81
+                        Size: =8.00
+                        Text: =ThisItem.Vehicle.'Vehicle Name'
+                        Width: =Parent.Width - 110
+                        X: =16
+                        Y: =8
+                  - lblResDates:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        Height: =11.24
+                        PaddingBottom: =2.81
+                        PaddingLeft: =2.81
+                        Size: =6.50
+                        Text: =Text(ThisItem.StartDateTime, "mmm d") & " – " & Text(ThisItem.EndDateTime, "mmm d, yyyy")
+                        Width: =Parent.Width - 110
+                        X: =16
+                        Y: =24
+                  - lblResPurpose:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        Height: =11.24
+                        PaddingBottom: =2.81
+                        PaddingLeft: =2.81
+                        Size: =6.00
+                        Text: =ThisItem.Purpose
+                        Visible: =!IsBlank(ThisItem.Purpose)
+                        Width: =Parent.Width - 110
+                        X: =16
+                        Y: =38
+                  - lblResStatus:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Right
+                        Color: =recResAccent.Fill
+                        FontWeight: =FontWeight.Semibold
+                        Height: =11.24
+                        PaddingBottom: =2.81
+                        PaddingLeft: =2.81
+                        Size: =5.62
+                        Text: =Upper(Text(ThisItem.'Status (cr63e_status)'))
+                        Width: =80
+                        X: =Parent.Width - 96
+                        Y: =8
+                  - btnCancelRes_1:
+                      Control: Button@0.0.45
+                      Properties:
+                        Appearance: ="Secondary"
+                        BasePaletteColor: =varStatusColors.Cancelled
+                        Height: =22.49
+                        OnSelect: =Set(varConfirmCancelRes, ThisItem)
+                        Text: ="Cancel"
+                        Visible: =ThisItem.EndDateTime >= Today() && ThisItem.'Status (cr63e_status)' = 'Status (Vehicle Reservations)'.Approved
+                        Width: =60
+                        X: =Parent.Width - 76
+                        Y: =50
+      - cnrResFilters:
+          Control: GroupContainer@1.4.0
+          Variant: ManualLayout
+          Properties:
+            Fill: =varTheme.Surface
+            Height: =40
+            PaddingBottom: =0.00
+            PaddingLeft: =0.00
+            Width: =Parent.Width
+            Y: =cmpHeader_MyRes.Height
+          Children:
+            - btnFilterUpcoming:
+                Control: Button@0.0.45
+                Properties:
+                  BasePaletteColor: =If(varResFilter = "Upcoming", varTheme.Primary, Color.Transparent)
+                  FontColor: =If(varResFilter = "Upcoming", varTheme.TextOnPrimary, varTheme.TextSecondary)
+                  OnSelect: =Set(varResFilter, "Upcoming")
+                  Text: ="Upcoming"
+                  Width: =(Parent.Width - 32) / 3
+                  X: =8
+                  Y: =4
+            - btnFilterPast:
+                Control: Button@0.0.45
+                Properties:
+                  BasePaletteColor: =If(varResFilter = "Past", varTheme.Primary, Color.Transparent)
+                  FontColor: =If(varResFilter = "Past", varTheme.TextOnPrimary, varTheme.TextSecondary)
+                  OnSelect: =Set(varResFilter, "Past")
+                  Text: ="Past"
+                  Width: =(Parent.Width - 32) / 3
+                  X: =(Parent.Width - 32) / 3 + 12
+                  Y: =4
+            - btnFilterAll:
+                Control: Button@0.0.45
+                Properties:
+                  BasePaletteColor: =If(varResFilter = "All", varTheme.Primary, Color.Transparent)
+                  FontColor: =If(varResFilter = "All", varTheme.TextOnPrimary, varTheme.TextSecondary)
+                  OnSelect: =Set(varResFilter, "All")
+                  Text: ="All"
+                  Width: =(Parent.Width - 32) / 3
+                  X: =((Parent.Width - 32) / 3) * 2 + 16
+                  Y: =4
+      - cmpHeader_MyRes:
+          Control: CanvasComponent
+          ComponentName: cmpHeader
+          Properties:
+            Height: =64
+            ShowBackBtn: =true
+            SubTitle: =CountRows(colMyReservations) & " total"
+            Title: ="My Reservations"
+            Width: =App.Width

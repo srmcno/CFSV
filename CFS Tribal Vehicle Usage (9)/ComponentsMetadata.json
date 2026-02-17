@@ -1,0 +1,25 @@
+{
+  "Components": [
+    {
+      "Name": "cmpBottomNav",
+      "TemplateName": "556520ce5c2649319c5c48bc6f5de073",
+      "Description": "",
+      "AllowCustomization": true,
+      "AllowAccessToGlobals": true
+    },
+    {
+      "Name": "cmpHeader",
+      "TemplateName": "75f2167f66be44babed58f5aa3515667",
+      "Description": "",
+      "AllowCustomization": true,
+      "AllowAccessToGlobals": true
+    },
+    {
+      "Name": "cmpVehicleCard",
+      "TemplateName": "2a5c5557024d4a8db9a03309abb7c966",
+      "Description": "",
+      "AllowCustomization": true,
+      "AllowAccessToGlobals": true
+    }
+  ]
+}

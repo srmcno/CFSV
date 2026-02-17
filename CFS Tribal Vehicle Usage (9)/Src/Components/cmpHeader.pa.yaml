@@ -1,0 +1,98 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+ComponentDefinitions:
+  cmpHeader:
+    DefinitionType: CanvasComponent
+    AccessAppScope: true
+    CustomProperties:
+      ShowBackBtn:
+        PropertyKind: Input
+        DisplayName: ShowBackBtn
+        Description: A custom property
+        DataType: Boolean
+        Default: =false
+      SubTitle:
+        PropertyKind: Input
+        DisplayName: SubTitle
+        Description: A custom property
+        DataType: Text
+        Default: =""
+      Title:
+        PropertyKind: Input
+        DisplayName: Title
+        Description: A custom property
+        DataType: Text
+        Default: =""
+    Properties:
+      Height: =64
+      Width: =App.Width
+    Children:
+      - recHeaderBg:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(243, 242, 241, 1)
+            BorderStyle: =BorderStyle.None
+            BorderThickness: =2
+            DisabledFill: =RGBA(200, 198, 196, 1)
+            Fill: =varTheme.Surface
+            FocusedBorderColor: =RGBA(98, 100, 167, 1)
+            Height: =Parent.Height
+            HoverFill: =RGBA(98, 100, 167, 1)
+            PressedFill: =RGBA(98, 100, 167, 1)
+            Width: =Parent.Width
+      - lblSubTitle:
+          Control: FluentV8/Label@1.8.6
+          Properties:
+            AutoHeight: =true
+            Color: =varTheme.TextSecondary
+            FontSize: =If(Parent.Width < 600, 10, 12)
+            Height: =20
+            Text: |+
+              =If(Hour(Now()) < 12, "Halito, ", If(Hour(Now()) < 17, "Good afternoon, ", "Good evening, ")) & varUserDisplayName
+            Visible: =!IsBlank(cmpHeader.SubTitle)
+            Width: =lblTitle.Width
+            X: =lblTitle.X
+            Y: =38
+      - lblTitle:
+          Control: FluentV8/Label@1.8.6
+          Properties:
+            AutoHeight: =true
+            Color: =varTheme.TextPrimary
+            FontSize: =If(Parent.Width < 600, 14, 20)
+            FontWeight: =FontWeight.Semibold
+            Height: =26
+            Text: =cmpHeader.Title
+            Width: =Parent.Width - If(cmpHeader.ShowBackBtn, 64, 32)
+            X: =If(cmpHeader.ShowBackBtn, 48, 16)
+            Y: =10
+      - icoBack:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            BorderColor: =RGBA(0, 0, 0, 0)
+            Color: =varTheme.Primary
+            DisabledBorderColor: =RGBA(243, 242, 241, 1)
+            DisabledColor: =RGBA(220, 220, 220, 1)
+            DisabledFill: =RGBA(0, 0, 0, 0)
+            Height: =32
+            HoverBorderColor: =RGBA(0, 0, 0, 0)
+            HoverColor: =ColorFade(RGBA(98, 100, 167, 1), -30%)
+            HoverFill: =RGBA(0, 0, 0, 0)
+            Icon: =Icon.BackArrow
+            OnSelect: =Back()
+            PaddingBottom: =3
+            PaddingLeft: =3
+            PaddingRight: =3
+            PaddingTop: =3
+            PressedBorderColor: =RGBA(0, 0, 0, 0)
+            PressedColor: =ColorFade(RGBA(98, 100, 167, 1), -30%)
+            PressedFill: =RGBA(0, 0, 0, 0)
+            Visible: =cmpHeader.ShowBackBtn
+            Width: =32
+            X: =8
+            Y: =12
