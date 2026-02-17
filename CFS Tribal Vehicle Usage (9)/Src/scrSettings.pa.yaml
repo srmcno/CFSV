@@ -71,10 +71,10 @@ Screens:
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
-                        Height: =14.62
+                        Height: =22
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =8.00
+                        Size: =15
                         Text: =varUserDisplayName
                         Width: =Parent.Width - 80
                         X: =64
@@ -83,10 +83,10 @@ Screens:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextSecondary
-                        Height: =11.24
+                        Height: =18
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =6.50
+                        Size: =12
                         Text: =varUserEmail
                         Width: =Parent.Width - 80
                         X: =64
@@ -99,7 +99,7 @@ Screens:
                   Height: =16.87
                   PaddingBottom: =2.81
                   PaddingLeft: =2.81
-                  Size: =7.87
+                  Size: =14
                   Text: ="Quick Links"
                   Width: =Parent.Width - 32
                   X: =16
@@ -170,10 +170,10 @@ Screens:
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
-                        Height: =14.62
+                        Height: =22
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =7.87
+                        Size: =14
                         Text: ="CFS Tribal Vehicle Usage"
                         Width: =Parent.Width - 32
                         X: =16
@@ -182,10 +182,10 @@ Screens:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextSecondary
-                        Height: =11.24
+                        Height: =18
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =6.50
+                        Size: =12
                         Text: ="Choctaw Nation EPS  •  v1.1"
                         Width: =Parent.Width - 32
                         X: =16

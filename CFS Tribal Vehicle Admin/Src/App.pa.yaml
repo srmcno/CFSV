@@ -1,0 +1,123 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+#
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+#
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+#
+# CFS Tribal Vehicle Admin — Desktop Fleet Management App
+# Layout: 1366x768 (Desktop)
+# Connects to Dataverse tables with prefix cr63e_
+#
+# NEW TABLE REQUIRED — Create in Dataverse before using audit features:
+#   Table: Audit Log (cr63e_auditlog)
+#   Columns:
+#     - Action (Text, max 100) — e.g. "Created", "Updated", "Deleted", "StatusChange"
+#     - Entity (Text, max 100) — e.g. "Vehicle", "Reservation", "Maintenance"
+#     - RecordName (Text, max 255) — display name of the affected record
+#     - ChangedBy (Lookup to Associates) — who performed the action
+#     - ChangedDateTime (DateTime) — when the action occurred
+#     - Details (Multiline Text, max 4000) — JSON or descriptive text of changes
+# ************************************************************************************************
+App:
+  Properties:
+    OnStart: |-
+      =// Initialize user variables
+      Set(varCurrentUser, User());
+      Set(varUserEmail, User().Email);
+      Set(varUserDisplayName, User().FullName);
+      Set(
+          varUserAssociate,
+          LookUp(Associates, Associate = varUserDisplayName)
+      );
+      Set(varToday, Today());
+      Set(varNow, Now());
+      Set(varIsAdmin, true);
+
+      // Theme colors — Centralized for easy updates (matches mobile app)
+      Set(
+          varTheme,
+          {
+              Primary: RGBA(0, 120, 212, 1),
+              PrimaryDark: RGBA(0, 90, 158, 1),
+              PrimaryLight: RGBA(199, 224, 244, 1),
+              Success: RGBA(16, 124, 16, 1),
+              Warning: RGBA(255, 185, 0, 1),
+              Danger: RGBA(209, 52, 56, 1),
+              Background: RGBA(243, 242, 241, 1),
+              Surface: RGBA(255, 255, 255, 1),
+              TextPrimary: RGBA(50, 49, 48, 1),
+              TextSecondary: RGBA(96, 94, 92, 1),
+              TextOnPrimary: RGBA(255, 255, 255, 1),
+              Border: RGBA(237, 235, 233, 1),
+              SidebarBg: RGBA(32, 31, 30, 1),
+              SidebarText: RGBA(200, 198, 196, 1),
+              SidebarActive: RGBA(0, 120, 212, 1),
+              SidebarHover: RGBA(50, 49, 48, 1)
+          }
+      );
+
+      // Status colors — Mapped to Entity Status Reasons (matches mobile app)
+      Set(
+          varStatusColors,
+          {
+              Available: RGBA(16, 124, 16, 1),
+              CheckedOut: RGBA(209, 52, 56, 1),
+              Reserved: RGBA(255, 185, 0, 1),
+              Warning: RGBA(255, 185, 0, 1),
+              Maintenance: RGBA(138, 136, 134, 1),
+              Draft: RGBA(0, 120, 212, 1),
+              Submitted: RGBA(0, 120, 212, 1),
+              Approved: RGBA(16, 124, 16, 1),
+              Cancelled: RGBA(209, 52, 56, 1),
+              OutOfService: RGBA(168, 0, 0, 1),
+              NoShow: RGBA(168, 0, 0, 1),
+              Returned: RGBA(96, 94, 92, 1),
+              Open: RGBA(209, 52, 56, 1),
+              InProgress: RGBA(255, 185, 0, 1),
+              Closed: RGBA(16, 124, 16, 1)
+          }
+      );
+
+      // Admin navigation state
+      Set(varAdminSection, "Dashboard");
+
+      // Edit/form state variables
+      Set(varEditVehicle, Blank());
+      Set(varEditReservation, Blank());
+      Set(varEditMaintenance, Blank());
+      Set(varShowAddVehicle, false);
+      Set(varShowEditPanel, false);
+      Set(varShowAddAssociate, false);
+      Set(varEditAssociate, Blank());
+      Set(varShowAddMaintenance, false);
+      Set(varShowAddFuelCard, false);
+      Set(varEditFuelCard, Blank());
+
+      // Date range defaults (last 30 days)
+      Set(varDateRangeStart, DateAdd(Today(), -30, TimeUnit.Days));
+      Set(varDateRangeEnd, Today());
+
+      // Filter state
+      Set(varAdminFilterStatus, "All");
+      Set(varAdminFilterLocation, "All");
+      Set(varAdminFilterVehicle, "All");
+      Set(varAdminFilterAssociate, "All");
+      Set(varAdminSearchText, "");
+      Set(varFuelTab, "Transactions");
+
+      // Submission state
+      Set(varIsSubmitting, false);
+      Set(varPatchResult, Blank());
+      Set(varShowDeleteConfirm, false);
+      Set(varDeleteTarget, Blank());
+
+      // Dashboard KPIs
+      Set(varTotalVehicles, 0);
+      Set(varAvailableCount, 0);
+      Set(varCheckedOutCount, 0);
+      Set(varReservedCount, 0);
+      Set(varMaintenanceCount, 0);
+      Set(varOutOfServiceCount, 0);
+    Theme: =PowerAppsTheme

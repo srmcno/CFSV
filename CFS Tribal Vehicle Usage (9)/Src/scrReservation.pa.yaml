@@ -55,7 +55,7 @@ Screens:
                 Variant: ManualLayout
                 Properties:
                   Fill: =varTheme.Surface
-                  Height: =240
+                  Height: =300
                   RadiusBottomLeft: =12
                   RadiusBottomRight: =12
                   RadiusTopLeft: =12
@@ -68,7 +68,7 @@ Screens:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
                         Height: =14
-                        Size: =8
+                        Size: =13
                         Text: ="Select Vehicle *"
                         Width: =Parent.Width - 32
                         X: =16
@@ -99,11 +99,11 @@ Screens:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
                         Height: =14
-                        Size: =8
+                        Size: =13
                         Text: ="Start Date *"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =58
+                        Y: =62
                   - dpStartDate:
                       Control: DatePicker@0.0.46
                       Properties:
@@ -115,18 +115,18 @@ Screens:
                         StartDate: =varResStartDate
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =74
+                        Y: =80
                   - lblEndDate:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
                         Height: =14
-                        Size: =8
+                        Size: =13
                         Text: ="End Date *"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =106
+                        Y: =114
                   - dpEndDate:
                       Control: DatePicker@0.0.46
                       Properties:
@@ -136,34 +136,34 @@ Screens:
                         SelectedDate: =varResEndDate
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =122
+                        Y: =132
                   - lblPurpose:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
                         Height: =14
-                        Size: =8
+                        Size: =13
                         Text: ="Purpose / Notes"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =154
+                        Y: =166
                   - txtPurpose:
                       Control: TextInput@0.0.54
                       Properties:
-                        Height: =46
+                        Height: =60
                         Mode: =TextMode.MultiLine
                         OnChange: =Set(varResPurpose, Self.Value)
                         Placeholder: ="Enter purpose of trip..."
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =170
+                        Y: =184
                   - lblConflictWarning:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varStatusColors.Warning
-                        Height: =22
-                        Size: =8
+                        Height: =26
+                        Size: =13
                         Text: ="This vehicle has reservations during selected dates"
                         Visible: |-
                           =!IsBlank(varResVehicleSelected) && 
@@ -176,7 +176,7 @@ Screens:
                           ) > 0
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =218
+                        Y: =270
             - btnCancelRes:
                 Control: Button@0.0.45
                 Properties:

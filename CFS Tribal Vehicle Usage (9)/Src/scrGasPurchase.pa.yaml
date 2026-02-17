@@ -58,7 +58,7 @@ Screens:
                 Properties:
                   Fill: =varTheme.Surface
                   Height: |+
-                    =If(!IsBlank(addReceiptPhoto.Media), 460, 310)
+                    =If(!IsBlank(addReceiptPhoto.Media), 520, 380)
                   PaddingBottom: =0.00
                   PaddingLeft: =0.00
                   RadiusBottomLeft: =12
@@ -77,7 +77,7 @@ Screens:
                         Height: =13.49
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =6.75
+                        Size: =13
                         Text: ="Fuel Card Last 4 Digits *"
                         Width: =Parent.Width - 32
                         X: =16
@@ -114,7 +114,7 @@ Screens:
                         Height: =13.49
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =6.75
+                        Size: =13
                         Text: |-
                           =If(
                               !IsBlank(varGasVehicle),
@@ -133,7 +133,7 @@ Screens:
                         Height: =13.49
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =6.75
+                        Size: =13
                         Text: ="Transaction Date *"
                         Width: =Parent.Width - 32
                         X: =16
@@ -155,7 +155,7 @@ Screens:
                         Height: =13.49
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =6.75
+                        Size: =13
                         Text: ="Amount ($) *"
                         Width: =(Parent.Width - 48) / 2
                         X: =16
@@ -168,7 +168,7 @@ Screens:
                         Height: =13.49
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =6.75
+                        Size: =13
                         Text: ="Gallons *"
                         Width: =(Parent.Width - 48) / 2
                         X: =(Parent.Width - 48) / 2 + 32
@@ -181,9 +181,9 @@ Screens:
                         Height: =13.49
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =6.75
+                        Size: =13
                         Text: ="Odometer Reading *"
-                        Visible: =false
+                        Visible: =true
                         Width: =Parent.Width - 32
                         X: =16
                         Y: =156
@@ -194,7 +194,7 @@ Screens:
                         OnChange: =Set(varGasOdometer, Value(Self.Value))
                         Placeholder: ="Current mileage"
                         Type: ="Number"
-                        Visible: =false
+                        Visible: =true
                         Width: =Parent.Width - 32
                         X: =16
                         Y: =171.00
@@ -205,7 +205,7 @@ Screens:
                         Height: =13.49
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =6.75
+                        Size: =13
                         Text: |-
                           =If(!IsBlank(varGasAmount) && !IsBlank(varGasGallons) && varGasGallons > 0, "Price/gal: $" & Text(varGasAmount / varGasGallons, "#.000"), "")
                         Visible: =!IsBlank(varGasAmount) && !IsBlank(varGasGallons) && varGasGallons > 0
@@ -220,7 +220,7 @@ Screens:
                         Height: =13.49
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =6.75
+                        Size: =13
                         Text: ="Notes (optional)"
                         Width: =Parent.Width - 32
                         X: =16
@@ -279,7 +279,7 @@ Screens:
                           ="📷 Capture Receipt"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =280
+                        Y: =340
                   - txtAmount:
                       Control: TextInput@0.0.54
                       Properties:

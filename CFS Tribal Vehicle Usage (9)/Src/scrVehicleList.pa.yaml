@@ -12,13 +12,9 @@ Screens:
       Fill: =varTheme.Background
       LoadingSpinnerColor: =RGBA(98, 100, 167, 1)
       OnVisible: |-
-        =// Default to "All" only if no filter was passed from Home
-                If(IsBlank(varFilterStatus), Set(varFilterStatus, "All"));
-                Reset(txtSearch); 
-
-                If(IsBlank(varFilterStatus), Set(varFilterStatus, "All"));
-                Set(varShowAllLocations, false);
-                Reset(txtSearch)
+        =If(IsBlank(varFilterStatus), Set(varFilterStatus, "All"));
+        Set(varShowAllLocations, false);
+        Reset(txtSearch)
     Children:
       - cmpHeader_List:
           Control: CanvasComponent
@@ -128,7 +124,7 @@ Screens:
                             )
             LoadingSpinner: =LoadingSpinner.Controls
             TemplatePadding: =4
-            TemplateSize: =61.84
+            TemplateSize: =76
             Width: =Parent.Width
             Y: =cmpHeader_List.Height + cnrSearch.Height
           Children:
@@ -137,7 +133,7 @@ Screens:
                 Variant: ManualLayout
                 Properties:
                   Fill: =varTheme.Surface
-                  Height: =Parent.TemplateHeight - 4
+                  Height: =Parent.TemplateHeight - 6
                   PaddingBottom: =0.00
                   PaddingLeft: =0.00
                   RadiusBottomLeft: =12
@@ -167,10 +163,10 @@ Screens:
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
-                        Height: =14.62
+                        Height: =22
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =8.00
+                        Size: =15
                         Text: =ThisItem.'Vehicle Name'
                         Width: =Parent.Width - 110
                         X: =16
@@ -179,10 +175,10 @@ Screens:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextSecondary
-                        Height: =11.24
+                        Height: =18
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =6.50
+                        Size: =12
                         Text: =ThisItem.Year & " " & ThisItem.Make & " " & ThisItem.Model & " • " & ThisItem.Tag
                         Width: =Parent.Width - 110
                         X: =16
@@ -193,10 +189,10 @@ Screens:
                         Align: =Align.Right
                         Color: =recStatusAccent.Fill
                         FontWeight: =FontWeight.Semibold
-                        Height: =11.24
+                        Height: =18
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =5.62
+                        Size: =11
                         Text: =Upper(Text(ThisItem.'Status (cr63e_status)'))
                         Width: =80
                         X: =Parent.Width - 96

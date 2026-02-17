@@ -99,7 +99,7 @@ Screens:
             Items: =colFuelHistory
             LoadingSpinner: =LoadingSpinner.Controls
             TemplatePadding: =4
-            TemplateSize: =75
+            TemplateSize: =88
             Width: =Parent.Width
             Y: =cmpHeader_FuelHist.Height + cnrFuelFilters.Height
           Children:
@@ -137,10 +137,10 @@ Screens:
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
-                        Height: =14.62
+                        Height: =22
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =8.00
+                        Size: =15
                         Text: =ThisItem.Vehicle.'Vehicle Name'
                         Width: =Parent.Width - 130
                         X: =16
@@ -149,10 +149,10 @@ Screens:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextSecondary
-                        Height: =11.24
+                        Height: =18
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =6.50
+                        Size: =12
                         Text: =Text(ThisItem.TransactionDateTime, "mmm d, yyyy")
                         Width: =Parent.Width - 130
                         X: =16
@@ -161,10 +161,10 @@ Screens:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextSecondary
-                        Height: =11.24
+                        Height: =18
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =6.00
+                        Size: =11
                         Text: =Text(ThisItem.Gallons, "#,##0.00") & " gal  •  $" & Text(If(ThisItem.Gallons > 0, ThisItem.Amount / ThisItem.Gallons, 0), "#.00") & "/gal"
                         Width: =Parent.Width - 130
                         X: =16
@@ -175,10 +175,10 @@ Screens:
                         Align: =Align.Right
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Bold
-                        Height: =16.87
+                        Height: =22
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =9.00
+                        Size: =15
                         Text: ="$" & Text(ThisItem.Amount, "#,##0.00")
                         Width: =100
                         X: =Parent.Width - 116
@@ -188,10 +188,10 @@ Screens:
                       Properties:
                         Align: =Align.Right
                         Color: =varTheme.TextSecondary
-                        Height: =11.24
+                        Height: =18
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =5.62
+                        Size: =11
                         Text: =If(Text(ThisItem.Source) = "Manual", "Manual", If(Text(ThisItem.Source) = "VoyagerFeed", "Voyager", "Import"))
                         Width: =80
                         X: =Parent.Width - 96
@@ -245,7 +245,7 @@ Screens:
                   Align: =Align.Center
                   Color: =varTheme.TextSecondary
                   Height: =24
-                  Size: =7.87
+                  Size: =13
                   Text: ="No fuel transactions found"
                   Width: =Parent.Width
                   Y: =60
@@ -278,7 +278,7 @@ Screens:
                   Color: =RGBA(255, 255, 255, 1)
                   FontWeight: =FontWeight.Semibold
                   Height: =30
-                  Size: =10
+                  Size: =13
                   Text: =If(!IsBlank(varViewReceipt), varViewReceipt.Vehicle.'Vehicle Name' & "  •  " & Text(varViewReceipt.TransactionDateTime, "mmm d, yyyy"), "")
                   Width: =Parent.Width
                   Y: =20
@@ -289,7 +289,7 @@ Screens:
                   Color: =RGBA(255, 255, 255, 1)
                   FontWeight: =FontWeight.Bold
                   Height: =30
-                  Size: =14
+                  Size: =15
                   Text: =If(!IsBlank(varViewReceipt), "$" & Text(varViewReceipt.Amount, "#,##0.00"), "")
                   Width: =Parent.Width
                   Y: =48
@@ -304,15 +304,23 @@ Screens:
                   Width: =140
                   X: =(Parent.Width - 140) / 2
                   Y: =Parent.Height - 80
-            - lblReceiptImagePlaceholder:
-                Control: Label@2.5.1
+            - imgReceiptView:
+                Control: Image@2.2.3
                 Properties:
-                  Align: =Align.Center
-                  Color: =RGBA(255, 255, 255, 1)
-                  Height: =60
-                  Size: =10
-                  Text: |-
-                    ="📷 Receipt image will display here when you add an Image control in Studio and set its Image property to: varViewReceipt.ReceiptImage"
+                  BorderColor: =RGBA(0, 0, 0, 0)
+                  DisabledBorderColor: =RGBA(0, 0, 0, 0)
+                  DisabledFill: =RGBA(0, 0, 0, 0)
+                  Height: =Parent.Height - 180
+                  HoverBorderColor: =RGBA(0, 0, 0, 0)
+                  HoverFill: =RGBA(0, 0, 0, 0)
+                  Image: =If(!IsBlank(varViewReceipt), varViewReceipt.ReceiptImage, Blank())
+                  ImagePosition: =ImagePosition.Fit
+                  PressedBorderColor: =RGBA(0, 0, 0, 0)
+                  PressedFill: =RGBA(0, 0, 0, 0)
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
                   Width: =Parent.Width - 64
                   X: =32
-                  Y: =(Parent.Height - 60) / 2
+                  Y: =90

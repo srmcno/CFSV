@@ -1,0 +1,813 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+#
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+#
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+#
+# CFS Tribal Vehicle Admin — Vehicle Management (Full CRUD)
+# Desktop layout: 1366x768 with 220px sidebar
+# Features: Search, filter by status/location, data table, edit/add side panel
+# ************************************************************************************************
+Screens:
+  scrAdminVehicles:
+    Properties:
+      Fill: =varTheme.Background
+      LoadingSpinnerColor: =RGBA(0, 120, 212, 1)
+      OnVisible: |-
+        =Set(varAdminSection, "Vehicles");
+        Set(varAdminSearchText, "");
+        Set(varAdminFilterStatus, "All");
+        Set(varAdminFilterLocation, "All");
+        Set(varShowEditPanel, false);
+        Set(varShowAddVehicle, false);
+        Set(varEditVehicle, Blank());
+        Set(varShowDeleteConfirm, false);
+
+        // Collect distinct locations for the filter dropdown
+        ClearCollect(
+            colLocations,
+            Distinct(CFSVehicles, Location)
+        );
+    Children:
+      # ── LEFT SIDEBAR NAV ──
+      - cmpAdminNav_Vehicles:
+          Control: CanvasComponent
+          ComponentName: cmpAdminNav
+          Properties:
+            ActiveKey: ="Vehicles"
+            Height: =Parent.Height
+            Width: =220
+
+      # ── MAIN CONTENT AREA ──
+      - cnrVehMain:
+          Control: GroupContainer@1.4.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =varTheme.Background
+            Height: =Parent.Height
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =0
+            PaddingBottom: =0
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            Width: =If(varShowEditPanel, Parent.Width - 220 - 400, Parent.Width - 220)
+            X: =220
+          Children:
+            # ── PAGE HEADER ──
+            - cnrVehHeader:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  FillPortions: =0
+                  Height: =60
+                  Width: =Parent.Width
+                Children:
+                  - lblVehTitle:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Bold
+                        Height: =32
+                        Size: =22
+                        Text: ="Vehicle Management"
+                        Width: =300
+                        X: =24
+                        Y: =14
+                  - lblVehCount:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        Height: =24
+                        Size: =12
+                        Text: =CountRows(CFSVehicles) & " vehicles total"
+                        Width: =200
+                        X: =280
+                        Y: =20
+                  - recVehHeaderBorder:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Fill: =varTheme.Border
+                        Height: =1
+                        Width: =Parent.Width
+                        Y: =59
+
+            # ── FILTER BAR ──
+            - cnrVehFilters:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  FillPortions: =0
+                  Height: =56
+                  Width: =Parent.Width
+                Children:
+                  - txtVehSearch:
+                      Control: TextInput@0.0.54
+                      Properties:
+                        Height: =32
+                        OnChange: =Set(varAdminSearchText, Self.Value)
+                        Placeholder: ="Search vehicles..."
+                        Width: =240
+                        X: =24
+                        Y: =12
+                  - ddVehStatusFilter:
+                      Control: DropDown@0.0.45
+                      Properties:
+                        DefaultSelectedItems: =["All"]
+                        Height: =32
+                        Items: =["All", "Available", "Checked Out", "Reserved", "Maintenance", "Out Of Service"]
+                        OnChange: =Set(varAdminFilterStatus, Self.Selected.Value)
+                        Width: =160
+                        X: =280
+                        Y: =12
+                  - ddVehLocationFilter:
+                      Control: DropDown@0.0.45
+                      Properties:
+                        DefaultSelectedItems: =["All"]
+                        Height: =32
+                        Items: =Ungroup(Table({Value: "All"}, ForAll(colLocations, {Value: ThisRecord.Value})), "Value")
+                        OnChange: =Set(varAdminFilterLocation, Self.Selected.Value)
+                        Width: =160
+                        X: =456
+                        Y: =12
+                  - btnAddVehicle:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =varTheme.Primary
+                        Height: =32
+                        OnSelect: |-
+                          =Set(varEditVehicle, Blank());
+                          Set(varShowAddVehicle, true);
+                          Set(varShowEditPanel, true);
+                        Text: ="+ Add Vehicle"
+                        Width: =130
+                        X: =Parent.Width - 154
+                        Y: =12
+
+            # ── DATA TABLE GALLERY ──
+            - cnrVehTableCard:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Parent.Width
+                Children:
+                  # Column Headers
+                  - lblVHdrName:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="VEHICLE NAME"
+                        Width: =140
+                        X: =16
+                  - lblVHdrYMM:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="YEAR / MAKE / MODEL"
+                        Width: =180
+                        X: =160
+                  - lblVHdrTag:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="TAG"
+                        Width: =80
+                        X: =344
+                  - lblVHdrVIN:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="VIN"
+                        Width: =140
+                        X: =428
+                  - lblVHdrStatus:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="STATUS"
+                        Width: =100
+                        X: =572
+                  - lblVHdrLocation:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="LOCATION"
+                        Width: =100
+                        X: =676
+                  - lblVHdrMileage:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="MILEAGE"
+                        Width: =80
+                        X: =780
+                  - lblVHdrActions:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="ACTIONS"
+                        Width: =100
+                        X: =870
+                  - recVehTableHeaderLine:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Fill: =varTheme.Border
+                        Height: =1
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =36
+                  # Data Gallery
+                  - galVehicleTable:
+                      Control: Gallery@2.15.0
+                      Variant: BrowseLayout_Vertical_OneTextVariant_pcfCore
+                      Properties:
+                        BorderColor: =Color.Transparent
+                        Height: =Parent.Height - 40
+                        Items: |-
+                          =SortByColumns(
+                              Filter(
+                                  CFSVehicles,
+                                  (varAdminFilterStatus = "All" || Text('Status (cr63e_status)') = varAdminFilterStatus) &&
+                                  (varAdminFilterLocation = "All" || Location = varAdminFilterLocation) &&
+                                  (IsBlank(varAdminSearchText) || varAdminSearchText = "" ||
+                                   varAdminSearchText in 'Vehicle Name' ||
+                                   varAdminSearchText in Tag ||
+                                   varAdminSearchText in VIN)
+                              ),
+                              "cr63e_vehiclename",
+                              SortOrder.Ascending
+                          )
+                        LoadingSpinner: =LoadingSpinner.Controls
+                        TemplatePadding: =0
+                        TemplateSize: =44
+                        Width: =Parent.Width
+                        Y: =38
+                      Children:
+                        - cnrVehTableRow:
+                            Control: GroupContainer@1.4.0
+                            Variant: ManualLayout
+                            Properties:
+                              Fill: =If(ThisItem.CFSVehicles = varEditVehicle.CFSVehicles, varTheme.PrimaryLight, Color.Transparent)
+                              Height: =Parent.TemplateHeight
+                              Width: =Parent.TemplateWidth
+                            Children:
+                              - lblVRowName:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextPrimary
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Parent.Height
+                                    Size: =12
+                                    Text: =ThisItem.'Vehicle Name'
+                                    Width: =140
+                                    X: =16
+                              - lblVRowYMM:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextPrimary
+                                    Height: =Parent.Height
+                                    Size: =12
+                                    Text: =ThisItem.Year & " " & ThisItem.Make & " " & ThisItem.Model
+                                    Width: =180
+                                    X: =160
+                              - lblVRowTag:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextPrimary
+                                    Height: =Parent.Height
+                                    Size: =12
+                                    Text: =ThisItem.Tag
+                                    Width: =80
+                                    X: =344
+                              - lblVRowVIN:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextSecondary
+                                    Height: =Parent.Height
+                                    Size: =11
+                                    Text: =ThisItem.VIN
+                                    Width: =140
+                                    X: =428
+                              - lblVRowStatus:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: |-
+                                      =Switch(
+                                          ThisItem.'Status (cr63e_status)',
+                                          'Status (CFSVehicles)'.Available, varStatusColors.Available,
+                                          'Status (CFSVehicles)'.'Checked Out', varStatusColors.CheckedOut,
+                                          'Status (CFSVehicles)'.Reserved, varStatusColors.Reserved,
+                                          'Status (CFSVehicles)'.Maintenance, varStatusColors.Maintenance,
+                                          'Status (CFSVehicles)'.'Out Of Service', varStatusColors.OutOfService,
+                                          varTheme.TextSecondary
+                                      )
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Parent.Height
+                                    Size: =11
+                                    Text: =Upper(Text(ThisItem.'Status (cr63e_status)'))
+                                    Width: =100
+                                    X: =572
+                              - lblVRowLocation:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextPrimary
+                                    Height: =Parent.Height
+                                    Size: =12
+                                    Text: =ThisItem.Location
+                                    Width: =100
+                                    X: =676
+                              - lblVRowMileage:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextPrimary
+                                    Height: =Parent.Height
+                                    Size: =12
+                                    Text: =Text(ThisItem.'Current Mileage', "#,##0")
+                                    Width: =80
+                                    X: =780
+                              - btnVRowEdit:
+                                  Control: Button@0.0.45
+                                  Properties:
+                                    Appearance: ="Transparent"
+                                    FontColor: =varTheme.Primary
+                                    Height: =30
+                                    OnSelect: |-
+                                      =Set(varEditVehicle, ThisItem);
+                                      Set(varShowAddVehicle, false);
+                                      Set(varShowEditPanel, true);
+                                    Text: ="Edit"
+                                    Width: =50
+                                    X: =870
+                                    Y: =7
+                              - btnVRowView:
+                                  Control: Button@0.0.45
+                                  Properties:
+                                    Appearance: ="Transparent"
+                                    FontColor: =varTheme.TextSecondary
+                                    Height: =30
+                                    OnSelect: |-
+                                      =Set(varEditVehicle, ThisItem);
+                                      Set(varShowAddVehicle, false);
+                                      Set(varShowEditPanel, true);
+                                    Text: ="View"
+                                    Width: =50
+                                    X: =920
+                                    Y: =7
+                              - recVRowDivider:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =varTheme.Border
+                                    Height: =1
+                                    Width: =Parent.Width - 32
+                                    X: =16
+                                    Y: =Parent.Height - 1
+
+      # ── EDIT / ADD PANEL (right side overlay, 400px) ──
+      - cnrEditPanel:
+          Control: GroupContainer@1.4.0
+          Variant: ManualLayout
+          Properties:
+            Fill: =varTheme.Surface
+            Height: =Parent.Height
+            Visible: =varShowEditPanel
+            Width: =400
+            X: =Parent.Width - 400
+          Children:
+            - recEditPanelShadow:
+                Control: Rectangle@2.3.0
+                Properties:
+                  Fill: =RGBA(0, 0, 0, 0.08)
+                  Height: =Parent.Height
+                  Width: =2
+                  X: =0
+            - lblEditPanelTitle:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Bold
+                  Height: =40
+                  Size: =18
+                  Text: =If(varShowAddVehicle, "Add New Vehicle", "Edit Vehicle")
+                  Width: =280
+                  X: =20
+                  Y: =16
+            - btnClosePanel:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ="Transparent"
+                  FontColor: =varTheme.TextSecondary
+                  Height: =36
+                  OnSelect: |-
+                    =Set(varShowEditPanel, false);
+                    Set(varEditVehicle, Blank());
+                    Set(varShowAddVehicle, false);
+                    Set(varShowDeleteConfirm, false);
+                  Text: ="X"
+                  Width: =40
+                  X: =Parent.Width - 56
+                  Y: =16
+            - recEditPanelDivider:
+                Control: Rectangle@2.3.0
+                Properties:
+                  Fill: =varTheme.Border
+                  Height: =1
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =60
+            # ── Form Fields ──
+            - lblEFVehicleName:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Semibold
+                  Height: =20
+                  Size: =12
+                  Text: ="Vehicle Name *"
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =72
+            - txtEFVehicleName:
+                Control: TextInput@0.0.54
+                Properties:
+                  Default: =If(!varShowAddVehicle && !IsBlank(varEditVehicle), varEditVehicle.'Vehicle Name', "")
+                  Height: =32
+                  Placeholder: ="Enter vehicle name..."
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =94
+            - lblEFYear:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Semibold
+                  Height: =20
+                  Size: =12
+                  Text: ="Year *"
+                  Width: =160
+                  X: =20
+                  Y: =138
+            - txtEFYear:
+                Control: TextInput@0.0.54
+                Properties:
+                  Default: =If(!varShowAddVehicle && !IsBlank(varEditVehicle), varEditVehicle.Year, "")
+                  Height: =32
+                  Placeholder: ="e.g. 2024"
+                  Width: =160
+                  X: =20
+                  Y: =160
+            - lblEFMake:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Semibold
+                  Height: =20
+                  Size: =12
+                  Text: ="Make *"
+                  Width: =170
+                  X: =200
+                  Y: =138
+            - txtEFMake:
+                Control: TextInput@0.0.54
+                Properties:
+                  Default: =If(!varShowAddVehicle && !IsBlank(varEditVehicle), varEditVehicle.Make, "")
+                  Height: =32
+                  Placeholder: ="e.g. Ford"
+                  Width: =170
+                  X: =200
+                  Y: =160
+            - lblEFModel:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Semibold
+                  Height: =20
+                  Size: =12
+                  Text: ="Model *"
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =204
+            - txtEFModel:
+                Control: TextInput@0.0.54
+                Properties:
+                  Default: =If(!varShowAddVehicle && !IsBlank(varEditVehicle), varEditVehicle.Model, "")
+                  Height: =32
+                  Placeholder: ="e.g. F-150"
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =226
+            - lblEFTag:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Semibold
+                  Height: =20
+                  Size: =12
+                  Text: ="Tag *"
+                  Width: =160
+                  X: =20
+                  Y: =270
+            - txtEFTag:
+                Control: TextInput@0.0.54
+                Properties:
+                  Default: =If(!varShowAddVehicle && !IsBlank(varEditVehicle), varEditVehicle.Tag, "")
+                  Height: =32
+                  Placeholder: ="License plate..."
+                  Width: =160
+                  X: =20
+                  Y: =292
+            - lblEFVIN:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Semibold
+                  Height: =20
+                  Size: =12
+                  Text: ="VIN"
+                  Width: =190
+                  X: =200
+                  Y: =270
+            - txtEFVIN:
+                Control: TextInput@0.0.54
+                Properties:
+                  Default: =If(!varShowAddVehicle && !IsBlank(varEditVehicle), varEditVehicle.VIN, "")
+                  Height: =32
+                  Placeholder: ="VIN number..."
+                  Width: =170
+                  X: =200
+                  Y: =292
+            - lblEFLocation:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Semibold
+                  Height: =20
+                  Size: =12
+                  Text: ="Location *"
+                  Width: =160
+                  X: =20
+                  Y: =336
+            - txtEFLocation:
+                Control: TextInput@0.0.54
+                Properties:
+                  Default: =If(!varShowAddVehicle && !IsBlank(varEditVehicle), varEditVehicle.Location, "")
+                  Height: =32
+                  Placeholder: ="Location..."
+                  Width: =160
+                  X: =20
+                  Y: =358
+            - lblEFMileage:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Semibold
+                  Height: =20
+                  Size: =12
+                  Text: ="Current Mileage"
+                  Width: =170
+                  X: =200
+                  Y: =336
+            - txtEFMileage:
+                Control: TextInput@0.0.54
+                Properties:
+                  Default: =If(!varShowAddVehicle && !IsBlank(varEditVehicle), Text(varEditVehicle.'Current Mileage'), "0")
+                  Height: =32
+                  Placeholder: ="0"
+                  Type: ="Number"
+                  Width: =170
+                  X: =200
+                  Y: =358
+            - lblEFStatus:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Semibold
+                  Height: =20
+                  Size: =12
+                  Text: ="Status *"
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =402
+            - ddEFStatus:
+                Control: DropDown@0.0.45
+                Properties:
+                  DefaultSelectedItems: =If(!varShowAddVehicle && !IsBlank(varEditVehicle), [Text(varEditVehicle.'Status (cr63e_status)')], ["Available"])
+                  Height: =32
+                  Items: =["Available", "Reserved", "Checked Out", "Maintenance", "Out Of Service"]
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =424
+            # ── Action Buttons ──
+            - btnEFSave:
+                Control: Button@0.0.45
+                Properties:
+                  BasePaletteColor: =varTheme.Primary
+                  DisplayMode: |-
+                    =If(
+                        IsBlank(txtEFVehicleName.Value) || txtEFVehicleName.Value = "" ||
+                        IsBlank(txtEFYear.Value) || txtEFYear.Value = "" ||
+                        IsBlank(txtEFMake.Value) || txtEFMake.Value = "" ||
+                        IsBlank(txtEFModel.Value) || txtEFModel.Value = "" ||
+                        IsBlank(txtEFTag.Value) || txtEFTag.Value = "" ||
+                        IsBlank(txtEFLocation.Value) || txtEFLocation.Value = "",
+                        DisplayMode.Disabled,
+                        DisplayMode.Edit
+                    )
+                  Height: =36
+                  OnSelect: |-
+                    =Set(varIsSubmitting, true);
+
+                    If(
+                        varShowAddVehicle,
+                        // CREATE new vehicle
+                        Set(
+                            varPatchResult,
+                            Patch(
+                                CFSVehicles,
+                                Defaults(CFSVehicles),
+                                {
+                                    'Vehicle Name': txtEFVehicleName.Value,
+                                    Year: txtEFYear.Value,
+                                    Make: txtEFMake.Value,
+                                    Model: txtEFModel.Value,
+                                    Tag: txtEFTag.Value,
+                                    VIN: txtEFVIN.Value,
+                                    Location: txtEFLocation.Value,
+                                    'Current Mileage': Value(txtEFMileage.Value),
+                                    'Status (cr63e_status)': Switch(
+                                        ddEFStatus.Selected.Value,
+                                        "Available", 'Status (CFSVehicles)'.Available,
+                                        "Reserved", 'Status (CFSVehicles)'.Reserved,
+                                        "Checked Out", 'Status (CFSVehicles)'.'Checked Out',
+                                        "Maintenance", 'Status (CFSVehicles)'.Maintenance,
+                                        "Out Of Service", 'Status (CFSVehicles)'.'Out Of Service',
+                                        'Status (CFSVehicles)'.Available
+                                    )
+                                }
+                            )
+                        ),
+                        // UPDATE existing vehicle
+                        Set(
+                            varPatchResult,
+                            Patch(
+                                CFSVehicles,
+                                varEditVehicle,
+                                {
+                                    'Vehicle Name': txtEFVehicleName.Value,
+                                    Year: txtEFYear.Value,
+                                    Make: txtEFMake.Value,
+                                    Model: txtEFModel.Value,
+                                    Tag: txtEFTag.Value,
+                                    VIN: txtEFVIN.Value,
+                                    Location: txtEFLocation.Value,
+                                    'Current Mileage': Value(txtEFMileage.Value),
+                                    'Status (cr63e_status)': Switch(
+                                        ddEFStatus.Selected.Value,
+                                        "Available", 'Status (CFSVehicles)'.Available,
+                                        "Reserved", 'Status (CFSVehicles)'.Reserved,
+                                        "Checked Out", 'Status (CFSVehicles)'.'Checked Out',
+                                        "Maintenance", 'Status (CFSVehicles)'.Maintenance,
+                                        "Out Of Service", 'Status (CFSVehicles)'.'Out Of Service',
+                                        'Status (CFSVehicles)'.Available
+                                    )
+                                }
+                            )
+                        )
+                    );
+
+                    If(
+                        IsError(varPatchResult),
+                        Notify("Failed to save vehicle. Check your connection and try again.", NotificationType.Error),
+                        Notify(
+                            If(varShowAddVehicle, "Vehicle added successfully!", "Vehicle updated successfully!"),
+                            NotificationType.Success
+                        );
+                        Set(varShowEditPanel, false);
+                        Set(varEditVehicle, Blank());
+                        Set(varShowAddVehicle, false)
+                    );
+
+                    Set(varIsSubmitting, false);
+                  Text: =If(varShowAddVehicle, "Add Vehicle", "Save Changes")
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =476
+            - btnEFCancel:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ="Secondary"
+                  Height: =36
+                  OnSelect: |-
+                    =Set(varShowEditPanel, false);
+                    Set(varEditVehicle, Blank());
+                    Set(varShowAddVehicle, false);
+                    Set(varShowDeleteConfirm, false);
+                  Text: ="Cancel"
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =520
+            - recEFDeleteDivider:
+                Control: Rectangle@2.3.0
+                Properties:
+                  Fill: =varTheme.Border
+                  Height: =1
+                  Visible: =!varShowAddVehicle && !IsBlank(varEditVehicle)
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =570
+            - btnEFDelete:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ="Transparent"
+                  FontColor: =varTheme.Danger
+                  Height: =36
+                  OnSelect: =Set(varShowDeleteConfirm, true)
+                  Text: ="Delete Vehicle"
+                  Visible: =!varShowAddVehicle && !IsBlank(varEditVehicle) && !varShowDeleteConfirm
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =582
+            # Delete Confirmation
+            - cnrDeleteConfirm:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =RGBA(255, 240, 240, 1)
+                  Height: =100
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Visible: =varShowDeleteConfirm
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =580
+                Children:
+                  - lblDeleteWarn:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        Color: =varTheme.Danger
+                        FontWeight: =FontWeight.Semibold
+                        Height: =28
+                        Size: =12
+                        Text: ="Are you sure? This cannot be undone."
+                        Width: =Parent.Width
+                        Y: =8
+                  - btnConfirmDelete:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =varTheme.Danger
+                        Height: =32
+                        OnSelect: |-
+                          =Remove(CFSVehicles, varEditVehicle);
+                          Notify("Vehicle deleted.", NotificationType.Warning);
+                          Set(varShowEditPanel, false);
+                          Set(varEditVehicle, Blank());
+                          Set(varShowDeleteConfirm, false);
+                        Text: ="Yes, Delete"
+                        Width: =140
+                        X: =16
+                        Y: =44
+                  - btnCancelDelete:
+                      Control: Button@0.0.45
+                      Properties:
+                        Appearance: ="Secondary"
+                        Height: =32
+                        OnSelect: =Set(varShowDeleteConfirm, false)
+                        Text: ="Cancel"
+                        Width: =140
+                        X: =Parent.Width - 156
+                        Y: =44

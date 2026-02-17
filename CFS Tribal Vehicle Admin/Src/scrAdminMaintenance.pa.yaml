@@ -1,0 +1,649 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+#
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+#
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+#
+# CFS Tribal Vehicle Admin — Maintenance Management
+# Desktop layout: 1366x768 with 220px sidebar
+# Features: Filter by status/vehicle, status transitions, toggle OutOfService
+# Auto-sets vehicle Available when closing maintenance if vehicle was in Maintenance
+# ************************************************************************************************
+Screens:
+  scrAdminMaintenance:
+    Properties:
+      Fill: =varTheme.Background
+      LoadingSpinnerColor: =RGBA(0, 120, 212, 1)
+      OnVisible: |-
+        =Set(varAdminSection, "Maintenance");
+        Set(varAdminFilterStatus, "Open");
+        Set(varAdminFilterVehicle, "All");
+        Set(varShowEditPanel, false);
+        Set(varShowAddMaintenance, false);
+        Set(varEditMaintenance, Blank());
+        Set(varIsSubmitting, false);
+    Children:
+      # ── LEFT SIDEBAR NAV ──
+      - cmpAdminNav_Maint:
+          Control: CanvasComponent
+          ComponentName: cmpAdminNav
+          Properties:
+            ActiveKey: ="Maintenance"
+            Height: =Parent.Height
+            Width: =220
+
+      # ── MAIN CONTENT AREA ──
+      - cnrMaintMain:
+          Control: GroupContainer@1.4.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =varTheme.Background
+            Height: =Parent.Height
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =0
+            Width: =If(varShowEditPanel, Parent.Width - 220 - 400, Parent.Width - 220)
+            X: =220
+          Children:
+            # ── PAGE HEADER ──
+            - cnrMaintHeader:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  FillPortions: =0
+                  Height: =60
+                  Width: =Parent.Width
+                Children:
+                  - lblMaintTitle:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Bold
+                        Height: =32
+                        Size: =22
+                        Text: ="Maintenance Management"
+                        Width: =400
+                        X: =24
+                        Y: =14
+                  - recMaintHeaderBorder:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Fill: =varTheme.Border
+                        Height: =1
+                        Width: =Parent.Width
+                        Y: =59
+
+            # ── FILTER BAR ──
+            - cnrMaintFilters:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  FillPortions: =0
+                  Height: =56
+                  Width: =Parent.Width
+                Children:
+                  - ddMaintStatusFilter:
+                      Control: DropDown@0.0.45
+                      Properties:
+                        DefaultSelectedItems: =["Open"]
+                        Height: =32
+                        Items: =["All", "Open", "In Progress", "Closed"]
+                        OnChange: =Set(varAdminFilterStatus, Self.Selected.Value)
+                        Width: =140
+                        X: =24
+                        Y: =12
+                  - ddMaintVehicleFilter:
+                      Control: DropDown@0.0.45
+                      Properties:
+                        DefaultSelectedItems: =["All"]
+                        Height: =32
+                        Items: =Ungroup(Table({Value: "All"}, ForAll(CFSVehicles, {Value: ThisRecord.'Vehicle Name'})), "Value")
+                        OnChange: =Set(varAdminFilterVehicle, Self.Selected.Value)
+                        Width: =180
+                        X: =180
+                        Y: =12
+                  - btnAddMaintenance:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =varTheme.Primary
+                        Height: =32
+                        OnSelect: |-
+                          =Set(varEditMaintenance, Blank());
+                          Set(varShowAddMaintenance, true);
+                          Set(varShowEditPanel, true);
+                        Text: ="+ Add Maintenance"
+                        Width: =156
+                        X: =Parent.Width - 180
+                        Y: =12
+
+            # ── MAINTENANCE TABLE ──
+            - cnrMaintTableCard:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Parent.Width
+                Children:
+                  # Column Headers
+                  - lblMHdrVehicle:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="VEHICLE"
+                        Width: =130
+                        X: =16
+                  - lblMHdrType:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="TYPE"
+                        Width: =110
+                        X: =150
+                  - lblMHdrDesc:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="DESCRIPTION"
+                        Width: =180
+                        X: =264
+                  - lblMHdrStatus:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="STATUS"
+                        Width: =80
+                        X: =448
+                  - lblMHdrOOS:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="OUT OF SVC"
+                        Width: =80
+                        X: =532
+                  - lblMHdrReportedBy:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="REPORTED BY"
+                        Width: =110
+                        X: =616
+                  - lblMHdrDate:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="DATE"
+                        Width: =90
+                        X: =730
+                  - lblMHdrActions:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="ACTIONS"
+                        Width: =200
+                        X: =824
+                  - recMaintTableHeaderLine:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Fill: =varTheme.Border
+                        Height: =1
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =36
+                  # Data Gallery
+                  - galMaintTable:
+                      Control: Gallery@2.15.0
+                      Variant: BrowseLayout_Vertical_OneTextVariant_pcfCore
+                      Properties:
+                        BorderColor: =Color.Transparent
+                        Height: =Parent.Height - 40
+                        Items: |-
+                          =Sort(
+                              Filter(
+                                  'Vehicle Maintenances',
+                                  (varAdminFilterStatus = "All" || Text('Status (cr63e_status)') = varAdminFilterStatus) &&
+                                  (varAdminFilterVehicle = "All" || Vehicle.'Vehicle Name' = varAdminFilterVehicle)
+                              ),
+                              ReportedDateTime,
+                              SortOrder.Descending
+                          )
+                        LoadingSpinner: =LoadingSpinner.Controls
+                        TemplatePadding: =0
+                        TemplateSize: =48
+                        Width: =Parent.Width
+                        Y: =38
+                      Children:
+                        - cnrMaintRow:
+                            Control: GroupContainer@1.4.0
+                            Variant: ManualLayout
+                            Properties:
+                              Fill: =Color.Transparent
+                              Height: =Parent.TemplateHeight
+                              Width: =Parent.TemplateWidth
+                            Children:
+                              - recMRowAccent:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: |-
+                                      =Switch(
+                                          ThisItem.'Status (cr63e_status)',
+                                          'Status (Vehicle Maintenances)'.Open, varStatusColors.Open,
+                                          'Status (Vehicle Maintenances)'.'In Progress', varStatusColors.InProgress,
+                                          'Status (Vehicle Maintenances)'.Closed, varStatusColors.Closed,
+                                          varTheme.TextSecondary
+                                      )
+                                    Height: =Parent.Height - 8
+                                    Width: =4
+                                    Y: =4
+                              - lblMRowVehicle:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextPrimary
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Parent.Height
+                                    Size: =12
+                                    Text: =ThisItem.Vehicle.'Vehicle Name'
+                                    Width: =126
+                                    X: =16
+                              - lblMRowType:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextPrimary
+                                    Height: =Parent.Height
+                                    Size: =11
+                                    Text: =Text(ThisItem.Type)
+                                    Width: =110
+                                    X: =150
+                              - lblMRowDesc:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextSecondary
+                                    Height: =Parent.Height
+                                    Size: =11
+                                    Text: =ThisItem.Description
+                                    Width: =180
+                                    X: =264
+                              - lblMRowStatus:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: |-
+                                      =Switch(
+                                          ThisItem.'Status (cr63e_status)',
+                                          'Status (Vehicle Maintenances)'.Open, varStatusColors.Open,
+                                          'Status (Vehicle Maintenances)'.'In Progress', varStatusColors.InProgress,
+                                          'Status (Vehicle Maintenances)'.Closed, varStatusColors.Closed,
+                                          varTheme.TextSecondary
+                                      )
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Parent.Height
+                                    Size: =11
+                                    Text: =Upper(Text(ThisItem.'Status (cr63e_status)'))
+                                    Width: =80
+                                    X: =448
+                              - lblMRowOOS:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =If(Text(ThisItem.OutOfService) = "Yes", varStatusColors.OutOfService, varStatusColors.Available)
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Parent.Height
+                                    Size: =11
+                                    Text: =Upper(Text(ThisItem.OutOfService))
+                                    Width: =80
+                                    X: =532
+                              - lblMRowReportedBy:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextSecondary
+                                    Height: =Parent.Height
+                                    Size: =11
+                                    Text: =ThisItem.ReportedBy.Associate
+                                    Width: =110
+                                    X: =616
+                              - lblMRowDate:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextSecondary
+                                    Height: =Parent.Height
+                                    Size: =11
+                                    Text: =Text(ThisItem.ReportedDateTime, "mmm d, yyyy")
+                                    Width: =90
+                                    X: =730
+                              # Action buttons: contextual status transitions
+                              - btnMStartWork:
+                                  Control: Button@0.0.45
+                                  Properties:
+                                    BasePaletteColor: =varStatusColors.InProgress
+                                    Height: =28
+                                    OnSelect: |-
+                                      =Patch(
+                                          'Vehicle Maintenances',
+                                          ThisItem,
+                                          {'Status (cr63e_status)': 'Status (Vehicle Maintenances)'.'In Progress'}
+                                      );
+                                      Notify("Maintenance marked In Progress.", NotificationType.Success);
+                                    Text: ="Start"
+                                    Visible: =ThisItem.'Status (cr63e_status)' = 'Status (Vehicle Maintenances)'.Open
+                                    Width: =56
+                                    X: =824
+                                    Y: =10
+                              - btnMClose:
+                                  Control: Button@0.0.45
+                                  Properties:
+                                    BasePaletteColor: =varStatusColors.Available
+                                    Height: =28
+                                    OnSelect: |-
+                                      =// Close the maintenance record
+                                      Patch(
+                                          'Vehicle Maintenances',
+                                          ThisItem,
+                                          {'Status (cr63e_status)': 'Status (Vehicle Maintenances)'.Closed}
+                                      );
+                                      // If vehicle is in Maintenance status, set it back to Available
+                                      If(
+                                          ThisItem.Vehicle.'Status (cr63e_status)' = 'Status (CFSVehicles)'.Maintenance,
+                                          Patch(
+                                              CFSVehicles,
+                                              ThisItem.Vehicle,
+                                              {'Status (cr63e_status)': 'Status (CFSVehicles)'.Available}
+                                          )
+                                      );
+                                      Notify("Maintenance closed. Vehicle set to Available.", NotificationType.Success);
+                                    Text: ="Close"
+                                    Visible: |-
+                                      =ThisItem.'Status (cr63e_status)' = 'Status (Vehicle Maintenances)'.Open ||
+                                      ThisItem.'Status (cr63e_status)' = 'Status (Vehicle Maintenances)'.'In Progress'
+                                    Width: =56
+                                    X: |-
+                                      =If(
+                                          ThisItem.'Status (cr63e_status)' = 'Status (Vehicle Maintenances)'.Open,
+                                          886,
+                                          824
+                                      )
+                                    Y: =10
+                              - btnMToggleOOS:
+                                  Control: Button@0.0.45
+                                  Properties:
+                                    Appearance: ="Secondary"
+                                    FontColor: =If(Text(ThisItem.OutOfService) = "Yes", varStatusColors.Available, varStatusColors.OutOfService)
+                                    Height: =28
+                                    OnSelect: |-
+                                      =If(
+                                          Text(ThisItem.OutOfService) = "Yes",
+                                          // Remove from OOS
+                                          Patch(
+                                              'Vehicle Maintenances',
+                                              ThisItem,
+                                              {OutOfService: 'OutOfService (Vehicle Maintenances)'.No}
+                                          );
+                                          Patch(
+                                              CFSVehicles,
+                                              ThisItem.Vehicle,
+                                              {'Status (cr63e_status)': 'Status (CFSVehicles)'.Maintenance}
+                                          );
+                                          Notify("Vehicle returned to Maintenance status.", NotificationType.Success),
+                                          // Set OOS
+                                          Patch(
+                                              'Vehicle Maintenances',
+                                              ThisItem,
+                                              {OutOfService: 'OutOfService (Vehicle Maintenances)'.Yes}
+                                          );
+                                          Patch(
+                                              CFSVehicles,
+                                              ThisItem.Vehicle,
+                                              {'Status (cr63e_status)': 'Status (CFSVehicles)'.'Out Of Service'}
+                                          );
+                                          Notify("Vehicle marked Out of Service.", NotificationType.Warning)
+                                      );
+                                    Text: =If(Text(ThisItem.OutOfService) = "Yes", "In Svc", "OOS")
+                                    Visible: |-
+                                      =ThisItem.'Status (cr63e_status)' <> 'Status (Vehicle Maintenances)'.Closed
+                                    Width: =52
+                                    X: =948
+                                    Y: =10
+                              - recMRowDivider:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =varTheme.Border
+                                    Height: =1
+                                    Width: =Parent.Width - 32
+                                    X: =16
+                                    Y: =Parent.Height - 1
+
+      # ── ADD MAINTENANCE PANEL (right side, 400px) ──
+      - cnrAddMaintPanel:
+          Control: GroupContainer@1.4.0
+          Variant: ManualLayout
+          Properties:
+            Fill: =varTheme.Surface
+            Height: =Parent.Height
+            Visible: =varShowEditPanel
+            Width: =400
+            X: =Parent.Width - 400
+          Children:
+            - recMaintPanelShadow:
+                Control: Rectangle@2.3.0
+                Properties:
+                  Fill: =RGBA(0, 0, 0, 0.08)
+                  Height: =Parent.Height
+                  Width: =2
+            - lblMaintPanelTitle:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Bold
+                  Height: =40
+                  Size: =18
+                  Text: ="Add Maintenance Record"
+                  Width: =300
+                  X: =20
+                  Y: =16
+            - btnMaintClosePanel:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ="Transparent"
+                  FontColor: =varTheme.TextSecondary
+                  Height: =36
+                  OnSelect: |-
+                    =Set(varShowEditPanel, false);
+                    Set(varShowAddMaintenance, false);
+                    Set(varEditMaintenance, Blank());
+                  Text: ="X"
+                  Width: =40
+                  X: =Parent.Width - 56
+                  Y: =16
+            - recMaintPanelDivider:
+                Control: Rectangle@2.3.0
+                Properties:
+                  Fill: =varTheme.Border
+                  Height: =1
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =60
+            # Form Fields
+            - lblMFVehicle:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Semibold
+                  Height: =20
+                  Size: =12
+                  Text: ="Vehicle *"
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =76
+            - ddMFVehicle:
+                Control: DropDown@0.0.45
+                Properties:
+                  Height: =32
+                  Items: =CFSVehicles
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =98
+                Children:
+                  - MFVehicleName:
+                      Control: DropDownDataField@1.5.0
+                      Variant: textualColumn
+                      IsLocked: true
+                      Properties:
+                        FieldDisplayName: ="Vehicle"
+                        FieldName: ="cr63e_vehiclename"
+                        FieldType: ="s"
+                        Order: =1
+            - lblMFType:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Semibold
+                  Height: =20
+                  Size: =12
+                  Text: ="Issue Type *"
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =146
+            - ddMFType:
+                Control: DropDown@0.0.45
+                Properties:
+                  Height: =32
+                  Items: =Choices('Vehicle Maintenances'.Type)
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =168
+            - lblMFDescription:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Semibold
+                  Height: =20
+                  Size: =12
+                  Text: ="Description *"
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =216
+            - txtMFDescription:
+                Control: TextInput@0.0.54
+                Properties:
+                  Height: =80
+                  Mode: =TextMode.MultiLine
+                  Placeholder: ="Describe the maintenance issue..."
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =238
+            - lblMFOOS:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Semibold
+                  Height: =20
+                  Size: =12
+                  Text: ="Pull Vehicle Out of Service?"
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =334
+            - ddMFOOS:
+                Control: DropDown@0.0.45
+                Properties:
+                  DefaultSelectedItems: =["No"]
+                  Height: =32
+                  Items: =["No", "Yes"]
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =356
+            # Action Buttons
+            - btnMFSave:
+                Control: Button@0.0.45
+                Properties:
+                  BasePaletteColor: =varTheme.Primary
+                  DisplayMode: |-
+                    =If(
+                        IsBlank(ddMFVehicle.Selected) ||
+                        IsBlank(ddMFType.Selected) ||
+                        IsBlank(txtMFDescription.Value) || txtMFDescription.Value = "",
+                        DisplayMode.Disabled,
+                        DisplayMode.Edit
+                    )
+                  Height: =36
+                  OnSelect: |-
+                    =Set(varIsSubmitting, true);
+
+                    Set(
+                        varPatchResult,
+                        Patch(
+                            'Vehicle Maintenances',
+                            Defaults('Vehicle Maintenances'),
+                            {
+                                Vehicle: ddMFVehicle.Selected,
+                                Type: ddMFType.Selected.Value,
+                                Description: txtMFDescription.Value,
+                                'Status (cr63e_status)': 'Status (Vehicle Maintenances)'.Open,
+                                OutOfService: If(ddMFOOS.Selected.Value = "Yes", 'OutOfService (Vehicle Maintenances)'.Yes, 'OutOfService (Vehicle Maintenances)'.No),
+                                ReportedBy: varUserAssociate,
+                                ReportedDateTime: Now()
+                            }
+                        )
+                    );
+
+                    If(
+                        IsError(varPatchResult),
+                        Notify("Failed to create maintenance record.", NotificationType.Error),
+                        // Set vehicle status if pulling from service
+                        If(
+                            ddMFOOS.Selected.Value = "Yes",
+                            Patch(
+                                CFSVehicles,
+                                ddMFVehicle.Selected,
+                                {'Status (cr63e_status)': 'Status (CFSVehicles)'.Maintenance}
+                            )
+                        );
+                        Notify("Maintenance record created!", NotificationType.Success);
+                        Set(varShowEditPanel, false);
+                        Set(varShowAddMaintenance, false)
+                    );
+
+                    Set(varIsSubmitting, false);
+                  Text: ="Create Maintenance Record"
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =410
+            - btnMFCancel:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ="Secondary"
+                  Height: =36
+                  OnSelect: |-
+                    =Set(varShowEditPanel, false);
+                    Set(varShowAddMaintenance, false);
+                    Set(varEditMaintenance, Blank());
+                  Text: ="Cancel"
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =454

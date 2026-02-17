@@ -1,0 +1,870 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+#
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+#
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+#
+# CFS Tribal Vehicle Admin — Fuel & Card Management
+# Desktop layout: 1366x768 with 220px sidebar
+# Tab 1: Fuel Transactions table with date range filter
+# Tab 2: Fuel Card assignments with add/edit/deactivate
+# Summary stats at top
+# ************************************************************************************************
+Screens:
+  scrAdminFuel:
+    Properties:
+      Fill: =varTheme.Background
+      LoadingSpinnerColor: =RGBA(0, 120, 212, 1)
+      OnVisible: |-
+        =Set(varAdminSection, "Fuel");
+        Set(varFuelTab, "Transactions");
+        Set(varDateRangeStart, DateAdd(Today(), -30, TimeUnit.Days));
+        Set(varDateRangeEnd, Today());
+        Set(varShowAddFuelCard, false);
+        Set(varEditFuelCard, Blank());
+        Set(varShowEditPanel, false);
+
+        // Calculate summary stats for this month
+        Set(
+            varFuelSpendMonth,
+            Sum(
+                Filter(
+                    'Fuel Transactions',
+                    TransactionDateTime >= Date(Year(Today()), Month(Today()), 1) &&
+                    TransactionDateTime <= Today()
+                ),
+                Amount
+            )
+        );
+        Set(
+            varFuelGallonsMonth,
+            Sum(
+                Filter(
+                    'Fuel Transactions',
+                    TransactionDateTime >= Date(Year(Today()), Month(Today()), 1) &&
+                    TransactionDateTime <= Today()
+                ),
+                Gallons
+            )
+        );
+        Set(
+            varFuelAvgPPG,
+            If(varFuelGallonsMonth > 0, varFuelSpendMonth / varFuelGallonsMonth, 0)
+        );
+    Children:
+      # ── LEFT SIDEBAR NAV ──
+      - cmpAdminNav_Fuel:
+          Control: CanvasComponent
+          ComponentName: cmpAdminNav
+          Properties:
+            ActiveKey: ="Fuel"
+            Height: =Parent.Height
+            Width: =220
+
+      # ── MAIN CONTENT AREA ──
+      - cnrFuelMain:
+          Control: GroupContainer@1.4.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =varTheme.Background
+            Height: =Parent.Height
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =0
+            Width: =If(varShowEditPanel, Parent.Width - 220 - 400, Parent.Width - 220)
+            X: =220
+          Children:
+            # ── PAGE HEADER ──
+            - cnrFuelHeader:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  FillPortions: =0
+                  Height: =60
+                  Width: =Parent.Width
+                Children:
+                  - lblFuelTitle:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Bold
+                        Height: =32
+                        Size: =22
+                        Text: ="Fuel & Card Management"
+                        Width: =400
+                        X: =24
+                        Y: =14
+                  - recFuelHeaderBorder:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Fill: =varTheme.Border
+                        Height: =1
+                        Width: =Parent.Width
+                        Y: =59
+
+            # ── SUMMARY STATS ROW ──
+            - cnrFuelStats:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =Color.Transparent
+                  FillPortions: =0
+                  Height: =90
+                  LayoutAlignItems: =LayoutAlignItems.Stretch
+                  LayoutDirection: =LayoutDirection.Horizontal
+                  LayoutGap: =12
+                  PaddingBottom: =12
+                  PaddingLeft: =24
+                  PaddingRight: =24
+                  PaddingTop: =12
+                  Width: =Parent.Width
+                Children:
+                  - cnrFuelStatSpend:
+                      Control: GroupContainer@1.4.0
+                      Variant: ManualLayout
+                      Properties:
+                        Fill: =varTheme.Surface
+                        FillPortions: =1
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                      Children:
+                        - lblFuelStatSpendVal:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextPrimary
+                              FontWeight: =FontWeight.Bold
+                              Height: =32
+                              Size: =22
+                              Text: ="$" & Text(varFuelSpendMonth, "#,##0.00")
+                              Width: =Parent.Width - 24
+                              X: =12
+                              Y: =8
+                        - lblFuelStatSpendLbl:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              Height: =18
+                              Size: =11
+                              Text: ="Total Spend This Month"
+                              Width: =Parent.Width - 24
+                              X: =12
+                              Y: =40
+                  - cnrFuelStatPPG:
+                      Control: GroupContainer@1.4.0
+                      Variant: ManualLayout
+                      Properties:
+                        Fill: =varTheme.Surface
+                        FillPortions: =1
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                      Children:
+                        - lblFuelStatPPGVal:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextPrimary
+                              FontWeight: =FontWeight.Bold
+                              Height: =32
+                              Size: =22
+                              Text: ="$" & Text(varFuelAvgPPG, "#.000")
+                              Width: =Parent.Width - 24
+                              X: =12
+                              Y: =8
+                        - lblFuelStatPPGLbl:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              Height: =18
+                              Size: =11
+                              Text: ="Average $/Gallon"
+                              Width: =Parent.Width - 24
+                              X: =12
+                              Y: =40
+                  - cnrFuelStatGal:
+                      Control: GroupContainer@1.4.0
+                      Variant: ManualLayout
+                      Properties:
+                        Fill: =varTheme.Surface
+                        FillPortions: =1
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                      Children:
+                        - lblFuelStatGalVal:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextPrimary
+                              FontWeight: =FontWeight.Bold
+                              Height: =32
+                              Size: =22
+                              Text: =Text(varFuelGallonsMonth, "#,##0.0")
+                              Width: =Parent.Width - 24
+                              X: =12
+                              Y: =8
+                        - lblFuelStatGalLbl:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              Height: =18
+                              Size: =11
+                              Text: ="Total Gallons This Month"
+                              Width: =Parent.Width - 24
+                              X: =12
+                              Y: =40
+
+            # ── TAB SELECTOR ──
+            - cnrFuelTabs:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  FillPortions: =0
+                  Height: =44
+                  Width: =Parent.Width
+                Children:
+                  - btnTabTransactions:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =If(varFuelTab = "Transactions", varTheme.Primary, Color.Transparent)
+                        FontColor: =If(varFuelTab = "Transactions", varTheme.TextOnPrimary, varTheme.TextSecondary)
+                        FontWeight: =If(varFuelTab = "Transactions", FontWeight.Semibold, FontWeight.Normal)
+                        Height: =32
+                        OnSelect: =Set(varFuelTab, "Transactions")
+                        Text: ="Fuel Transactions"
+                        Width: =160
+                        X: =24
+                        Y: =6
+                  - btnTabCards:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =If(varFuelTab = "Cards", varTheme.Primary, Color.Transparent)
+                        FontColor: =If(varFuelTab = "Cards", varTheme.TextOnPrimary, varTheme.TextSecondary)
+                        FontWeight: =If(varFuelTab = "Cards", FontWeight.Semibold, FontWeight.Normal)
+                        Height: =32
+                        OnSelect: =Set(varFuelTab, "Cards")
+                        Text: ="Fuel Cards"
+                        Width: =120
+                        X: =196
+                        Y: =6
+
+            # ══════════════════════════════════════════════════════
+            # TAB 1: FUEL TRANSACTIONS
+            # ══════════════════════════════════════════════════════
+            - cnrTransactionsTab:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  Visible: =varFuelTab = "Transactions"
+                  Width: =Parent.Width
+                Children:
+                  # Filter bar
+                  - lblFTFilterFrom:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        Height: =32
+                        Size: =11
+                        Text: ="From:"
+                        Width: =40
+                        X: =16
+                        Y: =8
+                  - dpFTFrom:
+                      Control: DatePicker@0.0.46
+                      Properties:
+                        Height: =32
+                        OnChange: =Set(varDateRangeStart, Self.SelectedDate)
+                        SelectedDate: =varDateRangeStart
+                        Width: =140
+                        X: =56
+                        Y: =8
+                  - lblFTFilterTo:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        Height: =32
+                        Size: =11
+                        Text: ="To:"
+                        Width: =24
+                        X: =208
+                        Y: =8
+                  - dpFTTo:
+                      Control: DatePicker@0.0.46
+                      Properties:
+                        Height: =32
+                        OnChange: =Set(varDateRangeEnd, Self.SelectedDate)
+                        SelectedDate: =varDateRangeEnd
+                        Width: =140
+                        X: =234
+                        Y: =8
+                  # Column Headers
+                  - lblFTHdrVehicle:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =28
+                        Size: =11
+                        Text: ="VEHICLE"
+                        Width: =150
+                        X: =16
+                        Y: =48
+                  - lblFTHdrDate:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =28
+                        Size: =11
+                        Text: ="DATE"
+                        Width: =120
+                        X: =170
+                        Y: =48
+                  - lblFTHdrAmount:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =28
+                        Size: =11
+                        Text: ="AMOUNT"
+                        Width: =90
+                        X: =294
+                        Y: =48
+                  - lblFTHdrGallons:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =28
+                        Size: =11
+                        Text: ="GALLONS"
+                        Width: =80
+                        X: =388
+                        Y: =48
+                  - lblFTHdrPPG:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =28
+                        Size: =11
+                        Text: ="$/GAL"
+                        Width: =70
+                        X: =472
+                        Y: =48
+                  - lblFTHdrSource:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =28
+                        Size: =11
+                        Text: ="SOURCE"
+                        Width: =80
+                        X: =546
+                        Y: =48
+                  - lblFTHdrSubmitted:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =28
+                        Size: =11
+                        Text: ="SUBMITTED BY"
+                        Width: =150
+                        X: =630
+                        Y: =48
+                  - recFTHeaderLine:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Fill: =varTheme.Border
+                        Height: =1
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =76
+                  # Data Gallery
+                  - galFuelTransactions:
+                      Control: Gallery@2.15.0
+                      Variant: BrowseLayout_Vertical_OneTextVariant_pcfCore
+                      Properties:
+                        BorderColor: =Color.Transparent
+                        Height: =Parent.Height - 80
+                        Items: |-
+                          =Sort(
+                              Filter(
+                                  'Fuel Transactions',
+                                  TransactionDateTime >= varDateRangeStart &&
+                                  TransactionDateTime <= DateAdd(varDateRangeEnd, 1, TimeUnit.Days)
+                              ),
+                              TransactionDateTime,
+                              SortOrder.Descending
+                          )
+                        LoadingSpinner: =LoadingSpinner.Controls
+                        TemplatePadding: =0
+                        TemplateSize: =40
+                        Width: =Parent.Width
+                        Y: =78
+                      Children:
+                        - cnrFTRow:
+                            Control: GroupContainer@1.4.0
+                            Variant: ManualLayout
+                            Properties:
+                              Fill: =If(Mod(ThisItem.ID, 2) = 0, RGBA(249, 249, 249, 1), varTheme.Surface)
+                              Height: =Parent.TemplateHeight
+                              Width: =Parent.TemplateWidth
+                            Children:
+                              - lblFTRowVehicle:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextPrimary
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Parent.Height
+                                    Size: =12
+                                    Text: =ThisItem.Vehicle.'Vehicle Name'
+                                    Width: =150
+                                    X: =16
+                              - lblFTRowDate:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextSecondary
+                                    Height: =Parent.Height
+                                    Size: =12
+                                    Text: =Text(ThisItem.TransactionDateTime, "mmm d, yyyy")
+                                    Width: =120
+                                    X: =170
+                              - lblFTRowAmount:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextPrimary
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Parent.Height
+                                    Size: =12
+                                    Text: ="$" & Text(ThisItem.Amount, "#,##0.00")
+                                    Width: =90
+                                    X: =294
+                              - lblFTRowGallons:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextPrimary
+                                    Height: =Parent.Height
+                                    Size: =12
+                                    Text: =Text(ThisItem.Gallons, "#,##0.00")
+                                    Width: =80
+                                    X: =388
+                              - lblFTRowPPG:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextSecondary
+                                    Height: =Parent.Height
+                                    Size: =12
+                                    Text: =If(ThisItem.Gallons > 0, "$" & Text(ThisItem.Amount / ThisItem.Gallons, "#.000"), "-")
+                                    Width: =70
+                                    X: =472
+                              - lblFTRowSource:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: |-
+                                      =Switch(
+                                          Text(ThisItem.Source),
+                                          "Manual", varTheme.Primary,
+                                          "VoyagerFeed", varStatusColors.Available,
+                                          "Import", varStatusColors.Warning,
+                                          varTheme.TextSecondary
+                                      )
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Parent.Height
+                                    Size: =11
+                                    Text: =Text(ThisItem.Source)
+                                    Width: =80
+                                    X: =546
+                              - lblFTRowSubmitter:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextSecondary
+                                    Height: =Parent.Height
+                                    Size: =12
+                                    Text: =ThisItem.SubmittedBy.Associate
+                                    Width: =150
+                                    X: =630
+                              - recFTRowDivider:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =varTheme.Border
+                                    Height: =1
+                                    Width: =Parent.Width - 32
+                                    X: =16
+                                    Y: =Parent.Height - 1
+
+            # ══════════════════════════════════════════════════════
+            # TAB 2: FUEL CARDS
+            # ══════════════════════════════════════════════════════
+            - cnrCardsTab:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  Visible: =varFuelTab = "Cards"
+                  Width: =Parent.Width
+                Children:
+                  - btnAddFuelCard:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =varTheme.Primary
+                        Height: =32
+                        OnSelect: |-
+                          =Set(varEditFuelCard, Blank());
+                          Set(varShowAddFuelCard, true);
+                          Set(varShowEditPanel, true);
+                        Text: ="+ Add Fuel Card"
+                        Width: =140
+                        X: =Parent.Width - 164
+                        Y: =8
+                  # Column Headers
+                  - lblFCHdrCard:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =28
+                        Size: =11
+                        Text: ="CARD LAST 4"
+                        Width: =120
+                        X: =16
+                        Y: =48
+                  - lblFCHdrVehicle:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =28
+                        Size: =11
+                        Text: ="ASSIGNED VEHICLE"
+                        Width: =240
+                        X: =140
+                        Y: =48
+                  - lblFCHdrActive:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =28
+                        Size: =11
+                        Text: ="STATUS"
+                        Width: =100
+                        X: =384
+                        Y: =48
+                  - lblFCHdrActions:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =28
+                        Size: =11
+                        Text: ="ACTIONS"
+                        Width: =200
+                        X: =488
+                        Y: =48
+                  - recFCHeaderLine:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Fill: =varTheme.Border
+                        Height: =1
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =76
+                  # Data Gallery
+                  - galFuelCards:
+                      Control: Gallery@2.15.0
+                      Variant: BrowseLayout_Vertical_OneTextVariant_pcfCore
+                      Properties:
+                        BorderColor: =Color.Transparent
+                        Height: =Parent.Height - 80
+                        Items: ='Fuel Card Assignments'
+                        LoadingSpinner: =LoadingSpinner.Controls
+                        TemplatePadding: =0
+                        TemplateSize: =44
+                        Width: =Parent.Width
+                        Y: =78
+                      Children:
+                        - cnrFCRow:
+                            Control: GroupContainer@1.4.0
+                            Variant: ManualLayout
+                            Properties:
+                              Fill: =Color.Transparent
+                              Height: =Parent.TemplateHeight
+                              Width: =Parent.TemplateWidth
+                            Children:
+                              - lblFCRowCard:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextPrimary
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =Parent.Height
+                                    Size: =14
+                                    Text: ="****" & ThisItem.CardLast4
+                                    Width: =120
+                                    X: =16
+                              - lblFCRowVehicle:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextPrimary
+                                    Height: =Parent.Height
+                                    Size: =12
+                                    Text: =ThisItem.Vehicle.'Vehicle Name'
+                                    Width: =240
+                                    X: =140
+                              - lblFCRowStatus:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =If(ThisItem.IsActive, varStatusColors.Available, varStatusColors.Maintenance)
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Parent.Height
+                                    Size: =11
+                                    Text: =If(ThisItem.IsActive, "ACTIVE", "INACTIVE")
+                                    Width: =100
+                                    X: =384
+                              - btnFCEdit:
+                                  Control: Button@0.0.45
+                                  Properties:
+                                    Appearance: ="Transparent"
+                                    FontColor: =varTheme.Primary
+                                    Height: =30
+                                    OnSelect: |-
+                                      =Set(varEditFuelCard, ThisItem);
+                                      Set(varShowAddFuelCard, false);
+                                      Set(varShowEditPanel, true);
+                                    Text: ="Edit"
+                                    Width: =50
+                                    X: =488
+                                    Y: =7
+                              - btnFCToggle:
+                                  Control: Button@0.0.45
+                                  Properties:
+                                    Appearance: ="Transparent"
+                                    FontColor: =If(ThisItem.IsActive, varTheme.Danger, varStatusColors.Available)
+                                    Height: =30
+                                    OnSelect: |-
+                                      =Patch(
+                                          'Fuel Card Assignments',
+                                          ThisItem,
+                                          {IsActive: !ThisItem.IsActive}
+                                      );
+                                      Notify(
+                                          If(ThisItem.IsActive, "Card deactivated.", "Card activated."),
+                                          NotificationType.Success
+                                      );
+                                    Text: =If(ThisItem.IsActive, "Deactivate", "Activate")
+                                    Width: =80
+                                    X: =542
+                                    Y: =7
+                              - recFCRowDivider:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =varTheme.Border
+                                    Height: =1
+                                    Width: =Parent.Width - 32
+                                    X: =16
+                                    Y: =Parent.Height - 1
+
+      # ── FUEL CARD EDIT / ADD PANEL (right side, 400px) ──
+      - cnrFuelCardPanel:
+          Control: GroupContainer@1.4.0
+          Variant: ManualLayout
+          Properties:
+            Fill: =varTheme.Surface
+            Height: =Parent.Height
+            Visible: =varShowEditPanel && varFuelTab = "Cards"
+            Width: =400
+            X: =Parent.Width - 400
+          Children:
+            - recFCPanelShadow:
+                Control: Rectangle@2.3.0
+                Properties:
+                  Fill: =RGBA(0, 0, 0, 0.08)
+                  Height: =Parent.Height
+                  Width: =2
+            - lblFCPanelTitle:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Bold
+                  Height: =40
+                  Size: =18
+                  Text: =If(varShowAddFuelCard, "Add Fuel Card", "Edit Fuel Card")
+                  Width: =280
+                  X: =20
+                  Y: =16
+            - btnFCClosePanel:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ="Transparent"
+                  FontColor: =varTheme.TextSecondary
+                  Height: =36
+                  OnSelect: |-
+                    =Set(varShowEditPanel, false);
+                    Set(varEditFuelCard, Blank());
+                    Set(varShowAddFuelCard, false);
+                  Text: ="X"
+                  Width: =40
+                  X: =Parent.Width - 56
+                  Y: =16
+            - recFCPanelDivider:
+                Control: Rectangle@2.3.0
+                Properties:
+                  Fill: =varTheme.Border
+                  Height: =1
+                  Width: =Parent.Width - 32
+                  X: =16
+                  Y: =60
+            # Form Fields
+            - lblFCFCardNum:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Semibold
+                  Height: =20
+                  Size: =12
+                  Text: ="Card Last 4 Digits *"
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =76
+            - txtFCFCardNum:
+                Control: TextInput@0.0.54
+                Properties:
+                  Default: =If(!varShowAddFuelCard && !IsBlank(varEditFuelCard), varEditFuelCard.CardLast4, "")
+                  Height: =32
+                  Placeholder: ="e.g. 1234"
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =98
+            - lblFCFVehicle:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Semibold
+                  Height: =20
+                  Size: =12
+                  Text: ="Assigned Vehicle *"
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =142
+            - ddFCFVehicle:
+                Control: DropDown@0.0.45
+                Properties:
+                  DefaultSelectedItems: =If(!varShowAddFuelCard && !IsBlank(varEditFuelCard), [varEditFuelCard.Vehicle], [])
+                  Height: =32
+                  Items: =CFSVehicles
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =164
+                Children:
+                  - FCFVehicleName:
+                      Control: DropDownDataField@1.5.0
+                      Variant: textualColumn
+                      IsLocked: true
+                      Properties:
+                        FieldDisplayName: ="Vehicle"
+                        FieldName: ="cr63e_vehiclename"
+                        FieldType: ="s"
+                        Order: =1
+            - lblFCFActive:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =varTheme.TextPrimary
+                  FontWeight: =FontWeight.Semibold
+                  Height: =20
+                  Size: =12
+                  Text: ="Active?"
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =210
+            - ddFCFActive:
+                Control: DropDown@0.0.45
+                Properties:
+                  DefaultSelectedItems: =If(!varShowAddFuelCard && !IsBlank(varEditFuelCard), If(varEditFuelCard.IsActive, ["Yes"], ["No"]), ["Yes"])
+                  Height: =32
+                  Items: =["Yes", "No"]
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =232
+            # Action Buttons
+            - btnFCFSave:
+                Control: Button@0.0.45
+                Properties:
+                  BasePaletteColor: =varTheme.Primary
+                  DisplayMode: |-
+                    =If(
+                        IsBlank(txtFCFCardNum.Value) || Len(txtFCFCardNum.Value) <> 4 ||
+                        IsBlank(ddFCFVehicle.Selected),
+                        DisplayMode.Disabled,
+                        DisplayMode.Edit
+                    )
+                  Height: =36
+                  OnSelect: |-
+                    =Set(varIsSubmitting, true);
+
+                    If(
+                        varShowAddFuelCard,
+                        Set(
+                            varPatchResult,
+                            Patch(
+                                'Fuel Card Assignments',
+                                Defaults('Fuel Card Assignments'),
+                                {
+                                    CardLast4: txtFCFCardNum.Value,
+                                    Vehicle: ddFCFVehicle.Selected,
+                                    IsActive: ddFCFActive.Selected.Value = "Yes"
+                                }
+                            )
+                        ),
+                        Set(
+                            varPatchResult,
+                            Patch(
+                                'Fuel Card Assignments',
+                                varEditFuelCard,
+                                {
+                                    CardLast4: txtFCFCardNum.Value,
+                                    Vehicle: ddFCFVehicle.Selected,
+                                    IsActive: ddFCFActive.Selected.Value = "Yes"
+                                }
+                            )
+                        )
+                    );
+
+                    If(
+                        IsError(varPatchResult),
+                        Notify("Failed to save fuel card.", NotificationType.Error),
+                        Notify(
+                            If(varShowAddFuelCard, "Fuel card added!", "Fuel card updated!"),
+                            NotificationType.Success
+                        );
+                        Set(varShowEditPanel, false);
+                        Set(varEditFuelCard, Blank());
+                        Set(varShowAddFuelCard, false)
+                    );
+
+                    Set(varIsSubmitting, false);
+                  Text: =If(varShowAddFuelCard, "Add Card", "Save Changes")
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =288
+            - btnFCFCancel:
+                Control: Button@0.0.45
+                Properties:
+                  Appearance: ="Secondary"
+                  Height: =36
+                  OnSelect: |-
+                    =Set(varShowEditPanel, false);
+                    Set(varEditFuelCard, Blank());
+                    Set(varShowAddFuelCard, false);
+                  Text: ="Cancel"
+                  Width: =Parent.Width - 40
+                  X: =20
+                  Y: =332

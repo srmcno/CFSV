@@ -1,0 +1,290 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+#
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+#
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+#
+# CFS Tribal Vehicle Admin — Left Sidebar Navigation Component
+# Width: 220px, dark background, vertical nav buttons
+# Custom Property: ActiveKey (Text) — highlights the active nav item
+# ************************************************************************************************
+ComponentDefinitions:
+  cmpAdminNav:
+    DefinitionType: CanvasComponent
+    AccessAppScope: true
+    CustomProperties:
+      ActiveKey:
+        PropertyKind: Input
+        DisplayName: ActiveKey
+        Description: Which nav item is active (Dashboard, Vehicles, Reservations, Fuel, Maintenance, Associates, Reports)
+        DataType: Text
+        Default: ="Dashboard"
+    Properties:
+      Height: =App.Height
+      Width: =220
+    Children:
+      - recNavSidebarBg:
+          Control: Rectangle@2.3.0
+          Properties:
+            Fill: =RGBA(32, 31, 30, 1)
+            Height: =Parent.Height
+            Width: =Parent.Width
+      - lblNavAppTitle:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            Color: =RGBA(255, 255, 255, 1)
+            FontWeight: =FontWeight.Bold
+            Height: =56
+            Size: =16
+            Text: ="CFS Fleet Admin"
+            Width: =Parent.Width
+            Y: =0
+      - recNavTitleDivider:
+          Control: Rectangle@2.3.0
+          Properties:
+            Fill: =RGBA(60, 59, 58, 1)
+            Height: =1
+            Width: =Parent.Width - 24
+            X: =12
+            Y: =56
+      - icoNavDashboard:
+          Control: Icon@0.0.7
+          Properties:
+            Height: =20
+            Icon: ="Home"
+            IconColor: =If(cmpAdminNav.ActiveKey = "Dashboard", RGBA(255, 255, 255, 1), RGBA(200, 198, 196, 1))
+            Width: =20
+            X: =16
+            Y: =76
+      - btnNavDashboard:
+          Control: Button@0.0.45
+          Properties:
+            Appearance: ="Transparent"
+            BasePaletteColor: =If(cmpAdminNav.ActiveKey = "Dashboard", RGBA(0, 120, 212, 0.2), Color.Transparent)
+            FontColor: =If(cmpAdminNav.ActiveKey = "Dashboard", RGBA(255, 255, 255, 1), RGBA(200, 198, 196, 1))
+            FontWeight: =If(cmpAdminNav.ActiveKey = "Dashboard", FontWeight.Semibold, FontWeight.Normal)
+            Height: =40
+            OnSelect: =Navigate(scrAdminDashboard, ScreenTransition.Fade)
+            Text: ="    Dashboard"
+            Width: =Parent.Width - 12
+            X: =6
+            Y: =68
+      - recNavDashboardAccent:
+          Control: Rectangle@2.3.0
+          Properties:
+            Fill: =If(cmpAdminNav.ActiveKey = "Dashboard", RGBA(0, 120, 212, 1), Color.Transparent)
+            Height: =40
+            Width: =3
+            X: =0
+            Y: =68
+      - icoNavVehicles:
+          Control: Icon@0.0.7
+          Properties:
+            Height: =20
+            Icon: ="Cars"
+            IconColor: =If(cmpAdminNav.ActiveKey = "Vehicles", RGBA(255, 255, 255, 1), RGBA(200, 198, 196, 1))
+            Width: =20
+            X: =16
+            Y: =120
+      - btnNavVehicles:
+          Control: Button@0.0.45
+          Properties:
+            Appearance: ="Transparent"
+            BasePaletteColor: =If(cmpAdminNav.ActiveKey = "Vehicles", RGBA(0, 120, 212, 0.2), Color.Transparent)
+            FontColor: =If(cmpAdminNav.ActiveKey = "Vehicles", RGBA(255, 255, 255, 1), RGBA(200, 198, 196, 1))
+            FontWeight: =If(cmpAdminNav.ActiveKey = "Vehicles", FontWeight.Semibold, FontWeight.Normal)
+            Height: =40
+            OnSelect: =Navigate(scrAdminVehicles, ScreenTransition.Fade)
+            Text: ="    Vehicles"
+            Width: =Parent.Width - 12
+            X: =6
+            Y: =112
+      - recNavVehiclesAccent:
+          Control: Rectangle@2.3.0
+          Properties:
+            Fill: =If(cmpAdminNav.ActiveKey = "Vehicles", RGBA(0, 120, 212, 1), Color.Transparent)
+            Height: =40
+            Width: =3
+            X: =0
+            Y: =112
+      - icoNavReservations:
+          Control: Icon@0.0.7
+          Properties:
+            Height: =20
+            Icon: ="Calendar"
+            IconColor: =If(cmpAdminNav.ActiveKey = "Reservations", RGBA(255, 255, 255, 1), RGBA(200, 198, 196, 1))
+            Width: =20
+            X: =16
+            Y: =164
+      - btnNavReservations:
+          Control: Button@0.0.45
+          Properties:
+            Appearance: ="Transparent"
+            BasePaletteColor: =If(cmpAdminNav.ActiveKey = "Reservations", RGBA(0, 120, 212, 0.2), Color.Transparent)
+            FontColor: =If(cmpAdminNav.ActiveKey = "Reservations", RGBA(255, 255, 255, 1), RGBA(200, 198, 196, 1))
+            FontWeight: =If(cmpAdminNav.ActiveKey = "Reservations", FontWeight.Semibold, FontWeight.Normal)
+            Height: =40
+            OnSelect: =Navigate(scrAdminReservations, ScreenTransition.Fade)
+            Text: ="    Reservations"
+            Width: =Parent.Width - 12
+            X: =6
+            Y: =156
+      - recNavReservationsAccent:
+          Control: Rectangle@2.3.0
+          Properties:
+            Fill: =If(cmpAdminNav.ActiveKey = "Reservations", RGBA(0, 120, 212, 1), Color.Transparent)
+            Height: =40
+            Width: =3
+            X: =0
+            Y: =156
+      - icoNavFuel:
+          Control: Icon@0.0.7
+          Properties:
+            Height: =20
+            Icon: ="Cars"
+            IconColor: =If(cmpAdminNav.ActiveKey = "Fuel", RGBA(255, 255, 255, 1), RGBA(200, 198, 196, 1))
+            Width: =20
+            X: =16
+            Y: =208
+      - btnNavFuel:
+          Control: Button@0.0.45
+          Properties:
+            Appearance: ="Transparent"
+            BasePaletteColor: =If(cmpAdminNav.ActiveKey = "Fuel", RGBA(0, 120, 212, 0.2), Color.Transparent)
+            FontColor: =If(cmpAdminNav.ActiveKey = "Fuel", RGBA(255, 255, 255, 1), RGBA(200, 198, 196, 1))
+            FontWeight: =If(cmpAdminNav.ActiveKey = "Fuel", FontWeight.Semibold, FontWeight.Normal)
+            Height: =40
+            OnSelect: =Navigate(scrAdminFuel, ScreenTransition.Fade)
+            Text: ="    Fuel & Cards"
+            Width: =Parent.Width - 12
+            X: =6
+            Y: =200
+      - recNavFuelAccent:
+          Control: Rectangle@2.3.0
+          Properties:
+            Fill: =If(cmpAdminNav.ActiveKey = "Fuel", RGBA(0, 120, 212, 1), Color.Transparent)
+            Height: =40
+            Width: =3
+            X: =0
+            Y: =200
+      - icoNavMaintenance:
+          Control: Icon@0.0.7
+          Properties:
+            Height: =20
+            Icon: ="Warning"
+            IconColor: =If(cmpAdminNav.ActiveKey = "Maintenance", RGBA(255, 255, 255, 1), RGBA(200, 198, 196, 1))
+            Width: =20
+            X: =16
+            Y: =252
+      - btnNavMaintenance:
+          Control: Button@0.0.45
+          Properties:
+            Appearance: ="Transparent"
+            BasePaletteColor: =If(cmpAdminNav.ActiveKey = "Maintenance", RGBA(0, 120, 212, 0.2), Color.Transparent)
+            FontColor: =If(cmpAdminNav.ActiveKey = "Maintenance", RGBA(255, 255, 255, 1), RGBA(200, 198, 196, 1))
+            FontWeight: =If(cmpAdminNav.ActiveKey = "Maintenance", FontWeight.Semibold, FontWeight.Normal)
+            Height: =40
+            OnSelect: =Navigate(scrAdminMaintenance, ScreenTransition.Fade)
+            Text: ="    Maintenance"
+            Width: =Parent.Width - 12
+            X: =6
+            Y: =244
+      - recNavMaintenanceAccent:
+          Control: Rectangle@2.3.0
+          Properties:
+            Fill: =If(cmpAdminNav.ActiveKey = "Maintenance", RGBA(0, 120, 212, 1), Color.Transparent)
+            Height: =40
+            Width: =3
+            X: =0
+            Y: =244
+      - icoNavAssociates:
+          Control: Icon@0.0.7
+          Properties:
+            Height: =20
+            Icon: ="Person"
+            IconColor: =If(cmpAdminNav.ActiveKey = "Associates", RGBA(255, 255, 255, 1), RGBA(200, 198, 196, 1))
+            Width: =20
+            X: =16
+            Y: =296
+      - btnNavAssociates:
+          Control: Button@0.0.45
+          Properties:
+            Appearance: ="Transparent"
+            BasePaletteColor: =If(cmpAdminNav.ActiveKey = "Associates", RGBA(0, 120, 212, 0.2), Color.Transparent)
+            FontColor: =If(cmpAdminNav.ActiveKey = "Associates", RGBA(255, 255, 255, 1), RGBA(200, 198, 196, 1))
+            FontWeight: =If(cmpAdminNav.ActiveKey = "Associates", FontWeight.Semibold, FontWeight.Normal)
+            Height: =40
+            OnSelect: =Navigate(scrAdminAssociates, ScreenTransition.Fade)
+            Text: ="    Associates"
+            Width: =Parent.Width - 12
+            X: =6
+            Y: =288
+      - recNavAssociatesAccent:
+          Control: Rectangle@2.3.0
+          Properties:
+            Fill: =If(cmpAdminNav.ActiveKey = "Associates", RGBA(0, 120, 212, 1), Color.Transparent)
+            Height: =40
+            Width: =3
+            X: =0
+            Y: =288
+      - icoNavReports:
+          Control: Icon@0.0.7
+          Properties:
+            Height: =20
+            Icon: ="BarChart"
+            IconColor: =If(cmpAdminNav.ActiveKey = "Reports", RGBA(255, 255, 255, 1), RGBA(200, 198, 196, 1))
+            Width: =20
+            X: =16
+            Y: =340
+      - btnNavReports:
+          Control: Button@0.0.45
+          Properties:
+            Appearance: ="Transparent"
+            BasePaletteColor: =If(cmpAdminNav.ActiveKey = "Reports", RGBA(0, 120, 212, 0.2), Color.Transparent)
+            FontColor: =If(cmpAdminNav.ActiveKey = "Reports", RGBA(255, 255, 255, 1), RGBA(200, 198, 196, 1))
+            FontWeight: =If(cmpAdminNav.ActiveKey = "Reports", FontWeight.Semibold, FontWeight.Normal)
+            Height: =40
+            OnSelect: =Navigate(scrAdminReports, ScreenTransition.Fade)
+            Text: ="    Reports"
+            Width: =Parent.Width - 12
+            X: =6
+            Y: =332
+      - recNavReportsAccent:
+          Control: Rectangle@2.3.0
+          Properties:
+            Fill: =If(cmpAdminNav.ActiveKey = "Reports", RGBA(0, 120, 212, 1), Color.Transparent)
+            Height: =40
+            Width: =3
+            X: =0
+            Y: =332
+      - recNavBottomDivider:
+          Control: Rectangle@2.3.0
+          Properties:
+            Fill: =RGBA(60, 59, 58, 1)
+            Height: =1
+            Width: =Parent.Width - 24
+            X: =12
+            Y: =Parent.Height - 56
+      - lblNavUser:
+          Control: Label@2.5.1
+          Properties:
+            Color: =RGBA(200, 198, 196, 1)
+            Height: =20
+            Size: =11
+            Text: =varUserDisplayName
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =Parent.Height - 44
+      - lblNavRole:
+          Control: Label@2.5.1
+          Properties:
+            Color: =RGBA(138, 136, 134, 1)
+            Height: =16
+            Size: =10
+            Text: ="Fleet Administrator"
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =Parent.Height - 24

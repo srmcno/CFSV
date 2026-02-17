@@ -53,7 +53,7 @@ Screens:
                 Variant: ManualLayout
                 Properties:
                   Fill: =varTheme.Surface
-                  Height: =380
+                  Height: =420
                   PaddingBottom: =0.00
                   PaddingLeft: =0.00
                   RadiusBottomLeft: =12
@@ -72,7 +72,7 @@ Screens:
                         Height: =13.49
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =6.75
+                        Size: =13
                         Text: ="Vehicle *"
                         Width: =Parent.Width - 32
                         X: =16
@@ -105,7 +105,7 @@ Screens:
                         Height: =13.49
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =6.75
+                        Size: =13
                         Text: ="Issue Type *"
                         Width: =Parent.Width - 32
                         X: =16
@@ -126,7 +126,7 @@ Screens:
                         Height: =13.49
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =6.75
+                        Size: =13
                         Text: ="Urgency"
                         Width: =(Parent.Width - 48) / 2
                         X: =16
@@ -149,7 +149,7 @@ Screens:
                         Height: =13.49
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =6.75
+                        Size: =13
                         Text: ="Pull from service?"
                         Width: =(Parent.Width - 48) / 2
                         X: =(Parent.Width - 48) / 2 + 32
@@ -184,7 +184,7 @@ Screens:
                         Height: =13.49
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =6.75
+                        Size: =13
                         Text: ="Description *"
                         Width: =Parent.Width - 32
                         X: =16
@@ -192,7 +192,7 @@ Screens:
                   - txtMaintDesc:
                       Control: TextInput@0.0.54
                       Properties:
-                        Height: =67.48
+                        Height: =80
                         Mode: =TextMode.MultiLine
                         OnChange: =Set(varMaintDescription, Self.Value)
                         Placeholder: ="Describe the issue..."
@@ -207,7 +207,7 @@ Screens:
                         Height: =13.49
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =6.75
+                        Size: =13
                         Text: ="Photo of Issue (optional — add via camera in Studio)"
                         Width: =Parent.Width - 32
                         X: =16
@@ -218,7 +218,7 @@ Screens:
                         Align: =Align.Center
                         Color: =varTheme.TextSecondary
                         Height: =80
-                        Size: =6.75
+                        Size: =13
                         Text: |-
                           ="📷 Insert an Add Picture control here in Studio"
                         Width: =Parent.Width - 32
@@ -233,7 +233,7 @@ Screens:
                         Text: ="Cancel"
                         Width: =Parent.Width - 32
                         X: =16
-                        Y: =351.89
+                        Y: =390
             - cnrMaintSubmitting:
                 Control: GroupContainer@1.4.0
                 Variant: ManualLayout
@@ -308,14 +308,4 @@ Screens:
                   Text: ="Submit Issue Report"
                   Width: =Parent.Width - 32
                   X: =16
-                  Y: =340
-            - btnCancelMaint_1:
-                Control: Button@0.0.45
-                Properties:
-                  Appearance: ="Secondary"
-                  Height: =28.11
-                  OnSelect: =Back()
-                  Text: ="Cancel"
-                  Width: =Parent.Width - 32
-                  X: =16
-                  Y: =340 + 36
+                  Y: =cnrMaintCard.Y + cnrMaintCard.Height + 12

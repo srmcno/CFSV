@@ -156,7 +156,7 @@ Screens:
                             Properties:
                               Color: =varTheme.TextSecondary
                               Height: =20
-                              Size: =12
+                              Size: =13
                               Text: ="Available"
                               Width: =Parent.Width - 32
                               X: =16
@@ -202,6 +202,7 @@ Screens:
                             Properties:
                               Color: =varTheme.TextPrimary
                               FontWeight: =FontWeight.Bold
+                              Height: =42
                               Size: =If(Parent.Width < 120, 22, 32)
                               Text: =varCheckedOutCount
                               Width: =Parent.Width - 32
@@ -212,7 +213,7 @@ Screens:
                             Properties:
                               Color: =varTheme.TextSecondary
                               Height: =20
-                              Size: =12
+                              Size: =13
                               Text: ="On Road"
                               Width: =Parent.Width - 32
                               X: =16
@@ -258,6 +259,7 @@ Screens:
                             Properties:
                               Color: =varTheme.TextPrimary
                               FontWeight: =FontWeight.Bold
+                              Height: =42
                               Size: =If(Parent.Width < 120, 22, 32)
                               Text: =varReservedCount
                               Width: =Parent.Width - 32
@@ -268,7 +270,7 @@ Screens:
                             Properties:
                               Color: =varTheme.TextSecondary
                               Height: =20
-                              Size: =12
+                              Size: =13
                               Text: ="Reserved"
                               Width: =Parent.Width - 32
                               X: =16
@@ -314,6 +316,7 @@ Screens:
                             Properties:
                               Color: =varTheme.TextPrimary
                               FontWeight: =FontWeight.Bold
+                              Height: =42
                               Size: =If(Parent.Width < 120, 22, 32)
                               Text: =varMaintenanceCount
                               Width: =Parent.Width - 32
@@ -324,7 +327,7 @@ Screens:
                             Properties:
                               Color: =varTheme.TextSecondary
                               Height: =20
-                              Size: =12
+                              Size: =13
                               Text: ="Maintenance"
                               Width: =Parent.Width - 32
                               X: =16
@@ -349,7 +352,7 @@ Screens:
                   FillPortions: =1
                   FontWeight: =FontWeight.Semibold
                   Height: =28
-                  Size: =16
+                  Size: =17
                   Text: ="Quick Actions"
                   Width: =Parent.Width - 32
             - cnrQuickActions:
@@ -420,7 +423,7 @@ Screens:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
                         Height: =28
-                        Size: =16
+                        Size: =17
                         Text: ="My Upcoming"
                   - btnSeeAllRes:
                       Control: Button@0.0.45
@@ -468,7 +471,7 @@ Screens:
                               Color: =varTheme.TextPrimary
                               FontWeight: =FontWeight.Semibold
                               Height: =24
-                              Size: =14
+                              Size: =15
                               Text: =ThisItem.Vehicle.'Vehicle Name'
                               Width: =Parent.Width - 100
                               X: =16
@@ -478,11 +481,11 @@ Screens:
                             Properties:
                               Color: =varTheme.TextSecondary
                               Height: =20
-                              Size: =11
+                              Size: =13
                               Text: =If(ThisItem.StartDateTime = Today(), "Today", Text(ThisItem.StartDateTime, "mmm d"))
                               Width: =Parent.Width - 100
                               X: =16
-                              Y: =12
+                              Y: =34
                         - lblUpcomingBadge:
                             Control: Label@2.5.1
                             Properties:
@@ -490,8 +493,8 @@ Screens:
                               Color: =If(ThisItem.StartDateTime = Today(), varStatusColors.CheckedOut, varTheme.TextSecondary)
                               FontWeight: =FontWeight.Semibold
                               Height: =24
-                              Size: =10
-                              Text: =If(ThisItem.StartDateTime = Today(), "TODAY", Text(ThisItem.StartDateTime - Today()) & " days")
+                              Size: =12
+                              Text: =If(ThisItem.StartDateTime = Today(), "TODAY", With({d: DateDiff(Today(), ThisItem.StartDateTime, TimeUnit.Days)}, If(d = 1, "1 day", d & " days")))
                               Width: =70
                               X: =Parent.Width - 80
                               Y: =8
@@ -545,7 +548,7 @@ Screens:
                   Color: =varTheme.TextPrimary
                   FontWeight: =FontWeight.Semibold
                   Height: =20
-                  Size: =10
+                  Size: =13
                   Text: ="This Month's Snapshot"
                   Width: =Parent.Width - 32
             - cnrKPIStrip:
@@ -569,7 +572,7 @@ Screens:
                         Color: =varTheme.TextPrimary
                         FillPortions: =1
                         Height: =Parent.Height
-                        Size: =9
+                        Size: =13
                         Text: ="$" & Text(varFuelSpendMonth, "#,##0.00")
                   - lblKPICheckouts:
                       Control: Label@2.5.1
@@ -578,7 +581,7 @@ Screens:
                         Color: =varTheme.TextPrimary
                         FillPortions: =1
                         Height: =Parent.Height
-                        Size: =9
+                        Size: =13
                         Text: =varActiveCheckouts & " Out"
                   - lblKPIMaint:
                       Control: Label@2.5.1
@@ -587,7 +590,7 @@ Screens:
                         Color: =If(varOpenMaintenance > 0, varStatusColors.Warning, varTheme.TextPrimary)
                         FillPortions: =1
                         Height: =Parent.Height
-                        Size: =9
+                        Size: =13
                         Text: =varOpenMaintenance & " Open"
             - cnrFleetSummary:
                 Control: GroupContainer@1.4.0
@@ -608,7 +611,7 @@ Screens:
                         Color: =RGBA(255, 255, 255, 1)
                         FontWeight: =FontWeight.Semibold
                         Height: =Parent.Height
-                        Size: =14
+                        Size: =15
                         Text: |-
                           ="Fleet Total: " & varTotalVehicles & " vehicles  |  " & varAvailableCount & " ready to go"
                         Width: =Parent.Width

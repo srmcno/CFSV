@@ -1,0 +1,498 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+#
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+#
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+#
+# CFS Tribal Vehicle Admin — Reservation Management
+# Desktop layout: 1366x768 with 220px sidebar
+# Features: Filter by date/status/vehicle/associate, action buttons per status
+# ************************************************************************************************
+Screens:
+  scrAdminReservations:
+    Properties:
+      Fill: =varTheme.Background
+      LoadingSpinnerColor: =RGBA(0, 120, 212, 1)
+      OnVisible: |-
+        =Set(varAdminSection, "Reservations");
+        Set(varAdminFilterStatus, "All");
+        Set(varAdminFilterVehicle, "All");
+        Set(varAdminFilterAssociate, "All");
+        Set(varDateRangeStart, DateAdd(Today(), -30, TimeUnit.Days));
+        Set(varDateRangeEnd, DateAdd(Today(), 30, TimeUnit.Days));
+        Set(varIsSubmitting, false);
+    Children:
+      # ── LEFT SIDEBAR NAV ──
+      - cmpAdminNav_Res:
+          Control: CanvasComponent
+          ComponentName: cmpAdminNav
+          Properties:
+            ActiveKey: ="Reservations"
+            Height: =Parent.Height
+            Width: =220
+
+      # ── MAIN CONTENT AREA ──
+      - cnrResMain:
+          Control: GroupContainer@1.4.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =varTheme.Background
+            Height: =Parent.Height
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =0
+            Width: =Parent.Width - 220
+            X: =220
+          Children:
+            # ── PAGE HEADER ──
+            - cnrResHeader:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  FillPortions: =0
+                  Height: =60
+                  Width: =Parent.Width
+                Children:
+                  - lblResTitle:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Bold
+                        Height: =32
+                        Size: =22
+                        Text: ="Reservation Management"
+                        Width: =400
+                        X: =24
+                        Y: =14
+                  - recResHeaderBorder:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Fill: =varTheme.Border
+                        Height: =1
+                        Width: =Parent.Width
+                        Y: =59
+
+            # ── FILTER BAR ──
+            - cnrResFilters:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  FillPortions: =0
+                  Height: =56
+                  Width: =Parent.Width
+                Children:
+                  - lblResFilterFrom:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        Height: =32
+                        Size: =11
+                        Text: ="From:"
+                        Width: =40
+                        X: =24
+                        Y: =12
+                  - dpResFrom:
+                      Control: DatePicker@0.0.46
+                      Properties:
+                        Height: =32
+                        OnChange: =Set(varDateRangeStart, Self.SelectedDate)
+                        SelectedDate: =varDateRangeStart
+                        Width: =140
+                        X: =64
+                        Y: =12
+                  - lblResFilterTo:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        Height: =32
+                        Size: =11
+                        Text: ="To:"
+                        Width: =24
+                        X: =216
+                        Y: =12
+                  - dpResTo:
+                      Control: DatePicker@0.0.46
+                      Properties:
+                        Height: =32
+                        OnChange: =Set(varDateRangeEnd, Self.SelectedDate)
+                        SelectedDate: =varDateRangeEnd
+                        Width: =140
+                        X: =242
+                        Y: =12
+                  - ddResStatusFilter:
+                      Control: DropDown@0.0.45
+                      Properties:
+                        DefaultSelectedItems: =["All"]
+                        Height: =32
+                        Items: =["All", "Draft", "Submitted", "Approved", "CheckedOut", "Returned", "Cancelled", "NoShow"]
+                        OnChange: =Set(varAdminFilterStatus, Self.Selected.Value)
+                        Width: =140
+                        X: =400
+                        Y: =12
+                  - ddResVehicleFilter:
+                      Control: DropDown@0.0.45
+                      Properties:
+                        DefaultSelectedItems: =["All"]
+                        Height: =32
+                        Items: =Ungroup(Table({Value: "All"}, ForAll(CFSVehicles, {Value: ThisRecord.'Vehicle Name'})), "Value")
+                        OnChange: =Set(varAdminFilterVehicle, Self.Selected.Value)
+                        Width: =160
+                        X: =556
+                        Y: =12
+                  - ddResAssocFilter:
+                      Control: DropDown@0.0.45
+                      Properties:
+                        DefaultSelectedItems: =["All"]
+                        Height: =32
+                        Items: =Ungroup(Table({Value: "All"}, ForAll(Associates, {Value: ThisRecord.Associate})), "Value")
+                        OnChange: =Set(varAdminFilterAssociate, Self.Selected.Value)
+                        Width: =160
+                        X: =732
+                        Y: =12
+
+            # ── RESERVATION TABLE ──
+            - cnrResTableCard:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =Parent.Width
+                Children:
+                  # Column Headers
+                  - lblRHdrVehicle:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="VEHICLE"
+                        Width: =140
+                        X: =16
+                  - lblRHdrAssociate:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="ASSOCIATE"
+                        Width: =120
+                        X: =160
+                  - lblRHdrStart:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="START"
+                        Width: =110
+                        X: =284
+                  - lblRHdrEnd:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="END"
+                        Width: =110
+                        X: =398
+                  - lblRHdrPurpose:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="PURPOSE"
+                        Width: =140
+                        X: =512
+                  - lblRHdrStatus:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="STATUS"
+                        Width: =90
+                        X: =656
+                  - lblRHdrActions:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextSecondary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        Size: =11
+                        Text: ="ACTIONS"
+                        Width: =280
+                        X: =750
+                  - recResTableHeaderLine:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Fill: =varTheme.Border
+                        Height: =1
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =36
+                  # Data Gallery
+                  - galResTable:
+                      Control: Gallery@2.15.0
+                      Variant: BrowseLayout_Vertical_OneTextVariant_pcfCore
+                      Properties:
+                        BorderColor: =Color.Transparent
+                        Height: =Parent.Height - 40
+                        Items: |-
+                          =Sort(
+                              Filter(
+                                  'Vehicle Reservations',
+                                  (varAdminFilterStatus = "All" || Text('Status (cr63e_status)') = varAdminFilterStatus) &&
+                                  (varAdminFilterVehicle = "All" || Vehicle.'Vehicle Name' = varAdminFilterVehicle) &&
+                                  (varAdminFilterAssociate = "All" || Associate.Associate = varAdminFilterAssociate) &&
+                                  StartDateTime >= varDateRangeStart &&
+                                  StartDateTime <= varDateRangeEnd
+                              ),
+                              StartDateTime,
+                              SortOrder.Descending
+                          )
+                        LoadingSpinner: =LoadingSpinner.Controls
+                        TemplatePadding: =0
+                        TemplateSize: =48
+                        Width: =Parent.Width
+                        Y: =38
+                      Children:
+                        - cnrResRow:
+                            Control: GroupContainer@1.4.0
+                            Variant: ManualLayout
+                            Properties:
+                              Fill: =Color.Transparent
+                              Height: =Parent.TemplateHeight
+                              Width: =Parent.TemplateWidth
+                            Children:
+                              - lblRRowVehicle:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextPrimary
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Parent.Height
+                                    Size: =12
+                                    Text: =ThisItem.Vehicle.'Vehicle Name'
+                                    Width: =140
+                                    X: =16
+                              - lblRRowAssociate:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextPrimary
+                                    Height: =Parent.Height
+                                    Size: =12
+                                    Text: =ThisItem.Associate.Associate
+                                    Width: =120
+                                    X: =160
+                              - lblRRowStart:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextSecondary
+                                    Height: =Parent.Height
+                                    Size: =11
+                                    Text: =Text(ThisItem.StartDateTime, "mmm d, yyyy")
+                                    Width: =110
+                                    X: =284
+                              - lblRRowEnd:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextSecondary
+                                    Height: =Parent.Height
+                                    Size: =11
+                                    Text: =Text(ThisItem.EndDateTime, "mmm d, yyyy")
+                                    Width: =110
+                                    X: =398
+                              - lblRRowPurpose:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextSecondary
+                                    Height: =Parent.Height
+                                    Size: =11
+                                    Text: =ThisItem.Purpose
+                                    Width: =140
+                                    X: =512
+                              - lblRRowStatus:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: |-
+                                      =Switch(
+                                          ThisItem.'Status (cr63e_status)',
+                                          'Status (Vehicle Reservations)'.Draft, varStatusColors.Draft,
+                                          'Status (Vehicle Reservations)'.Submitted, varStatusColors.Submitted,
+                                          'Status (Vehicle Reservations)'.Approved, varStatusColors.Approved,
+                                          'Status (Vehicle Reservations)'.CheckedOut, varStatusColors.CheckedOut,
+                                          'Status (Vehicle Reservations)'.Returned, varStatusColors.Returned,
+                                          'Status (Vehicle Reservations)'.Cancelled, varStatusColors.Cancelled,
+                                          'Status (Vehicle Reservations)'.NoShow, varStatusColors.NoShow,
+                                          varTheme.TextSecondary
+                                      )
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =Parent.Height
+                                    Size: =11
+                                    Text: =Upper(Text(ThisItem.'Status (cr63e_status)'))
+                                    Width: =90
+                                    X: =656
+                              # Contextual action buttons
+                              - btnRApprove:
+                                  Control: Button@0.0.45
+                                  Properties:
+                                    BasePaletteColor: =varStatusColors.Available
+                                    Height: =28
+                                    OnSelect: |-
+                                      =Patch(
+                                          'Vehicle Reservations',
+                                          ThisItem,
+                                          {'Status (cr63e_status)': 'Status (Vehicle Reservations)'.Approved}
+                                      );
+                                      Notify("Reservation approved.", NotificationType.Success);
+                                    Text: ="Approve"
+                                    Visible: =ThisItem.'Status (cr63e_status)' = 'Status (Vehicle Reservations)'.Submitted || ThisItem.'Status (cr63e_status)' = 'Status (Vehicle Reservations)'.Draft
+                                    Width: =70
+                                    X: =750
+                                    Y: =10
+                              - btnRCheckOut:
+                                  Control: Button@0.0.45
+                                  Properties:
+                                    BasePaletteColor: =varTheme.Primary
+                                    Height: =28
+                                    OnSelect: |-
+                                      =Patch(
+                                          'Vehicle Reservations',
+                                          ThisItem,
+                                          {'Status (cr63e_status)': 'Status (Vehicle Reservations)'.CheckedOut}
+                                      );
+                                      Patch(
+                                          CFSVehicles,
+                                          ThisItem.Vehicle,
+                                          {'Status (cr63e_status)': 'Status (CFSVehicles)'.'Checked Out'}
+                                      );
+                                      Patch(
+                                          'Vehicle Checkouts',
+                                          Defaults('Vehicle Checkouts'),
+                                          {
+                                              Vehicle: ThisItem.Vehicle,
+                                              Associate: ThisItem.Associate,
+                                              CheckedOutAt: Now()
+                                          }
+                                      );
+                                      Notify("Vehicle checked out.", NotificationType.Success);
+                                    Text: ="Check Out"
+                                    Visible: =ThisItem.'Status (cr63e_status)' = 'Status (Vehicle Reservations)'.Approved
+                                    Width: =82
+                                    X: =750
+                                    Y: =10
+                              - btnRReturn:
+                                  Control: Button@0.0.45
+                                  Properties:
+                                    BasePaletteColor: =varStatusColors.Available
+                                    Height: =28
+                                    OnSelect: |-
+                                      =Patch(
+                                          'Vehicle Reservations',
+                                          ThisItem,
+                                          {'Status (cr63e_status)': 'Status (Vehicle Reservations)'.Returned}
+                                      );
+                                      Patch(
+                                          CFSVehicles,
+                                          ThisItem.Vehicle,
+                                          {'Status (cr63e_status)': 'Status (CFSVehicles)'.Available}
+                                      );
+                                      // Close the checkout record
+                                      With(
+                                          {
+                                              openCheckout: LookUp(
+                                                  'Vehicle Checkouts',
+                                                  Vehicle.CFSVehicles = ThisItem.Vehicle.CFSVehicles &&
+                                                  IsBlank(ReturnedAt)
+                                              )
+                                          },
+                                          If(
+                                              !IsBlank(openCheckout),
+                                              Patch(
+                                                  'Vehicle Checkouts',
+                                                  openCheckout,
+                                                  {ReturnedAt: Now()}
+                                              )
+                                          )
+                                      );
+                                      Notify("Vehicle returned and available.", NotificationType.Success);
+                                    Text: ="Return"
+                                    Visible: =ThisItem.'Status (cr63e_status)' = 'Status (Vehicle Reservations)'.CheckedOut
+                                    Width: =70
+                                    X: =750
+                                    Y: =10
+                              - btnRCancel:
+                                  Control: Button@0.0.45
+                                  Properties:
+                                    Appearance: ="Secondary"
+                                    FontColor: =varTheme.Danger
+                                    Height: =28
+                                    OnSelect: |-
+                                      =Patch(
+                                          'Vehicle Reservations',
+                                          ThisItem,
+                                          {'Status (cr63e_status)': 'Status (Vehicle Reservations)'.Cancelled}
+                                      );
+                                      Notify("Reservation cancelled.", NotificationType.Warning);
+                                    Text: ="Cancel"
+                                    Visible: |-
+                                      =ThisItem.'Status (cr63e_status)' = 'Status (Vehicle Reservations)'.Draft ||
+                                      ThisItem.'Status (cr63e_status)' = 'Status (Vehicle Reservations)'.Submitted ||
+                                      ThisItem.'Status (cr63e_status)' = 'Status (Vehicle Reservations)'.Approved
+                                    Width: =64
+                                    X: |-
+                                      =If(
+                                          ThisItem.'Status (cr63e_status)' = 'Status (Vehicle Reservations)'.Approved,
+                                          838,
+                                          If(
+                                              ThisItem.'Status (cr63e_status)' = 'Status (Vehicle Reservations)'.Draft ||
+                                              ThisItem.'Status (cr63e_status)' = 'Status (Vehicle Reservations)'.Submitted,
+                                              826,
+                                              750
+                                          )
+                                      )
+                                    Y: =10
+                              - btnRNoShow:
+                                  Control: Button@0.0.45
+                                  Properties:
+                                    Appearance: ="Secondary"
+                                    FontColor: =varStatusColors.OutOfService
+                                    Height: =28
+                                    OnSelect: |-
+                                      =Patch(
+                                          'Vehicle Reservations',
+                                          ThisItem,
+                                          {'Status (cr63e_status)': 'Status (Vehicle Reservations)'.NoShow}
+                                      );
+                                      Patch(
+                                          CFSVehicles,
+                                          ThisItem.Vehicle,
+                                          {'Status (cr63e_status)': 'Status (CFSVehicles)'.Available}
+                                      );
+                                      Notify("Marked as no-show.", NotificationType.Warning);
+                                    Text: ="No Show"
+                                    Visible: =ThisItem.'Status (cr63e_status)' = 'Status (Vehicle Reservations)'.Approved
+                                    Width: =72
+                                    X: =910
+                                    Y: =10
+                              - recRRowDivider:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =varTheme.Border
+                                    Height: =1
+                                    Width: =Parent.Width - 32
+                                    X: =16
+                                    Y: =Parent.Height - 1

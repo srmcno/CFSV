@@ -63,7 +63,7 @@ Screens:
                   Align: =Align.Center
                   Color: =varTheme.TextSecondary
                   Height: =24
-                  Size: =7.87
+                  Size: =13
                   Text: ="No reservations yet"
                   Width: =Parent.Width
                   Y: =58
@@ -101,7 +101,7 @@ Screens:
               )
             LoadingSpinner: =LoadingSpinner.Controls
             TemplatePadding: =4
-            TemplateSize: =80
+            TemplateSize: =90
             Visible: =CountRows(colMyReservations) > 0
             Width: =Parent.Width
             Y: =cmpHeader_MyRes.Height + cnrResFilters.Height
@@ -142,10 +142,10 @@ Screens:
                       Properties:
                         Color: =varTheme.TextPrimary
                         FontWeight: =FontWeight.Semibold
-                        Height: =14.62
+                        Height: =22
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =8.00
+                        Size: =15
                         Text: =ThisItem.Vehicle.'Vehicle Name'
                         Width: =Parent.Width - 110
                         X: =16
@@ -154,10 +154,10 @@ Screens:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextSecondary
-                        Height: =11.24
+                        Height: =18
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =6.50
+                        Size: =12
                         Text: =Text(ThisItem.StartDateTime, "mmm d") & " – " & Text(ThisItem.EndDateTime, "mmm d, yyyy")
                         Width: =Parent.Width - 110
                         X: =16
@@ -166,10 +166,10 @@ Screens:
                       Control: Label@2.5.1
                       Properties:
                         Color: =varTheme.TextSecondary
-                        Height: =11.24
+                        Height: =16
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =6.00
+                        Size: =11
                         Text: =ThisItem.Purpose
                         Visible: =!IsBlank(ThisItem.Purpose)
                         Width: =Parent.Width - 110
@@ -181,10 +181,10 @@ Screens:
                         Align: =Align.Right
                         Color: =recResAccent.Fill
                         FontWeight: =FontWeight.Semibold
-                        Height: =11.24
+                        Height: =18
                         PaddingBottom: =2.81
                         PaddingLeft: =2.81
-                        Size: =5.62
+                        Size: =11
                         Text: =Upper(Text(ThisItem.'Status (cr63e_status)'))
                         Width: =80
                         X: =Parent.Width - 96
@@ -251,3 +251,78 @@ Screens:
             SubTitle: =CountRows(colMyReservations) & " total"
             Title: ="My Reservations"
             Width: =App.Width
+      - cnrCancelOverlay:
+          Control: GroupContainer@1.4.0
+          Variant: ManualLayout
+          Properties:
+            Fill: =RGBA(0, 0, 0, 0.7)
+            Height: =Parent.Height
+            PaddingBottom: =0.00
+            PaddingLeft: =0.00
+            Visible: =!IsBlank(varConfirmCancelRes)
+            Width: =Parent.Width
+          Children:
+            - cnrCancelDialog:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  Height: =200
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
+                  Width: =Parent.Width - 64
+                  X: =32
+                  Y: =(Parent.Height - 200) / 2
+                Children:
+                  - lblCancelTitle:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Bold
+                        Height: =30
+                        Size: =17
+                        Text: ="Cancel Reservation?"
+                        Width: =Parent.Width
+                        Y: =20
+                  - lblCancelDetail:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        Color: =varTheme.TextSecondary
+                        Height: =50
+                        Size: =13
+                        Text: =If(!IsBlank(varConfirmCancelRes), varConfirmCancelRes.Vehicle.'Vehicle Name' & Char(10) & Text(varConfirmCancelRes.StartDateTime, "mmm d") & " - " & Text(varConfirmCancelRes.EndDateTime, "mmm d, yyyy"), "")
+                        Width: =Parent.Width - 32
+                        X: =16
+                        Y: =55
+                  - btnConfirmCancel:
+                      Control: Button@0.0.45
+                      Properties:
+                        BasePaletteColor: =varStatusColors.Cancelled
+                        Height: =40
+                        OnSelect: |-
+                          =Patch(
+                              'Vehicle Reservations',
+                              varConfirmCancelRes,
+                              {'Status (cr63e_status)': 'Status (Vehicle Reservations)'.Cancelled}
+                          );
+                          Remove(colMyReservations, LookUp(colMyReservations, 'Vehicle Reservations' = varConfirmCancelRes.'Vehicle Reservations'));
+                          Set(varConfirmCancelRes, Blank());
+                          Notify("Reservation cancelled", NotificationType.Success)
+                        Text: ="Yes, Cancel It"
+                        Width: =Parent.Width - 64
+                        X: =32
+                        Y: =115
+                  - btnDismissCancel:
+                      Control: Button@0.0.45
+                      Properties:
+                        Appearance: ="Secondary"
+                        Height: =40
+                        OnSelect: =Set(varConfirmCancelRes, Blank())
+                        Text: ="Keep Reservation"
+                        Width: =Parent.Width - 64
+                        X: =32
+                        Y: =160

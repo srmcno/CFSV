@@ -1,0 +1,836 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+#
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+#
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+#
+# CFS Tribal Vehicle Admin — Fleet Overview Dashboard
+# Desktop layout: 1366x768 with 220px left sidebar + main content area
+# Shows KPI cards, active checkouts, overdue returns, open maintenance
+# ************************************************************************************************
+Screens:
+  scrAdminDashboard:
+    Properties:
+      Fill: =varTheme.Background
+      LoadingSpinnerColor: =RGBA(0, 120, 212, 1)
+      OnVisible: |-
+        =Set(varNow, Now());
+        Set(varAdminSection, "Dashboard");
+
+        // Count vehicles by status
+        Set(varTotalVehicles, CountRows(CFSVehicles));
+        Set(varAvailableCount, CountRows(Filter(CFSVehicles, 'Status (cr63e_status)' = 'Status (CFSVehicles)'.Available)));
+        Set(varCheckedOutCount, CountRows(Filter(CFSVehicles, 'Status (cr63e_status)' = 'Status (CFSVehicles)'.'Checked Out')));
+        Set(varReservedCount, CountRows(Filter(CFSVehicles, 'Status (cr63e_status)' = 'Status (CFSVehicles)'.Reserved)));
+        Set(varMaintenanceCount, CountRows(Filter(CFSVehicles, 'Status (cr63e_status)' = 'Status (CFSVehicles)'.Maintenance)));
+        Set(varOutOfServiceCount, CountRows(Filter(CFSVehicles, 'Status (cr63e_status)' = 'Status (CFSVehicles)'.'Out Of Service')));
+
+        // Active checkouts
+        ClearCollect(
+            colActiveCheckouts,
+            Sort(
+                Filter('Vehicle Checkouts', IsBlank(ReturnedAt)),
+                CheckedOutAt,
+                SortOrder.Ascending
+            )
+        );
+
+        // Overdue returns (checked out more than 24 hours ago)
+        ClearCollect(
+            colOverdueReturns,
+            Filter(
+                colActiveCheckouts,
+                DateDiff(CheckedOutAt, Now(), TimeUnit.Hours) > 24
+            )
+        );
+
+        // Open maintenance issues
+        ClearCollect(
+            colOpenMaintenance,
+            Sort(
+                Filter(
+                    'Vehicle Maintenances',
+                    'Status (cr63e_status)' = 'Status (Vehicle Maintenances)'.Open ||
+                    'Status (cr63e_status)' = 'Status (Vehicle Maintenances)'.'In Progress'
+                ),
+                ReportedDateTime,
+                SortOrder.Descending
+            )
+        );
+    Children:
+      # ── LEFT SIDEBAR NAV ──
+      - cmpAdminNav_Dashboard:
+          Control: CanvasComponent
+          ComponentName: cmpAdminNav
+          Properties:
+            ActiveKey: ="Dashboard"
+            Height: =Parent.Height
+            Width: =220
+
+      # ── MAIN CONTENT AREA ──
+      - cnrDashMain:
+          Control: GroupContainer@1.4.0
+          Variant: AutoLayout
+          Properties:
+            Fill: =varTheme.Background
+            Height: =Parent.Height
+            LayoutDirection: =LayoutDirection.Vertical
+            LayoutGap: =0
+            PaddingBottom: =0
+            PaddingLeft: =0
+            PaddingRight: =0
+            PaddingTop: =0
+            Width: =Parent.Width - 220
+            X: =220
+          Children:
+            # ── PAGE HEADER ──
+            - cnrDashHeader:
+                Control: GroupContainer@1.4.0
+                Variant: ManualLayout
+                Properties:
+                  Fill: =varTheme.Surface
+                  FillPortions: =0
+                  Height: =60
+                  Width: =Parent.Width
+                Children:
+                  - lblDashTitle:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =varTheme.TextPrimary
+                        FontWeight: =FontWeight.Bold
+                        Height: =32
+                        Size: =22
+                        Text: ="Fleet Overview"
+                        Width: =400
+                        X: =24
+                        Y: =14
+                  - lblDashDate:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Right
+                        Color: =varTheme.TextSecondary
+                        Height: =24
+                        Size: =12
+                        Text: =Text(Now(), "dddd, mmmm d, yyyy  h:mm AM/PM")
+                        Width: =300
+                        X: =Parent.Width - 324
+                        Y: =18
+                  - recDashHeaderBorder:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Fill: =varTheme.Border
+                        Height: =1
+                        Width: =Parent.Width
+                        Y: =59
+
+            # ── SCROLLABLE CONTENT ──
+            - cnrDashScroll:
+                Control: GroupContainer@1.4.0
+                Variant: AutoLayout
+                Properties:
+                  Fill: =Color.Transparent
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutGap: =16
+                  LayoutOverflowY: =LayoutOverflow.Scroll
+                  PaddingBottom: =24
+                  PaddingLeft: =24
+                  PaddingRight: =24
+                  PaddingTop: =20
+                  Width: =Parent.Width
+                Children:
+                  # ── ROW 1: KPI CARDS (6 cards in a grid) ──
+                  - cnrKPIRow:
+                      Control: GroupContainer@1.4.0
+                      Variant: GridLayout
+                      Properties:
+                        FillPortions: =0
+                        Height: =110
+                        LayoutGap: =12
+                        LayoutGridColumns: =6
+                        LayoutMinHeight: =16
+                        Width: =Parent.Width - 48
+                      Children:
+                        # KPI 1 — Total Vehicles
+                        - cnrKPITotal:
+                            Control: GroupContainer@1.4.0
+                            Variant: ManualLayout
+                            Properties:
+                              Fill: =varTheme.Surface
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                            Children:
+                              - recKPITotalAccent:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =varTheme.Primary
+                                    Height: =4
+                                    RadiusBottomLeft: =0
+                                    RadiusBottomRight: =0
+                                    RadiusTopLeft: =8
+                                    RadiusTopRight: =8
+                                    Width: =Parent.Width
+                              - lblKPITotalCount:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextPrimary
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =40
+                                    Size: =28
+                                    Text: =varTotalVehicles
+                                    Width: =Parent.Width - 24
+                                    X: =12
+                                    Y: =16
+                              - lblKPITotalLabel:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextSecondary
+                                    Height: =20
+                                    Size: =12
+                                    Text: ="Total Vehicles"
+                                    Width: =Parent.Width - 24
+                                    X: =12
+                                    Y: =54
+
+                        # KPI 2 — Available
+                        - cnrKPIAvailable:
+                            Control: GroupContainer@1.4.0
+                            Variant: ManualLayout
+                            Properties:
+                              Fill: =varTheme.Surface
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                            Children:
+                              - recKPIAvailAccent:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =varStatusColors.Available
+                                    Height: =4
+                                    RadiusBottomLeft: =0
+                                    RadiusBottomRight: =0
+                                    RadiusTopLeft: =8
+                                    RadiusTopRight: =8
+                                    Width: =Parent.Width
+                              - lblKPIAvailCount:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varStatusColors.Available
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =40
+                                    Size: =28
+                                    Text: =varAvailableCount
+                                    Width: =Parent.Width - 24
+                                    X: =12
+                                    Y: =16
+                              - lblKPIAvailLabel:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextSecondary
+                                    Height: =20
+                                    Size: =12
+                                    Text: ="Available"
+                                    Width: =Parent.Width - 24
+                                    X: =12
+                                    Y: =54
+
+                        # KPI 3 — Checked Out
+                        - cnrKPICheckedOut:
+                            Control: GroupContainer@1.4.0
+                            Variant: ManualLayout
+                            Properties:
+                              Fill: =varTheme.Surface
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                            Children:
+                              - recKPICOAccent:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =varStatusColors.CheckedOut
+                                    Height: =4
+                                    RadiusBottomLeft: =0
+                                    RadiusBottomRight: =0
+                                    RadiusTopLeft: =8
+                                    RadiusTopRight: =8
+                                    Width: =Parent.Width
+                              - lblKPICOCount:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varStatusColors.CheckedOut
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =40
+                                    Size: =28
+                                    Text: =varCheckedOutCount
+                                    Width: =Parent.Width - 24
+                                    X: =12
+                                    Y: =16
+                              - lblKPICOLabel:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextSecondary
+                                    Height: =20
+                                    Size: =12
+                                    Text: ="Checked Out"
+                                    Width: =Parent.Width - 24
+                                    X: =12
+                                    Y: =54
+
+                        # KPI 4 — Reserved
+                        - cnrKPIReserved:
+                            Control: GroupContainer@1.4.0
+                            Variant: ManualLayout
+                            Properties:
+                              Fill: =varTheme.Surface
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                            Children:
+                              - recKPIResAccent:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =varStatusColors.Reserved
+                                    Height: =4
+                                    RadiusBottomLeft: =0
+                                    RadiusBottomRight: =0
+                                    RadiusTopLeft: =8
+                                    RadiusTopRight: =8
+                                    Width: =Parent.Width
+                              - lblKPIResCount:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varStatusColors.Reserved
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =40
+                                    Size: =28
+                                    Text: =varReservedCount
+                                    Width: =Parent.Width - 24
+                                    X: =12
+                                    Y: =16
+                              - lblKPIResLabel:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextSecondary
+                                    Height: =20
+                                    Size: =12
+                                    Text: ="Reserved"
+                                    Width: =Parent.Width - 24
+                                    X: =12
+                                    Y: =54
+
+                        # KPI 5 — In Maintenance
+                        - cnrKPIMaint:
+                            Control: GroupContainer@1.4.0
+                            Variant: ManualLayout
+                            Properties:
+                              Fill: =varTheme.Surface
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                            Children:
+                              - recKPIMaintAccent:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =varStatusColors.Maintenance
+                                    Height: =4
+                                    RadiusBottomLeft: =0
+                                    RadiusBottomRight: =0
+                                    RadiusTopLeft: =8
+                                    RadiusTopRight: =8
+                                    Width: =Parent.Width
+                              - lblKPIMaintCount:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varStatusColors.Maintenance
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =40
+                                    Size: =28
+                                    Text: =varMaintenanceCount
+                                    Width: =Parent.Width - 24
+                                    X: =12
+                                    Y: =16
+                              - lblKPIMaintLabel:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextSecondary
+                                    Height: =20
+                                    Size: =12
+                                    Text: ="Maintenance"
+                                    Width: =Parent.Width - 24
+                                    X: =12
+                                    Y: =54
+
+                        # KPI 6 — Out of Service
+                        - cnrKPIOOS:
+                            Control: GroupContainer@1.4.0
+                            Variant: ManualLayout
+                            Properties:
+                              Fill: =varTheme.Surface
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                            Children:
+                              - recKPIOOSAccent:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =varStatusColors.OutOfService
+                                    Height: =4
+                                    RadiusBottomLeft: =0
+                                    RadiusBottomRight: =0
+                                    RadiusTopLeft: =8
+                                    RadiusTopRight: =8
+                                    Width: =Parent.Width
+                              - lblKPIOOSCount:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varStatusColors.OutOfService
+                                    FontWeight: =FontWeight.Bold
+                                    Height: =40
+                                    Size: =28
+                                    Text: =varOutOfServiceCount
+                                    Width: =Parent.Width - 24
+                                    X: =12
+                                    Y: =16
+                              - lblKPIOOSLabel:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextSecondary
+                                    Height: =20
+                                    Size: =12
+                                    Text: ="Out of Service"
+                                    Width: =Parent.Width - 24
+                                    X: =12
+                                    Y: =54
+
+                  # ── ROW 2: ACTIVE CHECKOUTS ──
+                  - cnrActiveCheckoutsCard:
+                      Control: GroupContainer@1.4.0
+                      Variant: ManualLayout
+                      Properties:
+                        Fill: =varTheme.Surface
+                        FillPortions: =0
+                        Height: =Max(200, 48 + CountRows(colActiveCheckouts) * 44)
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Width: =Parent.Width - 48
+                      Children:
+                        - lblActiveCheckoutsTitle:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextPrimary
+                              FontWeight: =FontWeight.Semibold
+                              Height: =36
+                              Size: =14
+                              Text: ="Active Checkouts (" & CountRows(colActiveCheckouts) & ")"
+                              Width: =Parent.Width - 180
+                              X: =16
+                              Y: =4
+                        - btnViewAllCheckouts:
+                            Control: Button@0.0.45
+                            Properties:
+                              Appearance: ="Transparent"
+                              FontColor: =varTheme.Primary
+                              Height: =32
+                              OnSelect: =Navigate(scrAdminReservations, ScreenTransition.Fade)
+                              Text: ="View All"
+                              Width: =100
+                              X: =Parent.Width - 116
+                              Y: =6
+                        - recCheckoutHeaderLine:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              Fill: =varTheme.Border
+                              Height: =1
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =40
+                        # Column headers
+                        - lblCOHdrVehicle:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              FontWeight: =FontWeight.Semibold
+                              Height: =28
+                              Size: =11
+                              Text: ="VEHICLE"
+                              Width: =200
+                              X: =16
+                              Y: =42
+                        - lblCOHdrAssociate:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              FontWeight: =FontWeight.Semibold
+                              Height: =28
+                              Size: =11
+                              Text: ="ASSOCIATE"
+                              Width: =200
+                              X: =220
+                              Y: =42
+                        - lblCOHdrCheckedOut:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              FontWeight: =FontWeight.Semibold
+                              Height: =28
+                              Size: =11
+                              Text: ="CHECKED OUT"
+                              Width: =180
+                              X: =424
+                              Y: =42
+                        - lblCOHdrDuration:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =varTheme.TextSecondary
+                              FontWeight: =FontWeight.Semibold
+                              Height: =28
+                              Size: =11
+                              Text: ="DURATION"
+                              Width: =150
+                              X: =608
+                              Y: =42
+                        - galActiveCheckouts:
+                            Control: Gallery@2.15.0
+                            Variant: BrowseLayout_Vertical_OneTextVariant_pcfCore
+                            Properties:
+                              BorderColor: =Color.Transparent
+                              Height: =Parent.Height - 72
+                              Items: =colActiveCheckouts
+                              LoadingSpinner: =LoadingSpinner.Controls
+                              TemplatePadding: =0
+                              TemplateSize: =44
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =70
+                            Children:
+                              - cnrCORow:
+                                  Control: GroupContainer@1.4.0
+                                  Variant: ManualLayout
+                                  Properties:
+                                    Fill: =If(Mod(ThisItem.ID, 2) = 0, RGBA(249, 249, 249, 1), varTheme.Surface)
+                                    Height: =Parent.TemplateHeight
+                                    Width: =Parent.TemplateWidth
+                                  Children:
+                                    - lblCOVehicle:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Color: =varTheme.TextPrimary
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =Parent.Height
+                                          Size: =12
+                                          Text: =ThisItem.Vehicle.'Vehicle Name'
+                                          Width: =200
+                                    - lblCOAssociate:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Color: =varTheme.TextPrimary
+                                          Height: =Parent.Height
+                                          Size: =12
+                                          Text: =ThisItem.Associate.Associate
+                                          Width: =200
+                                          X: =204
+                                    - lblCODate:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Color: =varTheme.TextSecondary
+                                          Height: =Parent.Height
+                                          Size: =12
+                                          Text: =Text(ThisItem.CheckedOutAt, "mmm d, h:mm AM/PM")
+                                          Width: =180
+                                          X: =408
+                                    - lblCODuration:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Color: =If(DateDiff(ThisItem.CheckedOutAt, Now(), TimeUnit.Hours) > 24, varStatusColors.CheckedOut, varTheme.TextPrimary)
+                                          FontWeight: =If(DateDiff(ThisItem.CheckedOutAt, Now(), TimeUnit.Hours) > 24, FontWeight.Bold, FontWeight.Normal)
+                                          Height: =Parent.Height
+                                          Size: =12
+                                          Text: |-
+                                            =With(
+                                                {hrs: DateDiff(ThisItem.CheckedOutAt, Now(), TimeUnit.Hours)},
+                                                If(
+                                                    hrs < 1, "< 1 hr",
+                                                    hrs < 24, Text(hrs) & " hrs",
+                                                    Text(RoundDown(hrs / 24, 0)) & "d " & Text(Mod(hrs, 24)) & "h"
+                                                )
+                                            )
+                                          Width: =150
+                                          X: =592
+                        - lblNoCheckouts:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Center
+                              Color: =varTheme.TextSecondary
+                              Height: =60
+                              Size: =13
+                              Text: ="No vehicles are currently checked out"
+                              Visible: =CountRows(colActiveCheckouts) = 0
+                              Width: =Parent.Width
+                              Y: =80
+
+                  # ── ROW 3: OVERDUE + MAINTENANCE SIDE BY SIDE ──
+                  - cnrBottomRow:
+                      Control: GroupContainer@1.4.0
+                      Variant: AutoLayout
+                      Properties:
+                        Fill: =Color.Transparent
+                        FillPortions: =0
+                        Height: =280
+                        LayoutDirection: =LayoutDirection.Horizontal
+                        LayoutGap: =16
+                        Width: =Parent.Width - 48
+                      Children:
+                        # Left: Overdue Returns
+                        - cnrOverdueCard:
+                            Control: GroupContainer@1.4.0
+                            Variant: ManualLayout
+                            Properties:
+                              Fill: =varTheme.Surface
+                              FillPortions: =1
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                            Children:
+                              - recOverdueAccentBar:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =If(CountRows(colOverdueReturns) > 0, varStatusColors.CheckedOut, varStatusColors.Available)
+                                    Height: =4
+                                    RadiusTopLeft: =8
+                                    RadiusTopRight: =8
+                                    Width: =Parent.Width
+                              - lblOverdueTitle:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextPrimary
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =36
+                                    Size: =14
+                                    Text: ="Overdue Returns (" & CountRows(colOverdueReturns) & ")"
+                                    Width: =Parent.Width - 32
+                                    X: =16
+                                    Y: =8
+                              - recOverdueHeaderLine:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =varTheme.Border
+                                    Height: =1
+                                    Width: =Parent.Width - 32
+                                    X: =16
+                                    Y: =44
+                              - galOverdue:
+                                  Control: Gallery@2.15.0
+                                  Variant: BrowseLayout_Vertical_OneTextVariant_pcfCore
+                                  Properties:
+                                    BorderColor: =Color.Transparent
+                                    Height: =Parent.Height - 56
+                                    Items: =colOverdueReturns
+                                    LoadingSpinner: =LoadingSpinner.Controls
+                                    TemplatePadding: =0
+                                    TemplateSize: =52
+                                    Width: =Parent.Width - 32
+                                    X: =16
+                                    Y: =48
+                                  Children:
+                                    - cnrOverdueRow:
+                                        Control: GroupContainer@1.4.0
+                                        Variant: ManualLayout
+                                        Properties:
+                                          Fill: =Color.Transparent
+                                          Height: =Parent.TemplateHeight
+                                          Width: =Parent.TemplateWidth
+                                        Children:
+                                          - recOverdueRowAccent:
+                                              Control: Rectangle@2.3.0
+                                              Properties:
+                                                Fill: =varStatusColors.CheckedOut
+                                                Height: =36
+                                                Width: =4
+                                                Y: =8
+                                          - lblOverdueVehicle:
+                                              Control: Label@2.5.1
+                                              Properties:
+                                                Color: =varTheme.TextPrimary
+                                                FontWeight: =FontWeight.Semibold
+                                                Height: =20
+                                                Size: =12
+                                                Text: =ThisItem.Vehicle.'Vehicle Name'
+                                                Width: =Parent.Width - 120
+                                                X: =12
+                                                Y: =6
+                                          - lblOverdueAssociate:
+                                              Control: Label@2.5.1
+                                              Properties:
+                                                Color: =varTheme.TextSecondary
+                                                Height: =18
+                                                Size: =11
+                                                Text: =ThisItem.Associate.Associate & " - " & Text(ThisItem.CheckedOutAt, "mmm d h:mm AM/PM")
+                                                Width: =Parent.Width - 120
+                                                X: =12
+                                                Y: =26
+                                          - lblOverdueHrs:
+                                              Control: Label@2.5.1
+                                              Properties:
+                                                Align: =Align.Right
+                                                Color: =varStatusColors.CheckedOut
+                                                FontWeight: =FontWeight.Bold
+                                                Height: =Parent.Height
+                                                Size: =11
+                                                Text: =Text(DateDiff(ThisItem.CheckedOutAt, Now(), TimeUnit.Hours)) & "h"
+                                                Width: =60
+                                                X: =Parent.Width - 64
+                              - lblNoOverdue:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Center
+                                    Color: =varStatusColors.Available
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =40
+                                    Size: =13
+                                    Text: ="All returns on time"
+                                    Visible: =CountRows(colOverdueReturns) = 0
+                                    Width: =Parent.Width
+                                    Y: =100
+
+                        # Right: Open Maintenance
+                        - cnrMaintCard:
+                            Control: GroupContainer@1.4.0
+                            Variant: ManualLayout
+                            Properties:
+                              Fill: =varTheme.Surface
+                              FillPortions: =1
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                            Children:
+                              - recMaintAccentBar:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =If(CountRows(colOpenMaintenance) > 0, varStatusColors.Warning, varStatusColors.Available)
+                                    Height: =4
+                                    RadiusTopLeft: =8
+                                    RadiusTopRight: =8
+                                    Width: =Parent.Width
+                              - lblMaintTitle:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =varTheme.TextPrimary
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =36
+                                    Size: =14
+                                    Text: ="Open Maintenance (" & CountRows(colOpenMaintenance) & ")"
+                                    Width: =Parent.Width - 140
+                                    X: =16
+                                    Y: =8
+                              - btnViewAllMaint:
+                                  Control: Button@0.0.45
+                                  Properties:
+                                    Appearance: ="Transparent"
+                                    FontColor: =varTheme.Primary
+                                    Height: =32
+                                    OnSelect: =Navigate(scrAdminMaintenance, ScreenTransition.Fade)
+                                    Text: ="View All"
+                                    Width: =100
+                                    X: =Parent.Width - 116
+                                    Y: =8
+                              - recMaintHeaderLine:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =varTheme.Border
+                                    Height: =1
+                                    Width: =Parent.Width - 32
+                                    X: =16
+                                    Y: =44
+                              - galOpenMaint:
+                                  Control: Gallery@2.15.0
+                                  Variant: BrowseLayout_Vertical_OneTextVariant_pcfCore
+                                  Properties:
+                                    BorderColor: =Color.Transparent
+                                    Height: =Parent.Height - 56
+                                    Items: =FirstN(colOpenMaintenance, 5)
+                                    LoadingSpinner: =LoadingSpinner.Controls
+                                    TemplatePadding: =0
+                                    TemplateSize: =52
+                                    Width: =Parent.Width - 32
+                                    X: =16
+                                    Y: =48
+                                  Children:
+                                    - cnrMaintRow:
+                                        Control: GroupContainer@1.4.0
+                                        Variant: ManualLayout
+                                        Properties:
+                                          Fill: =Color.Transparent
+                                          Height: =Parent.TemplateHeight
+                                          Width: =Parent.TemplateWidth
+                                        Children:
+                                          - recMaintRowAccent:
+                                              Control: Rectangle@2.3.0
+                                              Properties:
+                                                Fill: |-
+                                                  =If(
+                                                      Text(ThisItem.'Status (cr63e_status)') = "Open",
+                                                      varStatusColors.Open,
+                                                      varStatusColors.InProgress
+                                                  )
+                                                Height: =36
+                                                Width: =4
+                                                Y: =8
+                                          - lblMaintVehicle:
+                                              Control: Label@2.5.1
+                                              Properties:
+                                                Color: =varTheme.TextPrimary
+                                                FontWeight: =FontWeight.Semibold
+                                                Height: =20
+                                                Size: =12
+                                                Text: =ThisItem.Vehicle.'Vehicle Name'
+                                                Width: =Parent.Width - 120
+                                                X: =12
+                                                Y: =6
+                                          - lblMaintType:
+                                              Control: Label@2.5.1
+                                              Properties:
+                                                Color: =varTheme.TextSecondary
+                                                Height: =18
+                                                Size: =11
+                                                Text: =Text(ThisItem.Type) & " - " & Text(ThisItem.'Status (cr63e_status)')
+                                                Width: =Parent.Width - 120
+                                                X: =12
+                                                Y: =26
+                                          - lblMaintAge:
+                                              Control: Label@2.5.1
+                                              Properties:
+                                                Align: =Align.Right
+                                                Color: =varTheme.TextSecondary
+                                                Height: =Parent.Height
+                                                Size: =11
+                                                Text: |-
+                                                  =With(
+                                                      {d: DateDiff(ThisItem.ReportedDateTime, Now(), TimeUnit.Days)},
+                                                      If(d < 1, "Today", d & "d ago")
+                                                  )
+                                                Width: =60
+                                                X: =Parent.Width - 64
+                              - lblNoMaint:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Center
+                                    Color: =varStatusColors.Available
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =40
+                                    Size: =13
+                                    Text: ="No open maintenance issues"
+                                    Visible: =CountRows(colOpenMaintenance) = 0
+                                    Width: =Parent.Width
+                                    Y: =100
