@@ -171,10 +171,10 @@ Screens:
                   Height: =Parent.TemplateHeight - 6
                   PaddingBottom: =0.00
                   PaddingLeft: =0.00
-                  BorderRadiusBottomLeft: =16
-                  BorderRadiusBottomRight: =16
-                  BorderRadiusTopLeft: =16
-                  BorderRadiusTopRight: =16
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
                   Width: =Parent.TemplateWidth - 24
                   X: =12
                   Y: =0.00
@@ -259,10 +259,10 @@ Screens:
                         Height: =24
                         PaddingBottom: =0.00
                         PaddingLeft: =0.00
-                        BorderRadiusBottomLeft: =12
-                        BorderRadiusBottomRight: =12
-                        BorderRadiusTopLeft: =12
-                        BorderRadiusTopRight: =12
+                        RadiusBottomLeft: =12
+                        RadiusBottomRight: =12
+                        RadiusTopLeft: =12
+                        RadiusTopRight: =12
                         Width: =88
                         X: =Parent.Width - 100
                         Y: =12
@@ -314,10 +314,10 @@ Screens:
             Height: =220
             PaddingBottom: =0.00
             PaddingLeft: =0.00
-            BorderRadiusBottomLeft: =16
-            BorderRadiusBottomRight: =16
-            BorderRadiusTopLeft: =16
-            BorderRadiusTopRight: =16
+            RadiusBottomLeft: =16
+            RadiusBottomRight: =16
+            RadiusTopLeft: =16
+            RadiusTopRight: =16
             Visible: |-
               =CountRows(
                   Filter(
@@ -430,10 +430,10 @@ Screens:
                   Height: =230
                   PaddingBottom: =0.00
                   PaddingLeft: =0.00
-                  BorderRadiusBottomLeft: =16
-                  BorderRadiusBottomRight: =16
-                  BorderRadiusTopLeft: =16
-                  BorderRadiusTopRight: =16
+                  RadiusBottomLeft: =16
+                  RadiusBottomRight: =16
+                  RadiusTopLeft: =16
+                  RadiusTopRight: =16
                   Width: =Parent.Width - 64
                   X: =32
                   Y: =(Parent.Height - 230) / 2
