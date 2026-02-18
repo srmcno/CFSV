@@ -71,10 +71,6 @@ Screens:
                 Properties:
                   Fill: =varTheme.Background
                   Height: =40
-                  RadiusBottomLeft: =20
-                  RadiusBottomRight: =20
-                  RadiusTopLeft: =20
-                  RadiusTopRight: =20
                   Width: =Parent.Width - 32
                   X: =16
                   Y: =6
@@ -199,8 +195,6 @@ Screens:
                               RGBA(96, 94, 92, 1)
                           )
                         Height: =Parent.Height
-                        RadiusBottomLeft: =16
-                        RadiusTopLeft: =16
                         Width: =6
                   # ── Vehicle name (15px bold) ──
                   - lblResVehicle:
@@ -346,10 +340,6 @@ Screens:
                 Properties:
                   Fill: =varTheme.PrimaryBg
                   Height: =48
-                  RadiusBottomLeft: =24
-                  RadiusBottomRight: =24
-                  RadiusTopLeft: =24
-                  RadiusTopRight: =24
                   Width: =48
                   X: =(Parent.Width - 48) / 2
                   Y: =20
