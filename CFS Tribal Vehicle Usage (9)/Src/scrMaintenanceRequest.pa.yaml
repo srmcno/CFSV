@@ -410,10 +410,6 @@ Screens:
                   BorderThickness: =4
                   Fill: =Color.Transparent
                   Height: =48
-                  RadiusBottomLeft: =24
-                  RadiusBottomRight: =24
-                  RadiusTopLeft: =24
-                  RadiusTopRight: =24
                   Width: =48
                   X: =(Parent.Width - 48) / 2
                   Y: =(Parent.Height - 80) / 2
@@ -425,10 +421,6 @@ Screens:
                   BorderThickness: =4
                   Fill: =Color.Transparent
                   Height: =48
-                  RadiusBottomLeft: =24
-                  RadiusBottomRight: =0
-                  RadiusTopLeft: =24
-                  RadiusTopRight: =0
                   Width: =48
                   X: =(Parent.Width - 48) / 2
                   Y: =(Parent.Height - 80) / 2
