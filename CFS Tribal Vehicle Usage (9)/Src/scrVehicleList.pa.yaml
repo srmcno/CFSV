@@ -84,10 +84,6 @@ Screens:
                 Properties:
                   Fill: =varTheme.Background
                   Height: =varSize.ButtonH
-                  RadiusBottomLeft: =varSize.SmallRadius
-                  RadiusBottomRight: =varSize.SmallRadius
-                  RadiusTopLeft: =varSize.SmallRadius
-                  RadiusTopRight: =varSize.SmallRadius
                   Width: =If(varFilterStatus = "All", Parent.Width - 32, Parent.Width - 84)
                   X: =16
                   Y: =12
@@ -134,10 +130,6 @@ Screens:
                 Properties:
                   Fill: =varTheme.Background
                   Height: =44
-                  RadiusBottomLeft: =22
-                  RadiusBottomRight: =22
-                  RadiusTopLeft: =22
-                  RadiusTopRight: =22
                   Width: =Parent.Width - 32
                   X: =16
                   Y: =70
@@ -319,10 +311,6 @@ Screens:
                               varTheme.Background
                           )
                         Height: =24
-                        RadiusBottomLeft: =12
-                        RadiusBottomRight: =12
-                        RadiusTopLeft: =12
-                        RadiusTopRight: =12
                         Width: =90
                         X: =Parent.Width - 118
                         Y: =(Parent.Height - 24) / 2 - 10
@@ -420,10 +408,6 @@ Screens:
                       Properties:
                         Fill: =varTheme.PrimaryBg
                         Height: =56
-                        RadiusBottomLeft: =28
-                        RadiusBottomRight: =28
-                        RadiusTopLeft: =28
-                        RadiusTopRight: =28
                         Width: =56
                         X: =(Parent.Width - 56) / 2
                         Y: =24
@@ -483,10 +467,10 @@ Screens:
                           =Set(varFilterStatus, "All");
                           Set(varShowAllLocations, true);
                           Reset(txtSearch)
-                        RadiusBottomLeft: =20
-                        RadiusBottomRight: =20
-                        RadiusTopLeft: =20
-                        RadiusTopRight: =20
+                        BorderRadiusBottomLeft: =20
+                        BorderRadiusBottomRight: =20
+                        BorderRadiusTopLeft: =20
+                        BorderRadiusTopRight: =20
                         Text: ="Clear Filters"
                         Visible: =varFilterStatus <> "All" || !IsBlank(txtSearch.Value) || (!varShowAllLocations && varUserHasProfile)
                         Width: =160
